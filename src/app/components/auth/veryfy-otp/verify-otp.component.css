@@ -1,0 +1,66 @@
+.otp-container {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+
+  h2 {
+    margin-bottom: 1rem;
+  }
+
+  .otp-inputs {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem 0;
+
+    input {
+      width: 50px;
+      height: 50px;
+      font-size: 1.5rem;
+      text-align: center;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      transition: border-color 0.2s;
+
+      &:focus {
+        border-color: #4CAF50;
+        outline: none;
+      }
+    }
+  }
+
+  button {
+    width: 100%;
+    padding: 0.8rem;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    border: none;
+    color: white;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+  }
+
+  .resend {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    a {
+      color: #2E7D32;
+      cursor: pointer;
+    }
+  }
+}
+
+.success {
+  text-align: center;
+  font-size: 1.2rem;
+  color: green;
+  margin-top: 2rem;
+}
