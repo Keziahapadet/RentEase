@@ -1,6 +1,7 @@
 // landing.component.ts
 import { Component, OnInit, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 @Component({
@@ -8,16 +9,17 @@ import { Router } from '@angular/router';
   templateUrl: './landing.html',
   styleUrls: ['./landing.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, FormsModule]
 })
 export class LandingComponent implements OnInit {
+  // Detect browser for SSR compatibility
   private isBrowser: boolean;
 
   // Navbar state
-  isNavScrolled = false;
-  isMobileMenuOpen = false;
+  isNavScrolled: boolean = false;
+  isMobileMenuOpen: boolean = false;
 
-  // Stats data
+  // Stats data for template
   stats = [
     { current: '24/7', suffix: '', label: 'Platform Availability' },
     { current: '100', suffix: '%', label: 'Secure & Encrypted' },
@@ -25,89 +27,81 @@ export class LandingComponent implements OnInit {
     { current: '0', suffix: '', label: 'Hidden Fees' }
   ];
 
-  currentYear = new Date().getFullYear();
+  // Footer current year
+  currentYear: number = new Date().getFullYear();
 
   constructor(
-    @Inject(PLATFORM_ID) private platformId: any,
+    @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
-  ngOnInit() {
-    console.log('Landing component loaded successfully');
+  ngOnInit(): void {
     if (this.isBrowser) {
-      setTimeout(() => {
-        this.setupScrollAnimations();
-      }, 100);
+      setTimeout(() => this.setupScrollAnimations(), 100);
     }
   }
 
+  // Navbar scroll listener
   @HostListener('window:scroll', [])
-  onWindowScroll() {
+  onWindowScroll(): void {
     if (this.isBrowser) {
       this.isNavScrolled = window.scrollY > 50;
     }
   }
 
-  scrollToSection(sectionId: string) {
-    console.log('scrollToSection called with:', sectionId);
-    if (this.isBrowser) {
-      const element = document.getElementById(sectionId);
-      console.log('Element found:', element);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        this.isMobileMenuOpen = false;
-      } else {
-        console.log('Element not found for id:', sectionId);
-      }
-    }
-  }
-
-  scrollToTop() {
-    console.log('scrollToTop called');
+  // Scroll to top
+  scrollToTop(): void {
     if (this.isBrowser) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  toggleMobileMenu() {
-    console.log('toggleMobileMenu called');
+  // Scroll to a specific section by ID
+  scrollToSection(sectionId: string): void {
+    if (this.isBrowser) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        this.isMobileMenuOpen = false;
+      }
+    }
+  }
+
+  // Toggle mobile menu
+  toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
 
-  navigateToRegister() {
-    console.log('navigateToRegister called');
-    alert('Navigating to registration...');
-    this.router.navigate(['/registration']);
+  // Navigate to registration page
+  navigateToRegister(): void {
+    this.router.navigateByUrl('/registration');
   }
 
-  onContactSubmit(event: Event) {
-    console.log('Contact form submitted');
+  // Handle contact form submission
+  onContactSubmit(event: Event): void {
     event.preventDefault();
-    
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
-    
-    console.log('Contact form data:', data);
+
+    console.log('Contact form submitted:', data);
     alert('Thank you for your message! We will get back to you within 24 hours.');
     form.reset();
   }
 
-  private setupScrollAnimations() {
+  // Setup scroll animations for stats, features, and pricing
+  private setupScrollAnimations(): void {
     if (!this.isBrowser) return;
 
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
+    const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          (entry.target as HTMLElement).style.opacity = '1';
-          (entry.target as HTMLElement).style.transform = 'translateY(0)';
+          const target = entry.target as HTMLElement;
+          target.style.opacity = '1';
+          target.style.transform = 'translateY(0)';
         }
       });
     }, observerOptions);
