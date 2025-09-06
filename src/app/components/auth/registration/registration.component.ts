@@ -1,10 +1,11 @@
-// registration.component.ts - Updated with Firebase
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-
-// Firebase imports
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Auth, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
 import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
@@ -13,11 +14,10 @@ import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage
   selector: 'app-registration',
   standalone: true,
   templateUrl: './registration.component.html',
-  styleUrls: ['./registration.component.scss'],
-  imports: [CommonModule, FormsModule]
+  styleUrls: ['./registration.component.css'],
+  imports: [CommonModule, FormsModule, MatIconModule, MatFormFieldModule, MatInputModule, MatButtonModule]
 })
 export class RegistrationComponent {
-  // Inject Firebase services
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private storage = inject(Storage);
@@ -26,24 +26,18 @@ export class RegistrationComponent {
   isLoading: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
-  
-  // Terms and conditions checkboxes
   agreedToTerms: boolean = false;
   agreedToPrivacy: boolean = false;
   agreedToMarketing: boolean = false;
+  showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
 
   formData: any = {
-    // Universal fields
     fullName: '',
     email: '',
     phone: '',
     password: '',
     confirmPassword: '',
-    
-    // Role-specific data
-    tenant: {
-      profilePicture: null
-    },
     
     landlord: {
       businessName: '',
@@ -74,13 +68,21 @@ export class RegistrationComponent {
   };
 
   constructor(private router: Router) {}
+  
+  togglePassword(field: string) {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+    } else if (field === 'confirm') {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    }
+  }
 
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
       console.log('File uploaded:', file.name, file.size, file.type);
       
-      // Validate file size (limit to 5MB)
+      // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         alert('File size must be less than 5MB');
         event.target.value = '';
@@ -98,9 +100,7 @@ export class RegistrationComponent {
       // Store file reference based on input name
       const inputName = event.target.name || event.target.getAttribute('data-field');
       
-      if (this.selectedRole === 'tenant' && inputName === 'profilePicture') {
-        this.formData.tenant.profilePicture = file;
-      } else if (this.selectedRole === 'business') {
+      if (this.selectedRole === 'business') {
         if (event.target.previousElementSibling?.textContent?.includes('Registration Certificate')) {
           this.formData.business.registrationCertificate = file;
         } else if (event.target.previousElementSibling?.textContent?.includes('Tax PIN')) {
@@ -113,7 +113,6 @@ export class RegistrationComponent {
   validateForm(): boolean {
     this.errorMessage = '';
 
-    // Basic validation
     if (!this.selectedRole) {
       this.errorMessage = 'Please select a role.';
       return false;
@@ -149,7 +148,6 @@ export class RegistrationComponent {
       return false;
     }
 
-    // Role-specific validation
     switch (this.selectedRole) {
       case 'landlord':
         if (!this.formData.landlord.numProperties || this.formData.landlord.numProperties < 1) {
@@ -196,10 +194,9 @@ export class RegistrationComponent {
     return true;
   }
 
-  // Upload file to Firebase Storage
-  async uploadProfilePicture(file: File, uid: string): Promise<string> {
+  async uploadFile(file: File, path: string): Promise<string> {
     try {
-      const fileName = `profile-pictures/${uid}/${Date.now()}_${file.name}`;
+      const fileName = `${path}/${Date.now()}_${file.name}`;
       const storageRef = ref(this.storage, fileName);
       
       console.log('Uploading file to:', fileName);
@@ -214,7 +211,6 @@ export class RegistrationComponent {
     }
   }
 
-  // Create user document in Firestore
   async createUserDocument(uid: string, userData: any) {
     try {
       const userDocRef = doc(this.firestore, `users/${uid}`);
@@ -248,7 +244,6 @@ export class RegistrationComponent {
     try {
       console.log('Starting Firebase registration process...');
 
-      // Format phone number
       const formattedPhone = this.formatPhoneNumber(this.formData.phone);
 
       // 1. Create Firebase Auth user
@@ -268,14 +263,24 @@ export class RegistrationComponent {
       });
       console.log('User profile updated');
 
-      // 3. Handle file upload for tenant profile picture
-      let profilePictureUrl = '';
-      if (this.selectedRole === 'tenant' && this.formData.tenant.profilePicture) {
-        console.log('Uploading tenant profile picture...');
-        profilePictureUrl = await this.uploadProfilePicture(
-          this.formData.tenant.profilePicture, 
-          user.uid
-        );
+      // 3. Handle file uploads for business role
+      let uploadedFiles: any = {};
+      if (this.selectedRole === 'business') {
+        if (this.formData.business.registrationCertificate) {
+          console.log('Uploading business registration certificate...');
+          uploadedFiles.registrationCertificateUrl = await this.uploadFile(
+            this.formData.business.registrationCertificate, 
+            `business-documents/${user.uid}/registration`
+          );
+        }
+        
+        if (this.formData.business.taxPinCertificate) {
+          console.log('Uploading tax PIN certificate...');
+          uploadedFiles.taxPinCertificateUrl = await this.uploadFile(
+            this.formData.business.taxPinCertificate, 
+            `business-documents/${user.uid}/tax-pin`
+          );
+        }
       }
 
       // 4. Prepare user data for Firestore
@@ -285,8 +290,7 @@ export class RegistrationComponent {
         personalInfo: {
           fullName: this.formData.fullName.trim(),
           email: this.formData.email.trim().toLowerCase(),
-          phone: formattedPhone,
-          profilePictureUrl: profilePictureUrl || ''
+          phone: formattedPhone
         },
         roleSpecificData: {},
         preferences: {
@@ -302,12 +306,16 @@ export class RegistrationComponent {
       // Add role-specific data
       if (this.selectedRole === 'tenant') {
         userData.roleSpecificData = {
-          profilePictureUrl: profilePictureUrl,
           preferences: {
             propertyTypes: [],
             budgetRange: { min: 0, max: 0 },
             preferredLocations: []
           }
+        };
+      } else if (this.selectedRole === 'business') {
+        userData.roleSpecificData = {
+          ...this.formData.business,
+          ...uploadedFiles
         };
       } else {
         userData.roleSpecificData = this.formData[this.selectedRole];
@@ -325,7 +333,7 @@ export class RegistrationComponent {
       this.successMessage = 'Account created successfully! Please check your email for verification.';
       console.log('Registration completed successfully for:', user.email);
 
-      // 8. Navigate to OTP verification page
+      // 8. Navigate to verification page
       setTimeout(() => {
         this.router.navigate(['/verify-otp'], { 
           queryParams: { 
@@ -355,7 +363,7 @@ export class RegistrationComponent {
     }
   }
 
-  // Utility methods (keeping your existing ones)
+  // Utility methods
   isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -403,7 +411,6 @@ export class RegistrationComponent {
 
   onRoleChange() {
     // Clear previous role-specific data when role changes
-    this.formData.tenant = { profilePicture: null };
     this.formData.landlord = {
       businessName: '', numProperties: null, propertyTypes: '', businessRegNumber: '', taxPin: ''
     };
@@ -415,7 +422,8 @@ export class RegistrationComponent {
       earbLicense: '', propertiesManaged: null, numEmployees: null, bankAccount: '', primaryContact: '', description: ''
     };
   }
-   navigateToLogin() {
+
+  navigateToLogin() {
     this.router.navigate(['/login']);
   }
 

@@ -79,8 +79,8 @@ body {
 }
 
 .header h1 {
-  font-size: 1.5rem;
-  font-weight: 400;
+  font-size: 1.75rem;
+  font-weight: 500;
   margin-bottom: 0.5rem;
   position: relative;
   z-index: 1;
@@ -163,7 +163,7 @@ body {
 .form-control {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
   font-size: 1rem;
   background: #ffffff;
@@ -188,7 +188,7 @@ body {
 }
 
 .form-control:invalid {
-  border-color: #2563eb;
+  border-color:#2563eb;
 }
 
 select.form-control {
@@ -241,39 +241,19 @@ textarea.form-control {
   margin-bottom: 1.5rem;
 }
 
-.otp-header,
-.email-verify-header {
+.otp-header {
   text-align: center;
   margin-bottom: 1.5rem;
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 0.75rem;
-  border: 1px solid #e5e7eb;
 }
 
-.otp-header h3,
-.email-verify-header h3 {
+.otp-header h3 {
   font-size: 1.5rem;
   font-weight: 600;
   color: #1f2937;
   margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
 }
 
-.otp-header h3::before,
-.email-verify-header h3::before {
-  content: '';
-  width: 4px;
-  height: 20px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-radius: 2px;
-}
-
-.otp-header p,
-.email-verify-header p {
+.otp-header p {
   color: #6b7280;
   margin: 0;
 }
@@ -702,7 +682,7 @@ textarea.form-control {
   }
 
   .header h1 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
   .form-section {

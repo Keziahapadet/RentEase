@@ -4,7 +4,7 @@ import { RegistrationComponent } from './components/auth/registration/registrati
 import { VerifyOtpComponent } from './components/auth/veryfy-otp/verify-otp.component'; 
 import { TenantDashboardComponent } from './tenant-dashboard/tenant-dashboard.component';
 import { LoginComponent } from './components/auth/login/login';
-import { LandlordDashboard } from './landlord-dashboard/landlord-dashboard';
+import { LandlordDashboardComponent } from './landlord-dashboard/landlord-dashboard'
 
 export const routes: Routes = [
   { 
@@ -26,8 +26,9 @@ export const routes: Routes = [
   }, 
    { 
     path: 'landlord-dashboard',         
-    component: LandlordDashboard 
+    component: LandlordDashboardComponent 
   },
+  { path: 'landlord', redirectTo: '/landlord-dashboard' },
    { path: 'login', 
     component: LoginComponent 
   }, 

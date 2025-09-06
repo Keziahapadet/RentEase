@@ -1,21 +1,39 @@
-
 <div class="registration-container">
+  <!-- Header -->
   <div class="header">
-    <h1>Create Your Account</h1>
+    <h1>Get Started with RentEase</h1>
     <p class="subtitle">Join our platform and start managing your properties</p>
   </div>
 
   <div class="step-container">
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+      <mat-icon>error</mat-icon>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success">
+      <mat-icon>check_circle</mat-icon>
+      {{ successMessage }}
+    </div>
+
     <form (ngSubmit)="submitForm()" #registrationForm="ngForm">
+      <!-- Role Selection -->
       <div class="form-section">
         <h3>Select Your Role</h3>
         <div class="form-group">
-          <select [(ngModel)]="selectedRole" name="role" class="form-control" required>
+          <select 
+            [(ngModel)]="selectedRole" 
+            (ngModelChange)="onRoleChange()"
+            name="role" 
+            class="form-control" 
+            required>
             <option value="">Select your role...</option>
-            <option value="tenant"> Tenant </option>
-            <option value="landlord"> Landlord </option>
-            <option value="caretaker"> Caretaker </option>
-            <option value="business"> Business </option>
+            <option value="tenant">Tenant</option>
+            <option value="landlord">Landlord</option>
+            <option value="caretaker">Caretaker - Property management staff</option>
+            <option value="business">Business - Property management company</option>
           </select>
         </div>
       </div>
@@ -23,128 +41,326 @@
       <!-- Universal Personal Information -->
       <div class="form-section">
         <h3>Personal Information</h3>
+        
         <div class="form-group">
-          <label>Full Name *</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.fullName" name="fullName" required />
+          <label for="fullName">Full Name *</label>
+          <input 
+            type="text" 
+            id="fullName"
+            class="form-control" 
+            [(ngModel)]="formData.fullName" 
+            name="fullName" 
+            required />
         </div>
+        
         <div class="form-group">
-          <label>Email Address *</label>
-          <input type="email" class="form-control" [(ngModel)]="formData.email" name="email" required />
+          <label for="email">Email Address *</label>
+          <input 
+            type="email" 
+            id="email"
+            class="form-control" 
+            [(ngModel)]="formData.email" 
+            name="email" 
+            required />
         </div>
+        
         <div class="form-group">
-          <label>Phone Number *</label>
-          <input type="tel" class="form-control" [(ngModel)]="formData.phone" name="phone" placeholder="+254 700 000 000" required />
+          <label for="phone">Phone Number *</label>
+          <input 
+            type="tel" 
+            id="phone"
+            class="form-control" 
+            [(ngModel)]="formData.phone" 
+            name="phone" 
+            placeholder="+254 700 000 000" 
+            required />
         </div>
-        <div class="form-group">
-          <label>Password *</label>
-          <input type="password" class="form-control" [(ngModel)]="formData.password" name="password" required minlength="8" />
+        
+        <!-- Password Field -->
+        <div class="form-group password-group">
+          <label for="password">Password *</label>
+          <div class="password-input-container">
+            <input 
+              [type]="showPassword ? 'text' : 'password'" 
+              id="password"
+              class="form-control" 
+              [(ngModel)]="formData.password" 
+              name="password" 
+              required 
+              minlength="8" />
+            <button type="button" class="password-toggle" (click)="togglePassword('password')">
+              <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+          </div>
+          <!-- Password strength indicator -->
+          <div *ngIf="formData.password" class="password-strength">
+            <div class="strength-bar" [ngClass]="getPasswordStrength(formData.password)"></div>
+            <span class="strength-text" [ngClass]="getPasswordStrength(formData.password)">
+              {{ getPasswordStrength(formData.password) | titlecase }}
+            </span>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Confirm Password *</label>
-          <input type="password" class="form-control" [(ngModel)]="formData.confirmPassword" name="confirmPassword" required />
+
+        <!-- Confirm Password Field -->
+        <div class="form-group password-group">
+          <label for="confirmPassword">Confirm Password *</label>
+          <div class="password-input-container">
+            <input 
+              [type]="showConfirmPassword ? 'text' : 'password'" 
+              id="confirmPassword"
+              class="form-control" 
+              [(ngModel)]="formData.confirmPassword" 
+              name="confirmPassword" 
+              required />
+            <button type="button" class="password-toggle" (click)="togglePassword('confirm')">
+              <mat-icon>{{ showConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+          </div>
+          <!-- Password match indicator -->
+          <div *ngIf="formData.confirmPassword" class="password-match">
+            <mat-icon [ngClass]="formData.password === formData.confirmPassword ? 'match' : 'no-match'">
+              {{ formData.password === formData.confirmPassword ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+            <span [ngClass]="formData.password === formData.confirmPassword ? 'match' : 'no-match'">
+              {{ formData.password === formData.confirmPassword ? 'Passwords match' : 'Passwords do not match' }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Tenant Profile (appears when tenant selected) -->
+      <!-- Tenant Profile -->
       <div *ngIf="selectedRole === 'tenant'" class="form-section role-specific">
         <h3>Tenant Information</h3>
-        <div class="form-group">
-          <label>Profile Picture</label>
-          <input type="file" class="form-control" (change)="onFileChange($event)" accept="image/*" />
+        <div class="welcome-message">
+          <mat-icon>home</mat-icon>
+          <p>Welcome! As a tenant, you can search and apply for properties on our platform.</p>
         </div>
       </div>
 
-      <!-- Landlord Profile (appears when landlord selected) -->
+      <!-- Landlord Profile -->
       <div *ngIf="selectedRole === 'landlord'" class="form-section role-specific">
         <h3>Landlord Information</h3>
+        
         <div class="form-group">
-          <label>Business/Company Name</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.landlord.businessName" name="businessName" placeholder="Your property business name" />
+          <label for="businessName">Business/Company Name</label>
+          <input 
+            type="text" 
+            id="businessName"
+            class="form-control" 
+            [(ngModel)]="formData.landlord.businessName" 
+            name="businessName" 
+            placeholder="Your property business name" />
         </div>
+        
         <div class="form-group">
-          <label>Number of Properties Owned *</label>
-          <input type="number" class="form-control" [(ngModel)]="formData.landlord.numProperties" name="numProperties" min="1" required />
+          <label for="numProperties">Number of Properties Owned *</label>
+          <input 
+            type="number" 
+            id="numProperties"
+            class="form-control" 
+            [(ngModel)]="formData.landlord.numProperties" 
+            name="numProperties" 
+            min="1" 
+            required />
         </div>
+        
         <div class="form-group">
-          <label>Property Types *</label>
-          <select class="form-control" [(ngModel)]="formData.landlord.propertyTypes" name="propertyTypes" required>
+          <label for="propertyTypes">Property Types *</label>
+          <select 
+            id="propertyTypes"
+            class="form-control" 
+            [(ngModel)]="formData.landlord.propertyTypes" 
+            name="propertyTypes" 
+            required>
             <option value="">Select primary property type...</option>
             <option value="residential">Residential Only</option>
             <option value="commercial">Commercial Only</option>
             <option value="mixed">Mixed (Residential & Commercial)</option>
           </select>
         </div>
+        
         <div class="form-group">
-          <label>Business Registration Number</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.landlord.businessRegNumber" name="businessRegNumber" placeholder="Company registration number (if applicable)" />
+          <label for="businessRegNumber">Business Registration Number</label>
+          <input 
+            type="text" 
+            id="businessRegNumber"
+            class="form-control" 
+            [(ngModel)]="formData.landlord.businessRegNumber" 
+            name="businessRegNumber" 
+            placeholder="Company registration number (if applicable)" />
         </div>
+        
         <div class="form-group">
-          <label>Tax PIN Number</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.landlord.taxPin" name="taxPin" placeholder="KRA PIN number" />
+          <label for="taxPin">Tax PIN Number</label>
+          <input 
+            type="text" 
+            id="taxPin"
+            class="form-control" 
+            [(ngModel)]="formData.landlord.taxPin" 
+            name="taxPin" 
+            placeholder="KRA PIN number" />
         </div>
       </div>
 
-      <!-- Caretaker Profile (appears when caretaker selected) -->
+      <!-- Caretaker Profile -->
       <div *ngIf="selectedRole === 'caretaker'" class="form-section role-specific">
         <h3>Caretaker Information</h3>
+        
         <div class="form-group">
-          <label>Employer/Management Company *</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.caretaker.employer" name="employer" placeholder="Name of property management company" required />
+          <label for="employer">Employer/Management Company *</label>
+          <input 
+            type="text" 
+            id="employer"
+            class="form-control" 
+            [(ngModel)]="formData.caretaker.employer" 
+            name="employer" 
+            placeholder="Name of property management company" 
+            required />
         </div>
+        
         <div class="form-group">
-          <label>Properties Currently Managing</label>
-          <input type="number" class="form-control" [(ngModel)]="formData.caretaker.propertiesManaged" name="propertiesManaged" min="0" placeholder="Number of properties" />
+          <label for="propertiesManaged">Properties Currently Managing</label>
+          <input 
+            type="number" 
+            id="propertiesManaged"
+            class="form-control" 
+            [(ngModel)]="formData.caretaker.propertiesManaged" 
+            name="propertiesManaged" 
+            min="0" 
+            placeholder="Number of properties" />
         </div>
+        
         <div class="form-group">
-          <label>Reference Contact</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.caretaker.referenceContact" name="referenceContact" placeholder="Supervisor or employer contact" />
+          <label for="referenceContact">Reference Contact</label>
+          <input 
+            type="text" 
+            id="referenceContact"
+            class="form-control" 
+            [(ngModel)]="formData.caretaker.referenceContact" 
+            name="referenceContact" 
+            placeholder="Supervisor or employer contact" />
         </div>
       </div>
 
-      <!-- Business Profile (appears when business selected) -->
+      <!-- Business Profile -->
       <div *ngIf="selectedRole === 'business'" class="form-section role-specific">
         <h3>Business Information</h3>
+        
         <div class="form-group">
-          <label>Official Business Name *</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.business.officialName" name="officialName" placeholder="Registered company name" required />
+          <label for="officialName">Official Business Name *</label>
+          <input 
+            type="text" 
+            id="officialName"
+            class="form-control" 
+            [(ngModel)]="formData.business.officialName" 
+            name="officialName" 
+            placeholder="Registered company name" 
+            required />
         </div>
+        
         <div class="form-group">
-          <label>Business Registration Number *</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.business.registrationNumber" name="registrationNumber" placeholder="Company registration certificate number" required />
+          <label for="registrationNumber">Business Registration Number *</label>
+          <input 
+            type="text" 
+            id="registrationNumber"
+            class="form-control" 
+            [(ngModel)]="formData.business.registrationNumber" 
+            name="registrationNumber" 
+            placeholder="Company registration certificate number" 
+            required />
         </div>
+        
         <div class="form-group">
-          <label>Company Registration Certificate *</label>
-          <input type="file" class="form-control" (change)="onFileChange($event)" accept=".pdf,.jpg,.jpeg,.png" required />
-          <small class="form-text">Upload PDF, JPG, or PNG format</small>
+          <label for="companyRegCert">Company Registration Certificate *</label>
+          <input 
+            type="file" 
+            id="companyRegCert"
+            class="form-control file-input" 
+            (change)="onFileChange($event)"
+            name="companyRegCert" 
+            accept=".pdf,.jpg,.jpeg,.png" 
+            required />
+          <small class="form-text">Upload PDF, JPG, or PNG format (Max 5MB)</small>
         </div>
+        
         <div class="form-group">
-          <label>Tax PIN Certificate *</label>
-          <input type="file" class="form-control" (change)="onFileChange($event)" accept=".pdf,.jpg,.jpeg,.png" required />
-          <small class="form-text">KRA PIN certificate</small>
+          <label for="taxPinCert">Tax PIN Certificate *</label>
+          <input 
+            type="file" 
+            id="taxPinCert"
+            class="form-control file-input" 
+            (change)="onFileChange($event)"
+            name="taxPinCert" 
+            accept=".pdf,.jpg,.jpeg,.png" 
+            required />
+          <small class="form-text">KRA PIN certificate (Max 5MB)</small>
         </div>
+        
         <div class="form-group">
-          <label>EARB License Number</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.business.earbLicense" name="earbLicense" placeholder="Estate Agents Registration Board license (if applicable)" />
+          <label for="earbLicense">EARB License Number</label>
+          <input 
+            type="text" 
+            id="earbLicense"
+            class="form-control" 
+            [(ngModel)]="formData.business.earbLicense" 
+            name="earbLicense" 
+            placeholder="Estate Agents Registration Board license (if applicable)" />
         </div>
+        
         <div class="form-group">
-          <label>Number of Properties Managed *</label>
-          <input type="number" class="form-control" [(ngModel)]="formData.business.propertiesManaged" name="propertiesManaged" min="1" required />
+          <label for="businessPropertiesManaged">Number of Properties Managed *</label>
+          <input 
+            type="number" 
+            id="businessPropertiesManaged"
+            class="form-control" 
+            [(ngModel)]="formData.business.propertiesManaged" 
+            name="businessPropertiesManaged" 
+            min="1" 
+            required />
         </div>
+        
         <div class="form-group">
-          <label>Number of Employees</label>
-          <input type="number" class="form-control" [(ngModel)]="formData.business.numEmployees" name="numEmployees" min="0" />
+          <label for="numEmployees">Number of Employees</label>
+          <input 
+            type="number" 
+            id="numEmployees"
+            class="form-control" 
+            [(ngModel)]="formData.business.numEmployees" 
+            name="numEmployees" 
+            min="0" />
         </div>
+        
         <div class="form-group">
-          <label>Business Bank Account Details</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.business.bankAccount" name="bankAccount" placeholder="Bank name and account number" />
+          <label for="primaryContact">Primary Contact Person</label>
+          <input 
+            type="text" 
+            id="primaryContact"
+            class="form-control" 
+            [(ngModel)]="formData.business.primaryContact" 
+            name="primaryContact" 
+            placeholder="Name of main business contact" />
         </div>
+        
         <div class="form-group">
-          <label>Primary Contact Person</label>
-          <input type="text" class="form-control" [(ngModel)]="formData.business.primaryContact" name="primaryContact" placeholder="Name of main business contact" />
+          <label for="bankAccount">Business Bank Account Details</label>
+          <input 
+            type="text" 
+            id="bankAccount"
+            class="form-control" 
+            [(ngModel)]="formData.business.bankAccount" 
+            name="bankAccount" 
+            placeholder="Bank name and account number" />
         </div>
+        
         <div class="form-group">
-          <label>Business Description</label>
-          <textarea class="form-control" [(ngModel)]="formData.business.description" name="businessDescription" rows="3" placeholder="Brief description of your property management services"></textarea>
+          <label for="businessDescription">Business Description</label>
+          <textarea 
+            id="businessDescription"
+            class="form-control" 
+            [(ngModel)]="formData.business.description" 
+            name="businessDescription" 
+            rows="3" 
+            placeholder="Brief description of your property management services"></textarea>
         </div>
       </div>
 
@@ -152,21 +368,34 @@
       <div class="form-section terms-section">
         <div class="form-group checkbox-group">
           <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="agreedToTerms" name="agreedToTerms" required>
+            <input 
+              type="checkbox" 
+              [(ngModel)]="agreedToTerms" 
+              name="agreedToTerms" 
+              required>
             <span class="checkmark"></span>
-            I agree to the <a href="/terms" target="_blank" class="terms-link">Terms & Conditions</a>
+            I agree to the <a href="/terms" target="_blank" class="terms-link" (click)="navigateToTerms()">Terms & Conditions</a>
           </label>
         </div>
+        
         <div class="form-group checkbox-group">
           <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="agreedToPrivacy" name="agreedToPrivacy" required>
+            <input 
+              type="checkbox" 
+              [(ngModel)]="agreedToPrivacy" 
+              name="agreedToPrivacy" 
+              required>
             <span class="checkmark"></span>
-            I agree to the <a href="/privacy" target="_blank" class="terms-link">Privacy Policy</a>
+            I agree to the <a href="/privacy" target="_blank" class="terms-link" (click)="navigateToPrivacy()">Privacy Policy</a>
           </label>
         </div>
+        
         <div class="form-group checkbox-group">
           <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="agreedToMarketing" name="agreedToMarketing">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="agreedToMarketing" 
+              name="agreedToMarketing">
             <span class="checkmark"></span>
             I agree to receive marketing communications and property updates
           </label>
@@ -174,21 +403,18 @@
       </div>
 
       <!-- Submit Button -->
-      <button type="submit" class="btn btn-primary btn-large" [disabled]="!registrationForm.valid || !agreedToTerms || !agreedToPrivacy">
-        Create Account
-        <span class="btn-icon">→</span>
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-large" 
+        [disabled]="!registrationForm.valid || !agreedToTerms || !agreedToPrivacy || isLoading"
+        [class.loading]="isLoading">
+        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="isLoading">Creating Account...</span>
       </button>
 
-      <!-- Footer with Login Link -->
-      <div class="form-footer">
-        <p class="security-note">
-          🔒 Your information is encrypted and secure. We'll send an OTP to verify your phone number.
-        </p>
-        
-        <!-- Login Link -->
-        <div class="login-prompt">
-          <p>Already have an account? <button type="button" class="login-link" (click)="navigateToLogin()">Login</button>
-        </div>
+      <!-- Login Link -->
+      <div class="login-prompt">
+        <p>Already have an account? <button type="button" class="login-link" (click)="navigateToLogin()">Login</button></p>
       </div>
     </form>
   </div>

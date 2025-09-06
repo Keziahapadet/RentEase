@@ -8,9 +8,10 @@
   <div *ngIf="currentStep === 'phone'" class="login-step">
     <form (ngSubmit)="sendOTP()" #phoneForm="ngForm">
       <div class="form-group">
-        <label>Phone Number</label>
+        <label for="phone">Phone Number</label>
         <input 
           type="tel" 
+          id="phone"
           class="form-control" 
           [(ngModel)]="phoneNumber" 
           name="phone" 
@@ -22,10 +23,10 @@
       <button 
         type="submit" 
         class="btn btn-primary btn-large" 
-        [disabled]="!phoneForm.valid || isLoading">
-        <span *ngIf="isLoading" class="spinner"></span>
+        [disabled]="!phoneForm.valid || isLoading"
+        [class.loading]="isLoading">
         <span *ngIf="!isLoading">Send OTP</span>
-        <span *ngIf="!isLoading" class="btn-icon">📱</span>
+        <span *ngIf="isLoading">Sending OTP...</span>
       </button>
     </form>
   </div>
@@ -39,11 +40,12 @@
 
     <form (ngSubmit)="verifyOTP()" #otpForm="ngForm">
       <div class="form-group">
-        <label>Enter 6-Digit Code</label>
+        <label for="otp">Enter 6-Digit Code</label>
         <div class="otp-input-container">
           <input 
             type="text" 
-            class="otp-input" 
+            id="otp"
+            class="form-control otp-input" 
             [(ngModel)]="otpCode" 
             name="otp"
             maxlength="6"
@@ -56,10 +58,10 @@
       <button 
         type="submit" 
         class="btn btn-primary btn-large" 
-        [disabled]="!otpForm.valid || isLoading">
-        <span *ngIf="isLoading" class="spinner"></span>
+        [disabled]="!otpForm.valid || isLoading"
+        [class.loading]="isLoading">
         <span *ngIf="!isLoading">Verify & Login</span>
-        <span *ngIf="!isLoading" class="btn-icon">✓</span>
+        <span *ngIf="isLoading">Verifying...</span>
       </button>
 
       <!-- Resend OTP Option -->
@@ -93,13 +95,14 @@
 
     <form (ngSubmit)="sendEmailVerification()" #emailForm="ngForm">
       <div class="form-group">
-        <label>Email Address</label>
+        <label for="email">Email Address</label>
         <input 
           type="email" 
+          id="email"
           class="form-control" 
           [(ngModel)]="emailAddress" 
           name="email"
-          [value]="userEmail"
+          [value]="emailAddress"
           readonly />
         <small class="form-text">We'll send a verification link to this email</small>
       </div>
@@ -108,10 +111,10 @@
         <button 
           type="submit" 
           class="btn btn-primary btn-large" 
-          [disabled]="isLoading">
-          <span *ngIf="isLoading" class="spinner"></span>
+          [disabled]="isLoading"
+          [class.loading]="isLoading">
           <span *ngIf="!isLoading">Send Email Verification</span>
-          <span *ngIf="!isLoading" class="btn-icon">📧</span>
+          <span *ngIf="isLoading">Sending...</span>
         </button>
         
         <button 
@@ -119,21 +122,20 @@
           class="btn btn-secondary btn-large"
           (click)="skipEmailVerification()">
           Skip for Now
-          <span class="btn-icon">→</span>
         </button>
       </div>
     </form>
   </div>
 
   <!-- Error Messages -->
-  <div *ngIf="errorMessage" class="error-message">
-    <span class="error-icon">⚠️</span>
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <mat-icon>error</mat-icon>
     {{errorMessage}}
   </div>
 
   <!-- Success Messages -->
-  <div *ngIf="successMessage" class="success-message">
-    <span class="success-icon">✅</span>
+  <div *ngIf="successMessage" class="alert alert-success">
+    <mat-icon>check_circle</mat-icon>
     {{successMessage}}
   </div>
 
@@ -141,15 +143,11 @@
   <div class="form-footer">
     <div class="registration-prompt">
       <p>Don't have an account? 
-        <button type="button" class="register-link" (click)="navigateToRegistration()">
+        <button type="button" class="login-link" (click)="navigateToRegistration()">
           Create Account
         </button>
       </p>
     </div>
-    
-    <!-- Security Note -->
-    <div class="security-note">
-      <p>🔒 Secure login with OTP verification</p>
-    </div>
+
   </div>
 </div>

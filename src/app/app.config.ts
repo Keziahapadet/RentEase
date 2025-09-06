@@ -4,12 +4,14 @@ import { routes } from './app.routes';
 import { provideHttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
-// Firebase imports
+
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { environment } from '../environments/environment';
+import { MatIconModule } from '@angular/material/icon';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,12 +20,12 @@ export const appConfig: ApplicationConfig = {
     
     provideRouter(routes),
     provideHttpClient(),
-    importProvidersFrom(FormsModule),
+    importProvidersFrom(FormsModule, MatIconModule),
     
     // Firebase providers
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
-    provideStorage(() => getStorage())
+    provideStorage(() => getStorage()),
   ]
 };

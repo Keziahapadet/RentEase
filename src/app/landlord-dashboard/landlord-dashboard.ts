@@ -1,150 +1,158 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
-
-interface NavItem {
-  title: string;
-  icon: string;
-  active?: boolean;
-  badge?: string;
-}
-
-interface StatItem {
-  title: string;
-  icon: string;
-  type: string;
-  value: string;
-  trend: 'up' | 'down';
-  change: string;
-}
-
-interface Property {
-  name: string;
-  units: number;
-  address: string;
-  occupancyRate: number;
-}
-
-interface Activity {
-  title: string;
-  time: string;
-  icon: string;
-}
 
 @Component({
   selector: 'app-landlord-dashboard',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule,MatIconModule],
   templateUrl: './landlord-dashboard.html',
-  styleUrl: './landlord-dashboard.css'
+  styleUrls: ['./landlord-dashboard.css']
 })
-export class LandlordDashboard {
-  user = {
-   name: 'John Doe',
-    role: 'Landlord',
-    email: 'john.doe@rentease.com',
-    avatar: 'JD'
+export class LandlordDashboardComponent {
+  expandedMenus = {
+    financials: true,
+    properties: true,
+    communication: false,
+    settings: false
   };
+  
+  isMobileMenuOpen = false;
 
-  navItems: NavItem[] = [
-    { title: 'Dashboard', icon: 'fas fa-th-large', active: true },
-    { title: 'Financials', icon: 'fas fa-dollar-sign', badge: '3' },
-    { title: 'Tenants', icon: 'fas fa-users' },
-    { title: 'Properties', icon: 'fas fa-building' },
-    { title: 'Documents', icon: 'fas fa-file-contract', badge: 'BETA' },
-    { title: 'Maintenance', icon: 'fas fa-tools' },
-    { title: 'Communication', icon: 'fas fa-comment-alt', badge: '5' },
-    { title: 'Marketplace', icon: 'fas fa-store' },
-    { title: 'Reviews', icon: 'fas fa-star' },
-    { title: 'Settings', icon: 'fas fa-cog' }
-  ];
-
-  stats: StatItem[] = [
-    { 
-      title: 'TOTAL RENT COLLECTED', 
-      icon: 'fas fa-dollar-sign', 
-      type: 'rent', 
-      value: '$24,560', 
-      trend: 'up', 
-      change: '12% from last month' 
+  stats = [
+    {
+      icon: 'building',
+      value: '12',
+      label: 'Total Properties',
+      color: '#1d4ed8'
     },
-    { 
-      title: 'ACTIVE TENANTS', 
-      icon: 'fas fa-users', 
-      type: 'tenants', 
-      value: '18', 
-      trend: 'up', 
-      change: '2 new this month' 
+    {
+      icon: 'home',
+      value: '48',
+      label: 'Total Units',
+      color: '#059669'
     },
-    { 
-      title: 'VACANCY RATE', 
-      icon: 'fas fa-home', 
-      type: 'vacancy', 
-      value: '5.2%', 
-      trend: 'up', 
-      change: '1.5% from last month' 
+    {
+      icon: 'users',
+      value: '45',
+      label: 'Active Tenants',
+      color: '#dc2626'
     },
-    { 
-      title: 'MAINTENANCE REQUESTS', 
-      icon: 'fas fa-tools', 
-      type: 'maintenance', 
-      value: '7', 
-      trend: 'down', 
-      change: '3 resolved this week' 
+    {
+      icon: 'dollar',
+      value: 'KSh 2.4M',
+      label: 'Monthly Revenue',
+      color: '#7c3aed'
     }
   ];
 
-  properties: Property[] = [
-    { 
-      name: 'Oceanview Apartments', 
-      units: 8, 
-      address: '124 Ocean Ave', 
-      occupancyRate: 92 
+  recentActivities = [
+    {
+      icon: 'credit-card',
+      text: 'Rent payment received from John Doe',
+      time: '2 hours ago',
+      color: '#059669'
     },
-    { 
-      name: 'Hillside Manor', 
-      units: 12, 
-      address: '356 Hill Street', 
-      occupancyRate: 100 
+    {
+      icon: 'eye',
+      text: 'New vacancy posted for Apartment 3B',
+      time: '4 hours ago',
+      color: '#1d4ed8'
     },
-    { 
-      name: 'Downtown Lofts', 
-      units: 6, 
-      address: '789 Main St', 
-      occupancyRate: 67 
+    {
+      icon: 'wrench',
+      text: 'Maintenance request submitted - Unit 2A',
+      time: '6 hours ago',
+      color: '#dc2626'
     }
   ];
 
-  activities: Activity[] = [
-    { 
-      title: 'Rent received from Sarah Johnson', 
-      time: 'Today, 10:30 AM', 
-      icon: 'fas fa-dollar-sign' 
+  depositStatus = [
+    {
+      icon: 'shield',
+      amount: 'KSh 340,000',
+      label: 'Protected Deposits'
     },
-    { 
-      title: 'Maintenance request for Unit 3B', 
-      time: 'Yesterday, 3:45 PM', 
-      icon: 'fas fa-tools' 
-    },
-    { 
-      title: 'Lease renewal signed by Michael Chen', 
-      time: 'Oct 12, 2023', 
-      icon: 'fas fa-file-signature' 
-    },
-    { 
-      title: 'New review received for Oceanview Apartments', 
-      time: 'Oct 11, 2023', 
-      icon: 'fas fa-star' 
+    {
+      icon: 'eye',
+      amount: '3 Pending',
+      label: 'Move-out Inspections'
     }
   ];
 
-  selectNavItem(item: NavItem): void {
-    // Deactivate all items
-    this.navItems.forEach(i => i.active = false);
+  constructor(private router: Router) {}
 
-    // Activate the selected item
-    item.active = true;
+  toggleMenu(menu: string) {
+    this.expandedMenus = {
+      ...this.expandedMenus,
+      [menu]: !this.expandedMenus[menu as keyof typeof this.expandedMenus]
+    };
+  }
 
-    // Navigation logic would go here in a real app
-    console.log(`Navigating to ${item.title}`);
+  // Generic navigation method for all sections
+  navigateToSection(section: string) {
+    this.router.navigate([`/landlord/${section}`]);
+  }
+
+  // Specific navigation methods
+  navigateToFinancials() {
+    this.router.navigate(['/landlord/financials']);
+  }
+
+  navigateToProperties() {
+    this.router.navigate(['/landlord/properties']);
+  }
+
+  navigateToTenants() {
+    this.router.navigate(['/landlord/tenants']);
+  }
+
+  navigateToDocuments() {
+    this.router.navigate(['/landlord/documents']);
+  }
+
+  navigateToCommunication() {
+    this.router.navigate(['/landlord/communication']);
+  }
+
+  navigateToMarketplace() {
+    this.router.navigate(['/landlord/marketplace']);
+  }
+
+  navigateToReviews() {
+    this.router.navigate(['/landlord/reviews']);
+  }
+
+  navigateToReports() {
+    this.router.navigate(['/landlord/reports']);
+  }
+
+  navigateToSettings() {
+    this.router.navigate(['/landlord/settings']);
+  }
+
+  // Header action methods
+  addNewProperty() {
+    this.router.navigate(['/landlord/properties/add']);
+  }
+
+  viewNotifications() {
+    this.router.navigate(['/landlord/notifications']);
+  }
+
+  // Mobile menu functionality
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  // Utility methods
+  logout() {
+    // Add logout logic here
+    console.log('Logging out...');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
+    this.router.navigate(['/login']);
   }
 }
-
