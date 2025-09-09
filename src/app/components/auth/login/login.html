@@ -1,153 +1,51 @@
-<div class="login-container">
-  <div class="header">
-    <h1>Welcome Back</h1>
-    <p class="subtitle">Sign in to your RentEase account</p>
-  </div>
-
-  <!-- Step 1: Phone Number Entry -->
-  <div *ngIf="currentStep === 'phone'" class="login-step">
-    <form (ngSubmit)="sendOTP()" #phoneForm="ngForm">
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input 
-          type="tel" 
-          id="phone"
-          class="form-control" 
-          [(ngModel)]="phoneNumber" 
-          name="phone" 
-          placeholder="+254 700 000 000"
-          required />
-        <small class="form-text">Enter the phone number you used to register</small>
-      </div>
-
-      <button 
-        type="submit" 
-        class="btn btn-primary btn-large" 
-        [disabled]="!phoneForm.valid || isLoading"
-        [class.loading]="isLoading">
-        <span *ngIf="!isLoading">Send OTP</span>
-        <span *ngIf="isLoading">Sending OTP...</span>
-      </button>
-    </form>
-  </div>
-
-  <!-- Step 2: OTP Verification -->
-  <div *ngIf="currentStep === 'otp'" class="login-step">
-    <div class="otp-header">
-      <h3>Verify Your Phone</h3>
-      <p>We sent a 6-digit code to <strong>{{maskedPhone}}</strong></p>
+<div class="login-page">
+  <div class="login-card">
+    <!-- Logo + Title -->
+    <div class="logo-title">
+      <img src="/images/logo.png" alt="RentEase Logo" />
+      <h2>Login</h2>
     </div>
 
-    <form (ngSubmit)="verifyOTP()" #otpForm="ngForm">
-      <div class="form-group">
-        <label for="otp">Enter 6-Digit Code</label>
-        <div class="otp-input-container">
-          <input 
-            type="text" 
-            id="otp"
-            class="form-control otp-input" 
-            [(ngModel)]="otpCode" 
-            name="otp"
-            maxlength="6"
-            placeholder="000000"
-            required />
-        </div>
-        <small class="form-text">Code expires in {{countdown}} seconds</small>
-      </div>
+    <!-- Error / Success -->
+    <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="alert-success">{{ successMessage }}</div>
 
-      <button 
-        type="submit" 
-        class="btn btn-primary btn-large" 
-        [disabled]="!otpForm.valid || isLoading"
-        [class.loading]="isLoading">
-        <span *ngIf="!isLoading">Verify & Login</span>
-        <span *ngIf="isLoading">Verifying...</span>
-      </button>
+    <!-- Login Form -->
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
 
-      <!-- Resend OTP Option -->
-      <div class="resend-section">
-        <p *ngIf="countdown > 0">Didn't receive code? Wait {{countdown}}s</p>
-        <button 
-          *ngIf="countdown === 0" 
-          type="button" 
-          class="resend-btn"
-          (click)="resendOTP()"
-          [disabled]="isLoading">
-          Resend Code
+      <!-- Email -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" [(ngModel)]="loginData.email" name="email" required />
+      </mat-form-field>
+
+      <!-- Password -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input matInput [type]="showPassword ? 'text' : 'password'" [(ngModel)]="loginData.password" name="password" required />
+        <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
+          <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
-      </div>
+      </mat-form-field>
 
-      <!-- Change Phone Number Option -->
-      <div class="change-phone">
-        <button type="button" class="change-phone-btn" (click)="goBackToPhone()">
-          ← Use different phone number
-        </button>
-      </div>
-    </form>
-  </div>
+      <!-- Remember Me -->
+      <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe">Remember Me</mat-checkbox>
 
-  <!-- Step 3: Email Verification (Optional) -->
-  <div *ngIf="currentStep === 'email-verify'" class="login-step">
-    <div class="email-verify-header">
-      <h3>Additional Security</h3>
-      <p>For extra security, verify your email address</p>
-    </div>
-
-    <form (ngSubmit)="sendEmailVerification()" #emailForm="ngForm">
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input 
-          type="email" 
-          id="email"
-          class="form-control" 
-          [(ngModel)]="emailAddress" 
-          name="email"
-          [value]="emailAddress"
-          readonly />
-        <small class="form-text">We'll send a verification link to this email</small>
-      </div>
-
-      <div class="security-buttons">
-        <button 
-          type="submit" 
-          class="btn btn-primary btn-large" 
-          [disabled]="isLoading"
-          [class.loading]="isLoading">
-          <span *ngIf="!isLoading">Send Email Verification</span>
-          <span *ngIf="isLoading">Sending...</span>
-        </button>
-        
-        <button 
-          type="button" 
-          class="btn btn-secondary btn-large"
-          (click)="skipEmailVerification()">
-          Skip for Now
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Error Messages -->
-  <div *ngIf="errorMessage" class="alert alert-error">
-    <mat-icon>error</mat-icon>
-    {{errorMessage}}
-  </div>
-
-  <!-- Success Messages -->
-  <div *ngIf="successMessage" class="alert alert-success">
-    <mat-icon>check_circle</mat-icon>
-    {{successMessage}}
-  </div>
-
-  <!-- Footer -->
-  <div class="form-footer">
-    <div class="registration-prompt">
-      <p>Don't have an account? 
-        <button type="button" class="login-link" (click)="navigateToRegistration()">
-          Create Account
-        </button>
+      <!-- Forgot Password -->
+      <p class="forgot-password">
+        <a (click)="navigateToForgotPassword()">Forgot Password?</a>
       </p>
-    </div>
 
+      <!-- Submit -->
+      <button mat-raised-button color="primary" class="full-width submit-btn" 
+              [disabled]="isLoading || !loginForm.valid">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
+    </form>
+
+    <!-- Register Link -->
+    <p class="register-link">
+      Don't have an account? <a (click)="navigateToRegister()">Register</a>
+    </p>
   </div>
 </div>
