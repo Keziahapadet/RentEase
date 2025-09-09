@@ -1,0 +1,266 @@
+<nav class="navbar" [class.scrolled]="isNavScrolled">
+  <div class="nav-container">
+    <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
+      <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
+    </a>
+
+    <ul class="nav-links" [class.active]="isMobileMenuOpen">
+      <li><a (click)="navigateToHome()">Home</a></li>
+      <li><a routerLink="/features" routerLinkActive="active">Features</a></li>
+      <li><a (click)="navigateToPricing()">Pricing</a></li>
+      <li><a (click)="navigateToContact()">Contact</a></li>
+      <li><a (click)="navigateToAbout()">About</a></li>
+      <li><a (click)="navigateToServices()">Services</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="nav-cta" (click)="navigateToLogin()">
+        Login
+      </button>
+
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+<!-- Hero Section -->
+<section class="page-hero">
+  <!-- Background image -->
+  <div class="hero-bg" style="background-image: url('/images/feature.jpg')"></div>
+
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Complete Digital
+        <span class="gradient-text">Property Management</span>
+      </h1>
+      <p class="hero-description">
+        Addressing Kenya's rental challenges with innovative digital solutions 
+        for landlords, tenants, and caretakers
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- Features Section -->
+<section class="features-section">
+  <div class="container">
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of features">
+        <div class="feature-icon">
+          <mat-icon>{{ feature.icon }}</mat-icon>
+        </div>
+        <h3 class="feature-title">{{ feature.title }}</h3>
+        <p class="feature-description">{{ feature.description }}</p>
+        <ul class="feature-list">
+          <li *ngFor="let benefit of feature.benefits">{{ benefit }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        How <span class="gradient-text">RentEase</span> Works
+      </h2>
+      <p class="section-description">
+        Get started with secure rental management in just four simple steps
+      </p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card" *ngFor="let step of howItWorks; let i = index">
+        <div class="step-number">{{ step.step }}</div>
+        <div class="step-icon">
+          <mat-icon>{{ step.icon }}</mat-icon>
+        </div>
+        <h3 class="step-title">{{ step.title }}</h3>
+        <p class="step-description">{{ step.description }}</p>
+        
+        <!-- Add arrow between steps, except for the last one -->
+        <div class="step-arrow" *ngIf="i < howItWorks.length - 1">
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="benefits-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Why Choose <span class="gradient-text">RentEase</span>?
+      </h2>
+      <p class="section-description">
+        Transform your rental experience with Kenya's most advanced property management platform
+      </p>
+    </div>
+
+    <div class="benefits-grid">
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>shield</mat-icon>
+        </div>
+        <h3>Fraud Prevention</h3>
+        <p>Advanced security measures and verification systems to protect against rental fraud and scams.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>speed</mat-icon>
+        </div>
+        <h3>Fast Processing</h3>
+        <p>Quick verification, instant notifications, and streamlined processes for faster transactions.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>support_agent</mat-icon>
+        </div>
+        <h3>24/7 Support</h3>
+        <p>Round-the-clock customer support to help you with any questions or issues.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <h3>Market Insights</h3>
+        <p>Access real-time market data and analytics to make informed rental decisions.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>mobile_friendly</mat-icon>
+        </div>
+        <h3>Mobile First</h3>
+        <p>Manage your properties on-the-go with our responsive mobile-friendly platform.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>account_balance</mat-icon>
+        </div>
+        <h3>Legal Compliance</h3>
+        <p>All processes comply with Kenyan rental laws and regulations for your peace of mind.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-content">
+      <h2 class="cta-title">Ready to Experience Digital Property Management?</h2>
+      <p class="cta-description">
+        Join thousands of satisfied users who have revolutionized their rental experience with RentEase
+      </p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary large" (click)="navigateToContact()">
+          Get Started Today
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+        <button class="btn btn-secondary large" (click)="navigateToPricing()">
+          View Pricing
+          <mat-icon>visibility</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo" (click)="scrollToTop()">
+          <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
+        </div>
+        <p class="footer-description">
+          Kenya's leading digital property management platform.
+          Secure deposits, transparent communication, and fraud prevention for the modern rental market.
+        </p>
+        <div class="footer-contact">
+          <p><strong><mat-icon>call</mat-icon> +254 700 000 000</strong></p>
+          <p><mat-icon>email</mat-icon> info@rentease.co.ke</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>For Tenants</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Secure Deposits</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Documents</a></li>
+            <li><a (click)="navigateToFeatures()">Community Marketplace</a></li>
+            <li><a (click)="navigateToContact()">Find Properties</a></li>
+            <li><a (click)="navigateToFeatures()">Rating System</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>For Landlords</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Fraud Prevention</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Management</a></li>
+            <li><a (click)="navigateToPricing()">Pricing Plans</a></li>
+            <li><a (click)="navigateToFeatures()">Verified Tenants</a></li>
+            <li><a (click)="navigateToContact()">Get Started</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Platform</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">How It Works</a></li>
+            <li><a (click)="navigateToContact()">Success Stories</a></li>
+            <li><a (click)="navigateToContact()">Contact Support</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Privacy Policy</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#" (click)="$event.preventDefault()">Rental Guide Kenya</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Legal Templates</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Market Reports</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Help Center</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">API Documentation</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="social-links">
+        <a href="#" (click)="$event.preventDefault()" title="Facebook">
+          <mat-icon>facebook</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Twitter">
+          <mat-icon>twitter</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Instagram">
+          <mat-icon>instagram</mat-icon>
+        </a>
+      </div>
+
+      <p class="copyright">
+        © {{ currentYear }} RentEase Kenya. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>

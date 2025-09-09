@@ -1,0 +1,316 @@
+<nav class="navbar" [class.scrolled]="isNavScrolled">
+  <div class="nav-container">
+    <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
+      <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
+    </a>
+
+    <ul class="nav-links" [class.active]="isMobileMenuOpen">
+      <li><a (click)="navigateToHome()">Home</a></li>
+      <li><a (click)="navigateToFeatures()">Features</a></li>
+      <li><a routerLink="/pricing" routerLinkActive="active">Pricing</a></li>
+      <li><a (click)="navigateToContact()">Contact</a></li>
+      <li><a (click)="navigateToAbout()">About</a></li>
+      <li><a (click)="navigateToServices()">Services</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="nav-cta" (click)="navigateToLogin()">
+        Login
+      </button>
+
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Transparent
+        <span class="gradient-text">Pricing</span>
+      </h1>
+      <p class="hero-description">
+        Choose the plan that works best for your property management needs. No hidden fees, no surprises.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Plans Section -->
+<section class="pricing-section">
+  <div class="container">
+    <div class="pricing-grid">
+      <div class="pricing-card" 
+           *ngFor="let plan of pricingPlans" 
+           [class.popular]="plan.popular">
+        
+        <div class="popular-badge" *ngIf="plan.popular">Most Popular</div>
+        
+        <div class="pricing-header">
+          <h3 class="plan-name">{{ plan.name }}</h3>
+          <div class="plan-price">
+            <span class="price">{{ plan.price }}</span>
+            <span class="period">{{ plan.period }}</span>
+          </div>
+          <p class="plan-description">{{ plan.description }}</p>
+        </div>
+
+        <ul class="plan-features">
+          <li class="feature" *ngFor="let feature of plan.features">
+            <mat-icon>check</mat-icon>
+            {{ feature }}
+          </li>
+        </ul>
+
+        <button class="plan-button" 
+                [class.popular-button]="plan.popular"
+                (click)="selectPlan(plan)">
+          {{ plan.buttonText }}
+        </button>
+      </div>
+    </div>
+
+    <div class="pricing-note">
+      <div class="note-content">
+        <h4>Additional Information</h4>
+        <p><strong>Transaction Fee:</strong> 2% on deposits and rent payments processed through our platform</p>
+        <p><strong>Partnership Commissions:</strong> 10-20% for insurance, movers, and other partner services</p>
+        <p><strong>Annual Discount:</strong> Save 15% when you pay annually</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Frequently Asked <span class="gradient-text">Questions</span>
+      </h2>
+      <p class="section-description">
+        Get answers to the most common questions about our pricing and platform
+      </p>
+    </div>
+
+    <div class="faq-grid">
+      <div class="faq-item" 
+           *ngFor="let faq of faqs; let i = index"
+           [class.expanded]="faq.expanded">
+        
+        <div class="faq-question" (click)="toggleFaq(i)">
+          <h3>{{ faq.question }}</h3>
+          <mat-icon class="faq-icon">{{ faq.expanded ? 'remove' : 'add' }}</mat-icon>
+        </div>
+        
+        <div class="faq-answer" [class.show]="faq.expanded">
+          <p>{{ faq.answer }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-contact">
+      <div class="contact-card">
+        <mat-icon>help_outline</mat-icon>
+        <h3>Still have questions?</h3>
+        <p>Our support team is here to help you choose the right plan and get started with RentEase.</p>
+        <button class="btn btn-primary" (click)="navigateToContact()">
+          Contact Support
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison Table Section -->
+<section class="comparison-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Plan <span class="gradient-text">Comparison</span>
+      </h2>
+      <p class="section-description">
+        Compare features across all plans to find the perfect fit for your needs
+      </p>
+    </div>
+
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Features</th>
+            <th>Basic</th>
+            <th>Premium</th>
+            <th>Pro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Digital Document Storage</td>
+            <td><mat-icon class="check">check</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+          </tr>
+          <tr>
+            <td>Communication Platform</td>
+            <td><mat-icon class="check">check</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+          </tr>
+          <tr>
+            <td>Marketplace Access</td>
+            <td>Basic</td>
+            <td>Advanced</td>
+            <td>Advanced</td>
+          </tr>
+          <tr>
+            <td>Customer Support</td>
+            <td>Email (24hrs)</td>
+            <td>Priority Support</td>
+            <td>Dedicated Manager</td>
+          </tr>
+          <tr>
+            <td>Analytics & Reporting</td>
+            <td><mat-icon class="cross">close</mat-icon></td>
+            <td>Detailed</td>
+            <td>Advanced</td>
+          </tr>
+          <tr>
+            <td>Custom Branding</td>
+            <td><mat-icon class="cross">close</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+          </tr>
+          <tr>
+            <td>API Access</td>
+            <td><mat-icon class="cross">close</mat-icon></td>
+            <td><mat-icon class="cross">close</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+          </tr>
+          <tr>
+            <td>White-label Solutions</td>
+            <td><mat-icon class="cross">close</mat-icon></td>
+            <td><mat-icon class="cross">close</mat-icon></td>
+            <td><mat-icon class="check">check</mat-icon></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-content">
+      <h2 class="cta-title">Ready to Get Started?</h2>
+      <p class="cta-description">
+        Choose your plan and join thousands of satisfied users transforming their rental experience
+      </p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary large" (click)="navigateToContact()">
+          Start Free Trial
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+        <button class="btn btn-secondary large" (click)="navigateToFeatures()">
+          View Features
+          <mat-icon>visibility</mat-icon>
+        </button>
+      </div>
+      <p class="cta-note">14-day free trial • No setup fees • Cancel anytime</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo" (click)="scrollToTop()">
+          <mat-icon>home</mat-icon>
+          <span>RentEase Kenya</span>
+        </div>
+        <p class="footer-description">
+          Kenya's leading digital property management platform.
+          Secure deposits, transparent communication, and fraud prevention for the modern rental market.
+        </p>
+        <div class="footer-contact">
+          <p><strong><mat-icon>call</mat-icon> +254 700 000 000</strong></p>
+          <p><mat-icon>email</mat-icon> info@rentease.co.ke</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>For Tenants</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Secure Deposits</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Documents</a></li>
+            <li><a (click)="navigateToFeatures()">Community Marketplace</a></li>
+            <li><a (click)="navigateToContact()">Find Properties</a></li>
+            <li><a (click)="navigateToFeatures()">Rating System</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>For Landlords</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Fraud Prevention</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Management</a></li>
+            <li><a routerLink="/pricing">Pricing Plans</a></li>
+            <li><a (click)="navigateToFeatures()">Verified Tenants</a></li>
+            <li><a (click)="navigateToContact()">Get Started</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Platform</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">How It Works</a></li>
+            <li><a (click)="navigateToContact()">Success Stories</a></li>
+            <li><a (click)="navigateToContact()">Contact Support</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Privacy Policy</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#" (click)="$event.preventDefault()">Rental Guide Kenya</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Legal Templates</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Market Reports</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Help Center</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">API Documentation</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="social-links">
+        <a href="#" (click)="$event.preventDefault()" title="Facebook">
+          <mat-icon>facebook</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Twitter">
+          <mat-icon>twitter</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Instagram">
+          <mat-icon>instagram</mat-icon>
+        </a>
+      </div>
+
+      <p class="copyright">
+        © {{ currentYear }} RentEase Kenya. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,272 @@
+<nav class="navbar" [class.scrolled]="isNavScrolled">
+  <div class="nav-container">
+    <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
+      <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
+    </a>
+
+    <ul class="nav-links" [class.active]="isMobileMenuOpen">
+      <li><a (click)="navigateToHome()">Home</a></li>
+      <li><a (click)="navigateToFeatures()">Features</a></li>
+      <li><a (click)="navigateToPricing()">Pricing</a></li>
+      <li><a (click)="navigateToContact()">Contact</a></li>
+      <li><a routerLink="/about" routerLinkActive="active">About</a></li>
+      <li><a (click)="navigateToServices()">Services</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="nav-cta" (click)="navigateToLogin()">Login</button>
+
+      <button
+        class="mobile-menu-btn"
+        (click)="toggleMobileMenu()"
+        [class.active]="isMobileMenuOpen"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        About <span class="gradient-text">RentEase</span>
+      </h1>
+      <p class="hero-description">
+        We're on a mission to eliminate rental fraud and create transparent,
+        secure property management solutions for Kenya's growing rental market.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Mission & Vision Section -->
+<section class="mission-section">
+  <div class="container">
+    <div class="mission-grid">
+      <div class="mission-card">
+        <div class="mission-icon"><mat-icon>flag</mat-icon></div>
+        <h3>Our Mission</h3>
+        <p>
+          To eliminate rental fraud, streamline property management, and build
+          trust between landlords, tenants, and caretakers through innovative
+          digital solutions.
+        </p>
+      </div>
+
+      <div class="mission-card">
+        <div class="mission-icon"><mat-icon>visibility</mat-icon></div>
+        <h3>Our Vision</h3>
+        <p>
+          To become East Africa's leading digital property management platform,
+          setting the standard for secure, transparent, and efficient rental
+          transactions.
+        </p>
+      </div>
+
+      <div class="mission-card">
+        <div class="mission-icon"><mat-icon>favorite</mat-icon></div>
+        <h3>Our Purpose</h3>
+        <p>
+          Every Kenyan deserves a safe, secure rental experience. We're building
+          the technology infrastructure to make that vision a reality.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Our Story Section -->
+<section class="story-section">
+  <div class="container">
+    <div class="story-content">
+      <div class="story-text">
+        <h2 class="section-title">Our Story</h2>
+        <p>
+          RentEase was founded after Keziah personally experienced rental fraud.
+          Instead of giving up, the challenge inspired the creation of a
+          platform that protects tenants, landlords, and caretakers from similar
+          experiences.
+        </p>
+
+        <p>
+          What started as a solution to a personal problem is steadily growing into 
+          one of Kenya's most trusted digital property management platforms—aiming 
+          to connect honest landlords with verified tenants and secure rental 
+          transactions every day.
+        </p>
+
+        <p>
+          While we are still building and expanding, our vision is to serve users 
+          across Kenya's major cities and eventually throughout East Africa. 
+          Every feature we create is guided by one goal: making rental transactions 
+          secure, transparent, and fraud-free.
+        </p>
+      </div>
+
+      <!-- CORRECTED: Single story-image div with background image -->
+      <div class="story-image" style="background-image: url('/images/team-meeting.avif');"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Values Section -->
+<section class="values-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Our <span class="gradient-text">Values</span>
+      </h2>
+      <p class="section-description">
+        The principles that guide everything we do at RentEase
+      </p>
+    </div>
+
+    <div class="values-grid">
+      <div class="value-card" *ngFor="let value of values">
+        <div class="value-icon"><mat-icon>{{ value.icon }}</mat-icon></div>
+        <h3>{{ value.title }}</h3>
+        <p>{{ value.description }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team Section -->
+<section class="team-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Meet Our <span class="gradient-text">Team</span>
+      </h2>
+      <p class="section-description">
+        The passionate professionals building the future of property management
+        in Kenya
+      </p>
+    </div>
+
+    <div class="team-grid">
+      <div class="team-card" *ngFor="let member of teamMembers">
+        <div class="team-image">
+          <img [src]="member.image" [alt]="member.name" />
+        </div>
+        <div class="team-info">
+          <h3>{{ member.name }}</h3>
+          <p class="team-role">{{ member.role }}</p>
+          <p class="team-bio">{{ member.bio }}</p>
+          <a [href]="member.linkedin" class="team-linkedin">
+            <mat-icon>link</mat-icon> LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-content">
+      <h2 class="cta-title">Join Our Mission</h2>
+      <p class="cta-description">
+        Help us build a safer, more transparent rental market for all Kenyans
+      </p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary large" (click)="navigateToContact()">
+          Get Started Today <mat-icon>arrow_forward</mat-icon>
+        </button>
+        <button class="btn btn-secondary large" (click)="navigateToContact()">
+          Partner With Us <mat-icon>handshake</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo" (click)="scrollToTop()">
+          <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
+        </div>
+        <p class="footer-description">
+          Kenya's leading digital property management platform.
+          Secure deposits, transparent communication, and fraud prevention for the modern rental market.
+        </p>
+        <div class="footer-contact">
+          <p><strong><mat-icon>call</mat-icon> +254 700 000 000</strong></p>
+          <p><mat-icon>email</mat-icon> info@rentease.co.ke</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>For Tenants</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Secure Deposits</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Documents</a></li>
+            <li><a (click)="navigateToFeatures()">Community Marketplace</a></li>
+            <li><a (click)="navigateToContact()">Find Properties</a></li>
+            <li><a (click)="navigateToFeatures()">Rating System</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>For Landlords</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Fraud Prevention</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Management</a></li>
+            <li><a (click)="navigateToPricing()">Pricing Plans</a></li>
+            <li><a (click)="navigateToFeatures()">Verified Tenants</a></li>
+            <li><a (click)="navigateToContact()">Get Started</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Platform</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">How It Works</a></li>
+            <li><a (click)="navigateToContact()">Success Stories</a></li>
+            <li><a (click)="navigateToContact()">Contact Support</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Privacy Policy</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#" (click)="$event.preventDefault()">Rental Guide Kenya</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Legal Templates</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Market Reports</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Help Center</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">API Documentation</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="social-links">
+        <a href="#" (click)="$event.preventDefault()" title="Facebook">
+          <mat-icon>facebook</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Twitter">
+          <mat-icon>twitter</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Instagram">
+          <mat-icon>instagram</mat-icon>
+        </a>
+      </div>
+
+      <p class="copyright">
+        © {{ currentYear }} RentEase Kenya. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>

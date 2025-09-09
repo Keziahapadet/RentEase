@@ -1,15 +1,20 @@
 import { Routes } from '@angular/router';
-import { LandingComponent } from './components/landing/landing';
+import { HomeComponent } from '../pages/home/home';
 import { RegistrationComponent } from './components/auth/registration/registration.component';
 import { VerifyOtpComponent } from './components/auth/veryfy-otp/verify-otp.component'; 
-import { TenantDashboardComponent } from './tenant-dashboard/tenant-dashboard.component';
+import { TenantDashboardComponent } from './components/dashboard/tenant-dashboard/tenant-dashboard.component';
 import { LoginComponent } from './components/auth/login/login';
-import { LandlordDashboardComponent } from './landlord-dashboard/landlord-dashboard'
+import { LandlordDashboardComponent } from './components/dashboard/landlord-dashboard/landlord-dashboard'
+import { FeaturesComponent } from '../pages/features/features';
+import { PricingComponent } from '../pages/pricing/pricing';
+import { ContactComponent } from '../pages/contacts/contacts';
+import { AboutComponent } from '../pages/about/about';
+
 
 export const routes: Routes = [
   { 
     path: '', 
-    component: LandingComponent, 
+    component: HomeComponent, 
     pathMatch: 'full' 
   },
   { 
@@ -37,7 +42,22 @@ export const routes: Routes = [
     redirectTo: '/tenant-dashboard', 
     pathMatch: 'full' 
   },
-  
+  { 
+    path: 'features', 
+    component: FeaturesComponent 
+  },
+  { 
+    path: 'pricing', 
+    component: PricingComponent 
+  },
+  { 
+    path: 'contact', 
+    component: ContactComponent
+  },
+  { 
+    path: 'about', 
+    component: AboutComponent
+  },
   { 
     path: '**', 
     redirectTo: '' 

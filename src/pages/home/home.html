@@ -1,0 +1,208 @@
+<!-- home.component.html -->
+<nav class="navbar" [class.scrolled]="isNavScrolled">
+  <div class="nav-container">
+    <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
+      <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
+    </a>
+
+    <ul class="nav-links" [class.active]="isMobileMenuOpen">
+      <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
+      <li><a (click)="navigateToFeatures()">Features</a></li>
+      <li><a (click)="navigateToPricing()">Pricing</a></li>
+      <li><a (click)="navigateToContact()">Contact</a></li>
+      <li><a (click)="navigateToAbout()">About</a></li>
+      <!-- <li><a (click)="navigateToServices()">Services</a></li> -->
+    </ul>
+
+    <div class="nav-actions">
+      <button class="nav-cta" (click)="navigateToLogin()">
+        Login
+      </button>
+
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Carousel -->
+<div class="hero-carousel" 
+     (mouseenter)="onCarouselMouseEnter()" 
+     (mouseleave)="onCarouselMouseLeave()">
+  
+  <div *ngFor="let slide of slides; let i = index" 
+       class="carousel-slide" 
+       [class.active]="currentSlide === i">
+    
+    <div class="slide-content">
+      <h2>{{ slide.title }}</h2>
+      <p>{{ slide.description }}</p>
+      <button class="slide-cta" (click)="navigateToRegister()">
+        Get Started
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+
+    <div class="slide-image" 
+         [style.background-image]="'url(' + slide.image + ')'"></div>
+  </div>
+
+  <div class="carousel-controls">
+    <button class="carousel-btn prev" (click)="prevSlide()">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <div class="carousel-dots">
+      <span *ngFor="let slide of slides; let i = index" 
+            class="dot" 
+            [class.active]="currentSlide === i" 
+            (click)="goToSlide(i)"></span>
+    </div>
+    <button class="carousel-btn next" (click)="nextSlide()">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+</div>
+
+<!-- Hero Content Section -->
+<div class="container">
+  <div class="hero-content">
+    <h1 class="hero-title">
+      Secure & Transparent
+      <span class="gradient-text">Rental Management</span>
+    </h1>
+
+    <p class="hero-description">
+      Eliminate deposit fraud, occupancy fraud, and rental disputes with Kenya's most trusted digital property management platform. Connect landlords, tenants, and caretakers securely.
+    </p>
+
+    <div class="hero-actions">
+      <button class="btn btn-primary" (click)="navigateToContact()">
+        Get Started
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+      <button class="btn btn-secondary" (click)="navigateToFeatures()">
+        See How It Works
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Section -->
+<section id="stats" class="stats-section">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item" *ngFor="let stat of stats">
+        <div class="stat-number">{{ stat.current }}{{ stat.suffix }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-content">
+      <h2 class="cta-title">Ready to Transform Your Rental Experience?</h2>
+      <p class="cta-description">
+        Join thousands of landlords and tenants who trust RentEase for secure, transparent property management
+      </p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary large" (click)="navigateToContact()">
+         Get Started 
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+        <p class="cta-note">No setup fees • Cancel anytime • 24/7 support</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo" (click)="scrollToTop()">
+          <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
+        </div>
+        <p class="footer-description">
+          Kenya's leading digital property management platform.
+          Secure deposits, transparent communication, and fraud prevention for the modern rental market.
+        </p>
+        <div class="footer-contact">
+          <p><strong><mat-icon>call</mat-icon> +254 700 000 000</strong></p>
+          <p><mat-icon>email</mat-icon> info@rentease.co.ke</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>For Tenants</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Secure Deposits</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Documents</a></li>
+            <li><a (click)="navigateToFeatures()">Community Marketplace</a></li>
+            <li><a (click)="navigateToContact()">Find Properties</a></li>
+            <li><a (click)="navigateToFeatures()">Rating System</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>For Landlords</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">Fraud Prevention</a></li>
+            <li><a (click)="navigateToFeatures()">Digital Management</a></li>
+            <li><a (click)="navigateToPricing()">Pricing Plans</a></li>
+            <li><a (click)="navigateToFeatures()">Verified Tenants</a></li>
+            <li><a (click)="navigateToContact()">Get Started</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Platform</h4>
+          <ul>
+            <li><a (click)="navigateToFeatures()">How It Works</a></li>
+            <li><a (click)="navigateToContact()">Success Stories</a></li>
+            <li><a (click)="navigateToContact()">Contact Support</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Privacy Policy</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#" (click)="$event.preventDefault()">Rental Guide Kenya</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Legal Templates</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Market Reports</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">Help Center</a></li>
+            <li><a href="#" (click)="$event.preventDefault()">API Documentation</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="social-links">
+        <a href="#" (click)="$event.preventDefault()" title="Facebook">
+          <mat-icon>facebook</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Twitter">
+          <mat-icon>twitter</mat-icon>
+        </a>
+        <a href="#" (click)="$event.preventDefault()" title="Instagram">
+          <mat-icon>instagram</mat-icon>
+        </a>
+      </div>
+
+      <p class="copyright">
+        © {{ currentYear }} RentEase Kenya. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>

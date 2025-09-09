@@ -1,421 +1,92 @@
-<div class="registration-container">
-  <!-- Header -->
-  <div class="header">
-    <h1>Get Started with RentEase</h1>
-    <p class="subtitle">Join our platform and start managing your properties</p>
-  </div>
-
-  <div class="step-container">
-    <!-- Error Message -->
-    <div *ngIf="errorMessage" class="alert alert-error">
-      <mat-icon>error</mat-icon>
-      {{ errorMessage }}
+<div class="register-page">
+  <div class="register-card">
+    <!-- Logo + Title -->
+    <div class="logo-title">
+      <img src="/images/logo.png" alt="RentEase Logo" />
+      <h2>Create Account</h2>
     </div>
 
-    <!-- Success Message -->
-    <div *ngIf="successMessage" class="alert alert-success">
-      <mat-icon>check_circle</mat-icon>
-      {{ successMessage }}
-    </div>
+    <!-- Error / Success -->
+    <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="alert-success">{{ successMessage }}</div>
 
-    <form (ngSubmit)="submitForm()" #registrationForm="ngForm">
-      <!-- Role Selection -->
-      <div class="form-section">
-        <h3>Select Your Role</h3>
-        <div class="form-group">
-          <select 
-            [(ngModel)]="selectedRole" 
-            (ngModelChange)="onRoleChange()"
-            name="role" 
-            class="form-control" 
-            required>
-            <option value="">Select your role...</option>
-            <option value="tenant">Tenant</option>
-            <option value="landlord">Landlord</option>
-            <option value="caretaker">Caretaker - Property management staff</option>
-            <option value="business">Business - Property management company</option>
-          </select>
-        </div>
-      </div>
+    <!-- Registration Form -->
+    <form (ngSubmit)="onSubmit()" #registrationForm="ngForm" novalidate>
 
-      <!-- Universal Personal Information -->
-      <div class="form-section">
-        <h3>Personal Information</h3>
-        
-        <div class="form-group">
-          <label for="fullName">Full Name *</label>
-          <input 
-            type="text" 
-            id="fullName"
-            class="form-control" 
-            [(ngModel)]="formData.fullName" 
-            name="fullName" 
-            required />
-        </div>
-        
-        <div class="form-group">
-          <label for="email">Email Address *</label>
-          <input 
-            type="email" 
-            id="email"
-            class="form-control" 
-            [(ngModel)]="formData.email" 
-            name="email" 
-            required />
-        </div>
-        
-        <div class="form-group">
-          <label for="phone">Phone Number *</label>
-          <input 
-            type="tel" 
-            id="phone"
-            class="form-control" 
-            [(ngModel)]="formData.phone" 
-            name="phone" 
-            placeholder="+254 700 000 000" 
-            required />
-        </div>
-        
-        <!-- Password Field -->
-        <div class="form-group password-group">
-          <label for="password">Password *</label>
-          <div class="password-input-container">
-            <input 
-              [type]="showPassword ? 'text' : 'password'" 
-              id="password"
-              class="form-control" 
-              [(ngModel)]="formData.password" 
-              name="password" 
-              required 
-              minlength="8" />
-            <button type="button" class="password-toggle" (click)="togglePassword('password')">
-              <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
-            </button>
-          </div>
-          <!-- Password strength indicator -->
-          <div *ngIf="formData.password" class="password-strength">
-            <div class="strength-bar" [ngClass]="getPasswordStrength(formData.password)"></div>
-            <span class="strength-text" [ngClass]="getPasswordStrength(formData.password)">
-              {{ getPasswordStrength(formData.password) | titlecase }}
-            </span>
-          </div>
-        </div>
+      <!-- Role -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Role</mat-label>
+        <mat-select [(ngModel)]="formData.role" name="role" (selectionChange)="onRoleChange()" [disabled]="isInvitation" required>
+          <mat-option value="tenant">Tenant</mat-option>
+          <mat-option value="landlord">Landlord</mat-option>
+          <mat-option value="caretaker">Caretaker</mat-option>
+          <mat-option value="business">Business</mat-option>
+          <mat-option value="admin">Admin</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-        <!-- Confirm Password Field -->
-        <div class="form-group password-group">
-          <label for="confirmPassword">Confirm Password *</label>
-          <div class="password-input-container">
-            <input 
-              [type]="showConfirmPassword ? 'text' : 'password'" 
-              id="confirmPassword"
-              class="form-control" 
-              [(ngModel)]="formData.confirmPassword" 
-              name="confirmPassword" 
-              required />
-            <button type="button" class="password-toggle" (click)="togglePassword('confirm')">
-              <mat-icon>{{ showConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
-            </button>
-          </div>
-          <!-- Password match indicator -->
-          <div *ngIf="formData.confirmPassword" class="password-match">
-            <mat-icon [ngClass]="formData.password === formData.confirmPassword ? 'match' : 'no-match'">
-              {{ formData.password === formData.confirmPassword ? 'check_circle' : 'cancel' }}
-            </mat-icon>
-            <span [ngClass]="formData.password === formData.confirmPassword ? 'match' : 'no-match'">
-              {{ formData.password === formData.confirmPassword ? 'Passwords match' : 'Passwords do not match' }}
-            </span>
-          </div>
-        </div>
-      </div>
+      <!-- Property info for invited tenant/caretaker -->
+      <mat-form-field *ngIf="isInvitation && (formData.role === 'tenant' || formData.role === 'caretaker')" appearance="outline" class="full-width">
+        <mat-label>Property / Unit</mat-label>
+        <input matInput [value]="formData.propertyName" readonly />
+      </mat-form-field>
 
-      <!-- Tenant Profile -->
-      <div *ngIf="selectedRole === 'tenant'" class="form-section role-specific">
-        <h3>Tenant Information</h3>
-        <div class="welcome-message">
-          <mat-icon>home</mat-icon>
-          <p>Welcome! As a tenant, you can search and apply for properties on our platform.</p>
-        </div>
-      </div>
+      <!-- Full Name -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Full Name</mat-label>
+        <input matInput type="text" [(ngModel)]="formData.fullName" name="fullName" required />
+      </mat-form-field>
 
-      <!-- Landlord Profile -->
-      <div *ngIf="selectedRole === 'landlord'" class="form-section role-specific">
-        <h3>Landlord Information</h3>
-        
-        <div class="form-group">
-          <label for="businessName">Business/Company Name</label>
-          <input 
-            type="text" 
-            id="businessName"
-            class="form-control" 
-            [(ngModel)]="formData.landlord.businessName" 
-            name="businessName" 
-            placeholder="Your property business name" />
-        </div>
-        
-        <div class="form-group">
-          <label for="numProperties">Number of Properties Owned *</label>
-          <input 
-            type="number" 
-            id="numProperties"
-            class="form-control" 
-            [(ngModel)]="formData.landlord.numProperties" 
-            name="numProperties" 
-            min="1" 
-            required />
-        </div>
-        
-        <div class="form-group">
-          <label for="propertyTypes">Property Types *</label>
-          <select 
-            id="propertyTypes"
-            class="form-control" 
-            [(ngModel)]="formData.landlord.propertyTypes" 
-            name="propertyTypes" 
-            required>
-            <option value="">Select primary property type...</option>
-            <option value="residential">Residential Only</option>
-            <option value="commercial">Commercial Only</option>
-            <option value="mixed">Mixed (Residential & Commercial)</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="businessRegNumber">Business Registration Number</label>
-          <input 
-            type="text" 
-            id="businessRegNumber"
-            class="form-control" 
-            [(ngModel)]="formData.landlord.businessRegNumber" 
-            name="businessRegNumber" 
-            placeholder="Company registration number (if applicable)" />
-        </div>
-        
-        <div class="form-group">
-          <label for="taxPin">Tax PIN Number</label>
-          <input 
-            type="text" 
-            id="taxPin"
-            class="form-control" 
-            [(ngModel)]="formData.landlord.taxPin" 
-            name="taxPin" 
-            placeholder="KRA PIN number" />
-        </div>
-      </div>
+      <!-- Email -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" [(ngModel)]="formData.email" name="email" [readonly]="isInvitation" required />
+      </mat-form-field>
 
-      <!-- Caretaker Profile -->
-      <div *ngIf="selectedRole === 'caretaker'" class="form-section role-specific">
-        <h3>Caretaker Information</h3>
-        
-        <div class="form-group">
-          <label for="employer">Employer/Management Company *</label>
-          <input 
-            type="text" 
-            id="employer"
-            class="form-control" 
-            [(ngModel)]="formData.caretaker.employer" 
-            name="employer" 
-            placeholder="Name of property management company" 
-            required />
-        </div>
-        
-        <div class="form-group">
-          <label for="propertiesManaged">Properties Currently Managing</label>
-          <input 
-            type="number" 
-            id="propertiesManaged"
-            class="form-control" 
-            [(ngModel)]="formData.caretaker.propertiesManaged" 
-            name="propertiesManaged" 
-            min="0" 
-            placeholder="Number of properties" />
-        </div>
-        
-        <div class="form-group">
-          <label for="referenceContact">Reference Contact</label>
-          <input 
-            type="text" 
-            id="referenceContact"
-            class="form-control" 
-            [(ngModel)]="formData.caretaker.referenceContact" 
-            name="referenceContact" 
-            placeholder="Supervisor or employer contact" />
-        </div>
-      </div>
+      <!-- Phone -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phone Number</mat-label>
+        <input matInput type="tel" placeholder="+254 700 000 000" [(ngModel)]="formData.phone" name="phone" required />
+      </mat-form-field>
 
-      <!-- Business Profile -->
-      <div *ngIf="selectedRole === 'business'" class="form-section role-specific">
-        <h3>Business Information</h3>
-        
-        <div class="form-group">
-          <label for="officialName">Official Business Name *</label>
-          <input 
-            type="text" 
-            id="officialName"
-            class="form-control" 
-            [(ngModel)]="formData.business.officialName" 
-            name="officialName" 
-            placeholder="Registered company name" 
-            required />
-        </div>
-        
-        <div class="form-group">
-          <label for="registrationNumber">Business Registration Number *</label>
-          <input 
-            type="text" 
-            id="registrationNumber"
-            class="form-control" 
-            [(ngModel)]="formData.business.registrationNumber" 
-            name="registrationNumber" 
-            placeholder="Company registration certificate number" 
-            required />
-        </div>
-        
-        <div class="form-group">
-          <label for="companyRegCert">Company Registration Certificate *</label>
-          <input 
-            type="file" 
-            id="companyRegCert"
-            class="form-control file-input" 
-            (change)="onFileChange($event)"
-            name="companyRegCert" 
-            accept=".pdf,.jpg,.jpeg,.png" 
-            required />
-          <small class="form-text">Upload PDF, JPG, or PNG format (Max 5MB)</small>
-        </div>
-        
-        <div class="form-group">
-          <label for="taxPinCert">Tax PIN Certificate *</label>
-          <input 
-            type="file" 
-            id="taxPinCert"
-            class="form-control file-input" 
-            (change)="onFileChange($event)"
-            name="taxPinCert" 
-            accept=".pdf,.jpg,.jpeg,.png" 
-            required />
-          <small class="form-text">KRA PIN certificate (Max 5MB)</small>
-        </div>
-        
-        <div class="form-group">
-          <label for="earbLicense">EARB License Number</label>
-          <input 
-            type="text" 
-            id="earbLicense"
-            class="form-control" 
-            [(ngModel)]="formData.business.earbLicense" 
-            name="earbLicense" 
-            placeholder="Estate Agents Registration Board license (if applicable)" />
-        </div>
-        
-        <div class="form-group">
-          <label for="businessPropertiesManaged">Number of Properties Managed *</label>
-          <input 
-            type="number" 
-            id="businessPropertiesManaged"
-            class="form-control" 
-            [(ngModel)]="formData.business.propertiesManaged" 
-            name="businessPropertiesManaged" 
-            min="1" 
-            required />
-        </div>
-        
-        <div class="form-group">
-          <label for="numEmployees">Number of Employees</label>
-          <input 
-            type="number" 
-            id="numEmployees"
-            class="form-control" 
-            [(ngModel)]="formData.business.numEmployees" 
-            name="numEmployees" 
-            min="0" />
-        </div>
-        
-        <div class="form-group">
-          <label for="primaryContact">Primary Contact Person</label>
-          <input 
-            type="text" 
-            id="primaryContact"
-            class="form-control" 
-            [(ngModel)]="formData.business.primaryContact" 
-            name="primaryContact" 
-            placeholder="Name of main business contact" />
-        </div>
-        
-        <div class="form-group">
-          <label for="bankAccount">Business Bank Account Details</label>
-          <input 
-            type="text" 
-            id="bankAccount"
-            class="form-control" 
-            [(ngModel)]="formData.business.bankAccount" 
-            name="bankAccount" 
-            placeholder="Bank name and account number" />
-        </div>
-        
-        <div class="form-group">
-          <label for="businessDescription">Business Description</label>
-          <textarea 
-            id="businessDescription"
-            class="form-control" 
-            [(ngModel)]="formData.business.description" 
-            name="businessDescription" 
-            rows="3" 
-            placeholder="Brief description of your property management services"></textarea>
-        </div>
-      </div>
+      <!-- Password -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input matInput [type]="showPassword ? 'text' : 'password'" [(ngModel)]="formData.password" name="password" required />
+        <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility('password')">
+          <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+      </mat-form-field>
 
-      <!-- Terms and Conditions -->
-      <div class="form-section terms-section">
-        <div class="form-group checkbox-group">
-          <label class="checkbox-label">
-            <input 
-              type="checkbox" 
-              [(ngModel)]="agreedToTerms" 
-              name="agreedToTerms" 
-              required>
-            <span class="checkmark"></span>
-            I agree to the <a href="/terms" target="_blank" class="terms-link" (click)="navigateToTerms()">Terms & Conditions</a>
-          </label>
-        </div>
-        
-        <div class="form-group checkbox-group">
-          <label class="checkbox-label">
-            <input 
-              type="checkbox" 
-              [(ngModel)]="agreedToPrivacy" 
-              name="agreedToPrivacy" 
-              required>
-            <span class="checkmark"></span>
-            I agree to the <a href="/privacy" target="_blank" class="terms-link" (click)="navigateToPrivacy()">Privacy Policy</a>
-          </label>
-        </div>
-        
-        <div class="form-group checkbox-group">
-          <label class="checkbox-label">
-            <input 
-              type="checkbox" 
-              [(ngModel)]="agreedToMarketing" 
-              name="agreedToMarketing">
-            <span class="checkmark"></span>
-            I agree to receive marketing communications and property updates
-          </label>
-        </div>
-      </div>
+      <!-- Confirm Password -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Confirm Password</mat-label>
+        <input matInput [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="formData.confirmPassword" name="confirmPassword" required />
+        <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility('confirm')">
+          <mat-icon>{{ showConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+      </mat-form-field>
 
-      <!-- Submit Button -->
-      <button 
-        type="submit" 
-        class="btn btn-primary btn-large" 
-        [disabled]="!registrationForm.valid || !agreedToTerms || !agreedToPrivacy || isLoading"
-        [class.loading]="isLoading">
-        <span *ngIf="!isLoading">Create Account</span>
-        <span *ngIf="isLoading">Creating Account...</span>
+      <!-- Admin Access Code -->
+      <mat-form-field *ngIf="formData.role === 'admin'" appearance="outline" class="full-width">
+        <mat-label>Admin Access Code</mat-label>
+        <input matInput type="text" [(ngModel)]="formData.accessCode" name="accessCode" />
+      </mat-form-field>
+
+      <!-- Terms -->
+      <mat-checkbox [(ngModel)]="agreedToTerms" name="terms" required>
+        I agree to the <a (click)="navigateToTerms()">Terms and Conditions</a> and <a (click)="navigateToPrivacy()">Privacy Policy</a> of RentEase
+      </mat-checkbox>
+
+      <!-- Submit -->
+      <button mat-raised-button color="primary" class="full-width submit-btn" [disabled]="isLoading || !registrationForm.valid || !agreedToTerms">
+        {{ isLoading ? 'Creating Account...' : 'Create Account' }}
       </button>
-
-      <!-- Login Link -->
-      <div class="login-prompt">
-        <p>Already have an account? <button type="button" class="login-link" (click)="navigateToLogin()">Login</button></p>
-      </div>
     </form>
+
+    <!-- Login Link -->
+    <p class="login-link">
+      Already have an account? <a (click)="navigateToLogin()">Login</a>
+    </p>
   </div>
 </div>
