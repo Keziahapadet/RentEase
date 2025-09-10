@@ -98,9 +98,13 @@ mat-checkbox a:hover {
   margin-top: 25px;
   padding: 14px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 16px;
   border-radius: 10px;
   transition: background 0.3s ease, transform 0.2s ease;
+    
+}
+.full-width{
+  width: 100%;
 }
 
 .submit-btn:hover {
@@ -109,16 +113,18 @@ mat-checkbox a:hover {
 
 /* Login link */
 .login-link {
-  margin-top: 25px;
-  font-size: 0.95rem;
-  color: #555;
+  margin-top: 15px;
+  font-size: 14px;
+  text-align: center;
+  
 }
 
 .login-link a {
   color: #1976d2;
+  cursor: pointer;
   font-weight: 500;
   text-decoration: none;
-}
+}  
 
 .login-link a:hover {
   text-decoration: underline;
@@ -156,4 +162,21 @@ mat-checkbox a:hover {
   .login-link {
     font-size: 0.85rem;
   }
+  .terms-container {
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+.link-text {
+  color: #1e88e5;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
 }

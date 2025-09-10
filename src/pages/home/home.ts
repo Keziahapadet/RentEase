@@ -17,6 +17,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private isBrowser: boolean;
   isNavScrolled: boolean = false;
   isMobileMenuOpen: boolean = false;
+    showUninvitedMessage: boolean = false;
 
   slides = [
     {
@@ -81,7 +82,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   startHeroCarousel(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextSlide();
-    }, 3000);
+    }, 4000);
   }
 
   stopHeroCarousel(): void {
@@ -206,5 +207,34 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (event.key === 'ArrowLeft') this.prevSlide();
     else if (event.key === 'ArrowRight') this.nextSlide();
     else if (event.key === 'Escape' && this.isMobileMenuOpen) this.isMobileMenuOpen = false;
+  }
+   onGetStartedClick(role: string, invitationToken?: string) {
+    if (role === 'tenant' || role === 'caretaker') {
+      if (!invitationToken || !this.isValidInvitation(invitationToken)) {
+        // Show uninvited message
+        this.showUninvitedMessage = true;
+        return;
+      } else {
+        // invited user
+        this.router.navigate(['/register'], { queryParams: { token: invitationToken } });
+      }
+    } else {
+      // Landlord / Business
+      this.router.navigate(['/register'], { queryParams: { role } });
+    }
+  }
+
+  navigateToLanding() {
+    this.showUninvitedMessage = false;
+    this.router.navigate(['/home']);
+  }
+
+  contactLandlord() {
+    this.router.navigate(['/contact']);
+  }
+
+  isValidInvitation(token: string): boolean {
+    // TODO: Replace with actual backend check
+    return false;
   }
 }

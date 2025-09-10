@@ -14,7 +14,7 @@ import { Firestore, doc, setDoc, serverTimestamp } from '@angular/fire/firestore
 
 interface FormData {
   role: string;
-  fullName: string;
+  userName: string;
   email: string;
   phone: string;
   password: string;
@@ -47,7 +47,7 @@ export class RegistrationComponent implements OnInit {
 
   formData: FormData = {
     role: '',
-    fullName: '',
+    userName: '',
     email: '',
     phone: '',
     password: '',
@@ -79,7 +79,7 @@ export class RegistrationComponent implements OnInit {
   resetForm(): void {
     this.formData = {
       role: '',
-      fullName: '',
+      userName: '',
       email: '',
       phone: '',
       password: '',
@@ -133,7 +133,7 @@ export class RegistrationComponent implements OnInit {
     this.errorMessage = '';
 
     if (!this.formData.role) { this.errorMessage = 'Role is required'; return false; }
-    if (!this.formData.fullName.trim()) { this.errorMessage = 'Full name is required'; return false; }
+    if (!this.formData.userName.trim()) { this.errorMessage = 'Full name is required'; return false; }
     if (!this.formData.email.trim()) { this.errorMessage = 'Email is required'; return false; }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.formData.email)) { this.errorMessage = 'Invalid email address'; return false; }
@@ -167,13 +167,13 @@ export class RegistrationComponent implements OnInit {
         this.formData.password
       );
 
-      await updateProfile(userCredential.user, { displayName: this.formData.fullName.trim() });
+      await updateProfile(userCredential.user, { displayName: this.formData.userName.trim() });
 
       const userRef = doc(this.firestore, 'users', userCredential.user.uid);
       await setDoc(userRef, {
         uid: userCredential.user.uid,
         role: this.formData.role,
-        fullName: this.formData.fullName.trim(),
+        fullName: this.formData.userName.trim(),
         email: this.formData.email.trim().toLowerCase(),
         phone: this.formData.phone.replace(/\s/g, ''),
         accessCode: this.formData.role === 'admin' ? this.formData.accessCode : null,

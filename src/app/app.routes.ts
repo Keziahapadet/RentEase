@@ -8,7 +8,10 @@ import { LandlordDashboardComponent } from './components/dashboard/landlord-dash
 import { FeaturesComponent } from '../pages/features/features';
 import { PricingComponent } from '../pages/pricing/pricing';
 import { ContactComponent } from '../pages/contacts/contacts';
+import { TermsComponent } from '../pages/terms/terms';
+import { PrivacyComponent } from '../pages/privacy/privacy';
 import { AboutComponent } from '../pages/about/about';
+import { ForgotPasswordComponent } from './components/auth/forgot-password/forgot-password';
 
 
 export const routes: Routes = [
@@ -34,9 +37,14 @@ export const routes: Routes = [
     component: LandlordDashboardComponent 
   },
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
+
    { path: 'login', 
     component: LoginComponent 
   }, 
+  
+   { path: 'forgot-password', 
+    component: ForgotPasswordComponent 
+  },
   { 
     path: 'dashboard',                  
     redirectTo: '/tenant-dashboard', 
@@ -58,6 +66,8 @@ export const routes: Routes = [
     path: 'about', 
     component: AboutComponent
   },
+  { path: 'terms', component: TermsComponent },
+  { path: 'privacy', component: PrivacyComponent },
   { 
     path: '**', 
     redirectTo: '' 

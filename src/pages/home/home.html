@@ -90,7 +90,19 @@
     </div>
   </div>
 </div>
-
+<div *ngIf="showUninvitedMessage" class="uninvited-message-container">
+  <p class="uninvited-text">
+    Tenant/Caretaker registration is by invitation only. Please contact your landlord to register.
+  </p>
+  <div class="uninvited-actions">
+    <button mat-raised-button color="primary" (click)="navigateToLanding()">
+      Back
+    </button>
+    <button mat-raised-button color="accent" (click)="contactLandlord()">
+      Contact Landlord
+    </button>
+  </div>
+</div>
 <!-- Stats Section -->
 <section id="stats" class="stats-section">
   <div class="container">
