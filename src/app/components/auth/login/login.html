@@ -31,9 +31,8 @@
       <!-- Remember Me -->
       <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe">Remember Me</mat-checkbox>
 
-      <!-- Forgot Password -->
-      <p class="forgot-password-link">
-        <a (click)="navigateToForgotPassword()">Forgot Password?</a>
+       <p class="forgot-password-link">         
+        <a href="#" (click)="navigateToForgotPassword(); $event.preventDefault()" style="cursor: pointer;">Forgot Password?</a>       
       </p>
 
       <!-- Submit -->
@@ -44,8 +43,8 @@
     </form>
 
     <!-- Register Link -->
-    <p class="register-link">
-      Don't have an account? <a (click)="navigateToRegister()">Register</a>
-    </p>
+    <p class="register-link">       
+      Don't have an account? <a href="#" (click)="navigateToRegister(); $event.preventDefault()" style="cursor: pointer;">Register</a>     
+    </p>  
   </div>
 </div>

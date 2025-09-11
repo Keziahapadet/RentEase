@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+// src/app/components/login/login.component.ts
+
+import { Component, OnInit, inject } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,6 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { AuthService } from '../../../services/auth.service';
+import { LoginRequest, AdminAuthResponse, UserAuthResponse, UserRole } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-login',
@@ -23,44 +27,150 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
-export class LoginComponent {
-  loginData = { email: '', password: '' };
+export class LoginComponent implements OnInit {
+  private router: Router = inject(Router);
+  private route: ActivatedRoute = inject(ActivatedRoute);
+  private authService: AuthService = inject(AuthService);
+
+  loginData = { 
+    email: '', 
+    password: '' 
+  };
+  
   showPassword = false;
   rememberMe = false;
   isLoading = false;
   errorMessage: string | null = null;
   successMessage: string | null = null;
+  returnUrl: string = '/dashboard';
 
-  constructor(private router: Router) {}
+  ngOnInit(): void {
+    console.log('Login component initialized');
+    
+    // Redirect if already authenticated
+    if (this.authService.isAuthenticated()) {
+      console.log('User already authenticated, redirecting...');
+      this.redirectToDashboard();
+      return;
+    }
 
-  togglePasswordVisibility() {
+    // Get return URL from route parameters
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    console.log('Return URL set to:', this.returnUrl);
+  }
+
+  togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
-  onSubmit() {
-    if (!this.loginData.email || !this.loginData.password) return;
+  validateForm(): boolean {
+    this.errorMessage = null;
+
+    if (!this.loginData.email.trim()) {
+      this.errorMessage = 'Email is required.';
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.loginData.email)) {
+      this.errorMessage = 'Please enter a valid email address.';
+      return false;
+    }
+
+    if (!this.loginData.password) {
+      this.errorMessage = 'Password is required.';
+      return false;
+    }
+
+    return true;
+  }
+
+  onSubmit(): void {
+    if (!this.validateForm()) {
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = null;
+    this.successMessage = null;
 
-    // Simulate login API call
-    setTimeout(() => {
-      this.isLoading = false;
+    const loginRequest: LoginRequest = {
+      email: this.loginData.email.trim().toLowerCase(),
+      password: this.loginData.password,
+      rememberMe: this.rememberMe
+    };
 
-      if (this.loginData.email === 'test@example.com' && this.loginData.password === '12345678') {
+    this.authService.login(loginRequest).subscribe({
+      next: (response: AdminAuthResponse | UserAuthResponse) => {
+        this.isLoading = false;
         this.successMessage = 'Login successful!';
-        setTimeout(() => this.router.navigate(['/dashboard']), 1000);
-      } else {
-        this.errorMessage = 'Invalid email or password.';
+        
+        setTimeout(() => {
+          this.redirectBasedOnRole(response.user.role);
+        }, 1000);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.message;
+        
+        // Clear password on error for security
+        this.loginData.password = '';
       }
-    }, 1500);
+    });
   }
 
-  navigateToForgotPassword() {
-    this.router.navigate(['/forgot-password']);
+  private redirectBasedOnRole(userRole: string): void {
+    console.log('Redirecting based on role:', userRole);
+    
+    switch (userRole.toUpperCase()) {
+      case UserRole.ADMIN:
+        this.router.navigate(['/admin-dashboard']);
+        break;
+      case UserRole.TENANT:
+        this.router.navigate(['/tenant-dashboard']);
+        break;
+      case UserRole.LANDLORD:
+        this.router.navigate(['/landlord-dashboard']);
+        break;
+      case UserRole.PROPERTY_MANAGER:
+        this.router.navigate(['/property-manager-dashboard']);
+        break;
+      default:
+        console.log('Unknown role, redirecting to default:', this.returnUrl);
+        this.router.navigate([this.returnUrl]);
+    }
   }
 
-  navigateToRegister() {
-    this.router.navigate(['/register']);
+  private redirectToDashboard(): void {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.redirectBasedOnRole(user.role);
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
+  navigateToForgotPassword(): void {
+    console.log('Attempting to navigate to forgot-password');
+    
+    this.router.navigate(['/forgot-password']).then(
+      (success) => console.log('Navigation to forgot-password successful:', success),
+      (error) => console.error('Navigation to forgot-password failed:', error)
+    );
+  }
+
+  navigateToRegister(): void {
+    console.log('Attempting to navigate to register');
+    
+    this.router.navigate(['/registration']).then(
+      (success) => console.log('Navigation to register successful:', success),
+      (error) => console.error('Navigation to register failed:', error)
+    );
+  }
+
+  onKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.onSubmit();
+    }
   }
 }

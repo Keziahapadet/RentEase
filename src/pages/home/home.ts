@@ -5,19 +5,26 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
   styleUrls: ['./home.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule]
+  imports: [CommonModule, FormsModule, MatIconModule, RouterModule]
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private isBrowser: boolean;
   isNavScrolled: boolean = false;
   isMobileMenuOpen: boolean = false;
-    showUninvitedMessage: boolean = false;
+  showUninvitedMessage: boolean = false;
+  activeMenu: string = 'home';
+
+  setActiveMenu(menu: string) {
+    this.activeMenu = menu;
+    this.isMobileMenuOpen = false; // close menu after click (optional)
+  }
 
   slides = [
     {
@@ -46,6 +53,90 @@ export class HomeComponent implements OnInit, OnDestroy {
     { current: '100', suffix: '%', label: 'Secure & Encrypted' },
     { current: '2', suffix: '%', label: 'Transaction Fee Only' },
     { current: '0', suffix: '', label: 'Hidden Fees' }
+  ];
+
+  // Services data (comprehensive rental management solutions)
+  services = [
+    {
+      id: 'secure-deposits',
+      icon: 'account_balance_wallet',
+      title: 'Secure Deposit Management',
+      description: 'Eliminate deposit fraud with our blockchain-based escrow system that ensures transparency and security for all parties.',
+      badge: 'Most Popular',
+      benefits: [
+        'Blockchain-secured deposit escrow',
+        'Automated refund processing',
+        'Transparent deposit tracking',
+        'Legal protection for all parties',
+        'Instant deposit verification'
+      ]
+    },
+    {
+      id: 'fraud-prevention',
+      icon: 'security',
+      title: 'Advanced Fraud Prevention',
+      description: 'Comprehensive verification system that protects landlords and tenants from rental scams and fraudulent activities.',
+      benefits: [
+        'AI-powered fraud detection',
+        'Identity verification system',
+        'Property ownership validation',
+        'Real-time risk assessment',
+        'Scam database protection'
+      ]
+    },
+    {
+      id: 'digital-contracts',
+      icon: 'description',
+      title: 'Digital Contract Management',
+      description: 'Streamlined lease agreements with digital signatures, automated renewals, and legal compliance built-in.',
+      benefits: [
+        'Legally binding digital signatures',
+        'Automated contract templates',
+        'Renewal reminders and processing',
+        'Document version control',
+        'Mobile-friendly contract signing'
+      ]
+    },
+    {
+      id: 'property-verification',
+      icon: 'verified',
+      title: 'Property Verification',
+      description: 'Comprehensive property validation including ownership verification, occupancy status, and condition assessment.',
+      benefits: [
+        'Ownership verification through land records',
+        'Physical property inspection',
+        'Occupancy status confirmation',
+        'Property condition documentation',
+        'Location and accessibility verification'
+      ]
+    },
+    {
+      id: 'communication-hub',
+      icon: 'forum',
+      title: 'Integrated Communication',
+      description: 'Centralized communication platform connecting landlords, tenants, and caretakers with real-time messaging and notifications.',
+      benefits: [
+        'Real-time messaging platform',
+        'Automated notification system',
+        'Multi-party group communications',
+        'Document sharing capabilities',
+        'Communication history tracking'
+      ]
+    },
+    {
+      id: 'community-marketplace',
+      icon: 'store',
+      title: 'Community Marketplace',
+      description: 'Local marketplace where tenants can buy, sell, and exchange items within their residential communities.',
+      badge: 'New',
+      benefits: [
+        'Hyperlocal buying and selling',
+        'Community-verified sellers',
+        'In-app secure transactions',
+        'Delivery within residential areas',
+        'Rating and review system'
+      ]
+    }
   ];
 
   currentYear: number = new Date().getFullYear();
@@ -82,7 +173,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   startHeroCarousel(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextSlide();
-    }, 8000);
+    }, 5000);
   }
 
   stopHeroCarousel(): void {
@@ -131,9 +222,30 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.startHeroCarousel();
   }
 
+  // Method to scroll to a specific section
+  scrollToSection(sectionId: string): void {
+    if (!this.isBrowser) return;
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  }
+
+  // Method to handle service "Learn More" clicks
+  learnMoreAboutService(serviceId: string): void {
+    // Navigate to features page with specific service highlighted
+    this.router.navigate(['/features'], { 
+      queryParams: { service: serviceId },
+      fragment: serviceId 
+    });
+  }
+
   // Navigation methods
   navigateToFeatures(): void {
-    this.router.navigate(['/features']);
+    this.scrollToSection('services');
   }
 
   navigateToPricing(): void {
@@ -146,10 +258,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   navigateToAbout(): void {
     this.router.navigate(['/about']);
-  }
-
-  navigateToServices(): void {
-    this.router.navigate(['/services']);
   }
 
   navigateToLogin(): void {
@@ -191,7 +299,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     );
 
     setTimeout(() => {
-      const animateElements = document.querySelectorAll('.stat-item');
+      const animateElements = document.querySelectorAll('.stat-item, .service-card, .benefit-item');
       animateElements.forEach(el => {
         const target = el as HTMLElement;
         target.style.opacity = '0';
@@ -208,7 +316,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     else if (event.key === 'ArrowRight') this.nextSlide();
     else if (event.key === 'Escape' && this.isMobileMenuOpen) this.isMobileMenuOpen = false;
   }
-   onGetStartedClick(role: string, invitationToken?: string) {
+
+  onGetStartedClick(role: string, invitationToken?: string) {
     if (role === 'tenant' || role === 'caretaker') {
       if (!invitationToken || !this.isValidInvitation(invitationToken)) {
         // Show uninvited message

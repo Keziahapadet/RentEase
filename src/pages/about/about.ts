@@ -3,21 +3,27 @@ import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-about',
   templateUrl: './about.html',
   styleUrls: ['./about.css'],
   standalone: true,
-  imports: [CommonModule, MatIconModule]
+  imports: [CommonModule, MatIconModule,RouterModule]
 })
 export class AboutComponent implements OnInit {
   private isBrowser: boolean;
   isNavScrolled: boolean = false;
   isMobileMenuOpen: boolean = false;
   currentYear: number = new Date().getFullYear();
+  activeMenu: string = 'about';
 
-  
+
+  setActiveMenu(menu: string) {
+  this.activeMenu = menu;
+  this.isMobileMenuOpen = false; // close menu after click (optional)
+}
   teamMembers = [
     {
       name: 'Keziah Apadet',
@@ -60,7 +66,7 @@ export class AboutComponent implements OnInit {
 
   ourStory = {
     title: 'Our Story',
-    description: `RentEase was founded after Keziah personally experienced rental fraud. 
+    description: `RentEase was founded after Keziah and Hassan  personally experienced rental fraud. 
     Instead of giving up, the challenge inspired the creation of a platform that protects tenants, landlords, and caretakers from similar experiences.`
   };
 
@@ -83,7 +89,6 @@ export class AboutComponent implements OnInit {
   navigateToFeatures(): void { this.router.navigate(['/features']); }
   navigateToPricing(): void { this.router.navigate(['/pricing']); }
   navigateToContact(): void { this.router.navigate(['/contact']); }
-  navigateToServices(): void { this.router.navigate(['/services']); }
   navigateToLogin(): void { this.router.navigate(['/login']); }
 
   scrollToTop(): void {

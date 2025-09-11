@@ -4,14 +4,26 @@
     <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
       <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
     </a>
-
     <ul class="nav-links" [class.active]="isMobileMenuOpen">
-      <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
-      <li><a (click)="navigateToFeatures()">Features</a></li>
-      <li><a (click)="navigateToPricing()">Pricing</a></li>
-      <li><a (click)="navigateToContact()">Contact</a></li>
-      <li><a (click)="navigateToAbout()">About</a></li>
-      <!-- <li><a (click)="navigateToServices()">Services</a></li> -->
+      <li>
+         <a routerLink="/" 
+           routerLinkActive="active" 
+           [routerLinkActiveOptions]="{ exact: true }">
+           Home
+        </a>
+      </li>
+      <li>
+        <a routerLink="/features" routerLinkActive="active" (click)="setActiveMenu('features')">Features</a>
+      </li>
+      <li>
+        <a routerLink="/pricing" routerLinkActive="active" (click)="setActiveMenu('pricing')">Pricing</a>
+      </li>
+      <li>
+        <a routerLink="/contact" routerLinkActive="active" (click)="setActiveMenu('contact')">Contact</a>
+      </li>
+      <li>
+        <a routerLink="/about" routerLinkActive="active" (click)="setActiveMenu('about')">About</a>
+      </li>
     </ul>
 
     <div class="nav-actions">
@@ -83,13 +95,14 @@
         Get Started
         <mat-icon>arrow_forward</mat-icon>
       </button>
-      <button class="btn btn-secondary" (click)="navigateToFeatures()">
-        See How It Works
-        <mat-icon>arrow_forward</mat-icon>
+      <button class="btn btn-secondary" (click)="scrollToSection('services')">
+        View Our Services
+        <mat-icon>visibility</mat-icon>
       </button>
     </div>
   </div>
 </div>
+
 <div *ngIf="showUninvitedMessage" class="uninvited-message-container">
   <p class="uninvited-text">
     Tenant/Caretaker registration is by invitation only. Please contact your landlord to register.
@@ -103,6 +116,7 @@
     </button>
   </div>
 </div>
+
 <!-- Stats Section -->
 <section id="stats" class="stats-section">
   <div class="container">
@@ -110,6 +124,110 @@
       <div class="stat-item" *ngFor="let stat of stats">
         <div class="stat-number">{{ stat.current }}{{ stat.suffix }}</div>
         <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="services-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Our <span class="gradient-text">Services</span>
+      </h2>
+      <p class="section-description">
+        Comprehensive digital solutions addressing Kenya's rental challenges with innovative technology
+      </p>
+    </div>
+
+    <div class="services-grid">
+      <div class="service-card" *ngFor="let service of services">
+        <div class="service-header">
+          <div class="service-icon">
+            <mat-icon>{{ service.icon }}</mat-icon>
+          </div>
+          <div class="service-badge" *ngIf="service.badge">{{ service.badge }}</div>
+        </div>
+        
+        <div class="service-content">
+          <h3 class="service-title">{{ service.title }}</h3>
+          <p class="service-description">{{ service.description }}</p>
+          
+          <div class="service-benefits">
+            <h4>Key Benefits:</h4>
+            <ul class="benefit-list">
+              <li *ngFor="let benefit of service.benefits" class="benefit-item">
+                <mat-icon class="benefit-icon">check_circle</mat-icon>
+                <span>{{ benefit }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Benefits/Why Choose Us Section -->
+<section class="benefits-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">
+        Why Choose <span class="gradient-text">RentEase</span>?
+      </h2>
+      <p class="section-description">
+        Transform your rental experience with Kenya's most advanced property management platform
+      </p>
+    </div>
+
+    <div class="benefits-grid">
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>shield</mat-icon>
+        </div>
+        <h3>Fraud Prevention</h3>
+        <p>Advanced security measures and verification systems to protect against rental fraud and scams.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>speed</mat-icon>
+        </div>
+        <h3>Fast Processing</h3>
+        <p>Quick verification, instant notifications, and streamlined processes for faster transactions.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>support_agent</mat-icon>
+        </div>
+        <h3>24/7 Support</h3>
+        <p>Round-the-clock customer support to help you with any questions or issues.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <h3>Market Insights</h3>
+        <p>Access real-time market data and analytics to make informed rental decisions.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>mobile_friendly</mat-icon>
+        </div>
+        <h3>Mobile First</h3>
+        <p>Manage your properties on-the-go with our responsive mobile-friendly platform.</p>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <mat-icon>account_balance</mat-icon>
+        </div>
+        <h3>Legal Compliance</h3>
+        <p>All processes comply with Kenyan rental laws and regulations for your peace of mind.</p>
       </div>
     </div>
   </div>
@@ -156,21 +274,21 @@
         <div class="footer-column">
           <h4>For Tenants</h4>
           <ul>
-            <li><a (click)="navigateToFeatures()">Secure Deposits</a></li>
-            <li><a (click)="navigateToFeatures()">Digital Documents</a></li>
-            <li><a (click)="navigateToFeatures()">Community Marketplace</a></li>
+            <li><a (click)="scrollToSection('services')">Secure Deposits</a></li>
+            <li><a (click)="scrollToSection('services')">Digital Documents</a></li>
+            <li><a (click)="scrollToSection('services')">Community Marketplace</a></li>
             <li><a (click)="navigateToContact()">Find Properties</a></li>
-            <li><a (click)="navigateToFeatures()">Rating System</a></li>
+            <li><a (click)="scrollToSection('services')">Rating System</a></li>
           </ul>
         </div>
 
         <div class="footer-column">
           <h4>For Landlords</h4>
           <ul>
-            <li><a (click)="navigateToFeatures()">Fraud Prevention</a></li>
-            <li><a (click)="navigateToFeatures()">Digital Management</a></li>
+            <li><a (click)="scrollToSection('services')">Fraud Prevention</a></li>
+            <li><a (click)="scrollToSection('services')">Digital Management</a></li>
             <li><a (click)="navigateToPricing()">Pricing Plans</a></li>
-            <li><a (click)="navigateToFeatures()">Verified Tenants</a></li>
+            <li><a (click)="scrollToSection('services')">Verified Tenants</a></li>
             <li><a (click)="navigateToContact()">Get Started</a></li>
           </ul>
         </div>
@@ -178,7 +296,7 @@
         <div class="footer-column">
           <h4>Platform</h4>
           <ul>
-            <li><a (click)="navigateToFeatures()">How It Works</a></li>
+            <li><a (click)="scrollToSection('services')">Our Services</a></li>
             <li><a (click)="navigateToContact()">Success Stories</a></li>
             <li><a (click)="navigateToContact()">Contact Support</a></li>
             <li><a href="#" (click)="$event.preventDefault()">Privacy Policy</a></li>

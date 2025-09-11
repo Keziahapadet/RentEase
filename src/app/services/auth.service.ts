@@ -1,371 +1,476 @@
-import { Injectable } from '@angular/core';
+// src/app/services/auth.service.ts
+
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import { 
-  Auth, 
-  signInWithPhoneNumber, 
-  RecaptchaVerifier, 
-  PhoneAuthProvider,
-  signInWithCredential,
-  sendEmailVerification as firebaseSendEmailVerification
-} from '@angular/fire/auth';
-import { 
-  Firestore, 
-  collection, 
-  query, 
-  where, 
-  getDocs,
-  doc,
-  updateDoc
-} from '@angular/fire/firestore';
-import { environment } from '../../environments/environment';
+  User, 
+  LoginRequest, 
+  RegisterRequest,
+  AdminAuthResponse,
+  UserAuthResponse,
+  RegisterResponse,
+  PasswordResetRequest,
+  PasswordResetConfirm,
+  ChangePasswordRequest,
+  UserRole
+} from './auth-interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private recaptchaVerifier: RecaptchaVerifier | null = null;
-  private verificationId: string = '';
-  private isDevelopmentMode = !environment.production;
+  private http: HttpClient = inject(HttpClient);
+  private router: Router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser: boolean;
+  
+  private readonly apiUrl = 'http://10.20.33.70:8080/api/auth';
+  
+  // Reactive state management
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  
+  // Public observables
+  public currentUser$ = this.currentUserSubject.asObservable();
+  public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor(
-    private auth: Auth,
-    private firestore: Firestore
-  ) {}
-
-  // Check if phone number exists and send OTP
-  async sendLoginOTP(phoneNumber: string): Promise<{
-    success: boolean;
-    message?: string;
-    userEmail?: string;
-  }> {
-    try {
-      // Format phone number (ensure it starts with country code)
-      const formattedPhone = this.formatPhoneNumber(phoneNumber);
-      
-      // Check if phone number exists in database
-      const userExists = await this.checkPhoneExists(formattedPhone);
-      
-      if (!userExists.exists) {
-        return {
-          success: false,
-          message: 'Phone number not registered. Please create an account first.'
-        };
-      }
-
-      // Development mode - skip actual Firebase OTP
-      if (this.isDevelopmentMode) {
-        console.log('Development Mode: Simulating OTP send for', formattedPhone);
-        this.verificationId = 'dev-verification-id-' + Date.now();
-        return {
-          success: true,
-          message: 'OTP sent successfully (Dev Mode - use 123456)',
-          userEmail: userExists.userEmail
-        };
-      }
-
-      // Production mode - actual Firebase OTP
-      // Setup reCAPTCHA verifier if not already set
-      if (!this.recaptchaVerifier) {
-        this.setupRecaptchaVerifier();
-      }
-
-      // Ensure recaptchaVerifier is not null before using it
-      if (!this.recaptchaVerifier) {
-        return {
-          success: false,
-          message: 'reCAPTCHA setup failed. Please refresh and try again.'
-        };
-      }
-
-      // Send OTP using Firebase
-      const confirmationResult = await signInWithPhoneNumber(
-        this.auth,
-        formattedPhone,
-        this.recaptchaVerifier
-      );
-      
-      this.verificationId = confirmationResult.verificationId;
-
-      return {
-        success: true,
-        message: 'OTP sent successfully',
-        userEmail: userExists.userEmail
-      };
-
-    } catch (error: any) {
-      console.error('Error sending OTP:', error);
-      
-      // Handle specific Firebase errors
-      if (error.code === 'auth/too-many-requests') {
-        return {
-          success: false,
-          message: 'Too many requests. Please try again later.'
-        };
-      } else if (error.code === 'auth/invalid-phone-number') {
-        return {
-          success: false,
-          message: 'Invalid phone number format.'
-        };
-      }
-      
-      return {
-        success: false,
-        message: 'Failed to send OTP. Please try again.'
-      };
+  constructor() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    
+    // Only initialize auth state if we're in the browser
+    if (this.isBrowser) {
+      this.initializeAuthState();
     }
   }
 
-  // Verify OTP and complete login
-  async verifyLoginOTP(phoneNumber: string, otpCode: string): Promise<{
-    success: boolean;
-    message?: string;
-    user?: any;
-    requireEmailVerification?: boolean;
-  }> {
+  // ============ STORAGE HELPER METHODS ============
+
+  private getFromStorage(key: string): string | null {
+    if (!this.isBrowser) return null;
     try {
-      if (!this.verificationId) {
-        return {
-          success: false,
-          message: 'No verification ID found. Please request OTP again.'
-        };
-      }
-
-      // Development mode - accept 123456 as valid OTP
-      if (this.isDevelopmentMode && otpCode === '123456') {
-        console.log('Development Mode: OTP verified for', phoneNumber);
-        const userData = await this.getUserData(phoneNumber);
-        
-        return {
-          success: true,
-          message: 'Login successful (Dev Mode)',
-          user: userData,
-          requireEmailVerification: false
-        };
-      }
-
-      // Production mode - actual Firebase verification
-      // Create phone credential
-      const credential = PhoneAuthProvider.credential(this.verificationId, otpCode);
-      
-      // Sign in with credential
-      const result = await signInWithCredential(this.auth, credential);
-      
-      if (result.user) {
-        // Get user data from Firestore
-        const userData = await this.getUserData(phoneNumber);
-        
-        return {
-          success: true,
-          message: 'Login successful',
-          user: userData,
-          requireEmailVerification: userData?.emailVerificationRequired || false
-        };
-      }
-
-      return {
-        success: false,
-        message: 'Verification failed'
-      };
-
-    } catch (error: any) {
-      console.error('Error verifying OTP:', error);
-      
-      if (error.code === 'auth/invalid-verification-code') {
-        return {
-          success: false,
-          message: 'Invalid verification code. Please try again.'
-        };
-      } else if (error.code === 'auth/code-expired') {
-        return {
-          success: false,
-          message: 'Verification code has expired. Please request a new one.'
-        };
-      }
-      
-      return {
-        success: false,
-        message: 'Verification failed. Please try again.'
-      };
+      return localStorage.getItem(key) || sessionStorage.getItem(key);
+    } catch (error) {
+      console.warn('Storage access error:', error);
+      return null;
     }
   }
 
-  // Send email verification
-  async sendEmailVerification(email: string): Promise<{
-    success: boolean;
-    message?: string;
-    user?: any;
-  }> {
+  private setInStorage(key: string, value: string, permanent: boolean = false): void {
+    if (!this.isBrowser) return;
     try {
-      const currentUser = this.auth.currentUser;
-      
-      if (currentUser && !currentUser.emailVerified) {
-        await firebaseSendEmailVerification(currentUser);
-        
-        return {
-          success: true,
-          message: 'Email verification sent successfully',
-          user: currentUser
-        };
-      }
-      
-      return {
-        success: false,
-        message: 'Unable to send email verification'
-      };
-
-    } catch (error: any) {
-      console.error('Error sending email verification:', error);
-      return {
-        success: false,
-        message: 'Failed to send email verification'
-      };
+      const storage = permanent ? localStorage : sessionStorage;
+      storage.setItem(key, value);
+    } catch (error) {
+      console.warn('Storage write error:', error);
     }
   }
 
-  // Setup reCAPTCHA verifier
-  private setupRecaptchaVerifier(): void {
+  private removeFromStorage(key: string): void {
+    if (!this.isBrowser) return;
     try {
-      // Clear any existing verifier
-      if (this.recaptchaVerifier) {
-        this.recaptchaVerifier.clear();
-        this.recaptchaVerifier = null;
-      }
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    } catch (error) {
+      console.warn('Storage remove error:', error);
+    }
+  }
 
-      // Ensure the container exists
-      const container = document.getElementById('recaptcha-container');
-      if (!container) {
-        console.error('reCAPTCHA container not found');
-        return;
-      }
+  private clearAllStorage(): void {
+    if (!this.isBrowser) return;
+    try {
+      const authKeys = ['authToken', 'refreshToken', 'userData'];
+      authKeys.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+    } catch (error) {
+      console.warn('Storage clear error:', error);
+    }
+  }
 
-      this.recaptchaVerifier = new RecaptchaVerifier(
-        this.auth,
-        'recaptcha-container',
-        {
-          size: 'invisible',
-          callback: () => {
-            // reCAPTCHA solved - will proceed with OTP
-            console.log('reCAPTCHA solved');
-          },
-          'expired-callback': () => {
-            // Response expired
-            console.log('reCAPTCHA expired');
-            this.recaptchaVerifier = null;
+  // ============ AUTHENTICATION METHODS ============
+
+  login(credentials: LoginRequest): Observable<AdminAuthResponse | UserAuthResponse> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+
+    return this.http.post<AdminAuthResponse | UserAuthResponse>(`${this.apiUrl}/login`, {
+      email: credentials.email,
+      password: credentials.password
+    }, httpOptions).pipe(
+      tap(response => this.handleAuthSuccess(response, credentials.rememberMe)),
+      catchError(this.handleError)
+    );
+  }
+
+  register(userData: RegisterRequest): Observable<RegisterResponse> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/signup`, userData, httpOptions)
+      .pipe(
+        tap(response => {
+          if (response.success && response.user) {
+            if (response.token && userData.role === UserRole.ADMIN) {
+              const adminResponse: AdminAuthResponse = {
+                token: response.token,
+                user: response.user,
+                message: response.message
+              };
+              this.handleAuthSuccess(adminResponse, false);
+            } else {
+              const userResponse: UserAuthResponse = {
+                user: response.user,
+                message: response.message || 'Registration successful',
+                success: true
+              };
+              this.handleAuthSuccess(userResponse, false);
+            }
           }
-        }
+        }),
+        catchError(this.handleError)
       );
-    } catch (error) {
-      console.error('Error setting up reCAPTCHA:', error);
-      this.recaptchaVerifier = null;
-    }
   }
 
-  // Check if phone number exists in database
-  private async checkPhoneExists(phoneNumber: string): Promise<{
-    exists: boolean;
-    userEmail?: string;
-    userData?: any;
-  }> {
+  logoutAdmin(): Observable<any> {
+    if (!this.isAdmin()) {
+      return throwError(() => new Error('Admin logout not available for non-admin users'));
+    }
+
+    const httpOptions = {
+      headers: this.createAuthHeaders()
+    };
+
+    return this.http.post(`${this.apiUrl}/logout`, {}, httpOptions)
+      .pipe(
+        tap(() => this.handleLogout()),
+        catchError(() => {
+          this.handleLogout();
+          return throwError(() => new Error('Logout completed locally'));
+        })
+      );
+  }
+
+  logoutLocal(): void {
+    this.handleLogout();
+  }
+
+  refreshToken(): Observable<AdminAuthResponse> {
+    if (!this.isAdmin()) {
+      return throwError(() => new Error('Token refresh not available for non-admin users'));
+    }
+
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+
+    return this.http.post<AdminAuthResponse>(`${this.apiUrl}/refresh`, { refreshToken }, httpOptions)
+      .pipe(
+        tap(response => this.handleAuthSuccess(response, this.isRemembered())),
+        catchError(error => {
+          this.handleLogout();
+          return this.handleError(error);
+        })
+      );
+  }
+
+  // ============ PASSWORD MANAGEMENT ============
+
+  requestPasswordReset(request: PasswordResetRequest): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+
+    return this.http.post(`${this.apiUrl}/forgot-password`, request, httpOptions)
+      .pipe(catchError(this.handleError));
+  }
+
+  resetPassword(request: PasswordResetConfirm): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+
+    return this.http.post(`${this.apiUrl}/reset-password`, request, httpOptions)
+      .pipe(catchError(this.handleError));
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<any> {
+    const httpOptions = {
+      headers: this.isAdmin() ? this.createAuthHeaders() : this.createBasicHeaders()
+    };
+    
+    return this.http.put(`${this.apiUrl}/change-password`, request, httpOptions)
+      .pipe(catchError(this.handleError));
+  }
+
+  // ============ USER PROFILE METHODS ============
+
+  getUserProfile(): Observable<User> {
+    const httpOptions = {
+      headers: this.isAdmin() ? this.createAuthHeaders() : this.createBasicHeaders()
+    };
+    
+    return this.http.get<User>(`${this.apiUrl}/profile`, httpOptions)
+      .pipe(
+        tap(user => {
+          this.updateStoredUser(user);
+          this.currentUserSubject.next(user);
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  updateProfile(userData: Partial<User>): Observable<User> {
+    const httpOptions = {
+      headers: this.isAdmin() ? this.createAuthHeaders() : this.createBasicHeaders()
+    };
+    
+    return this.http.put<User>(`${this.apiUrl}/profile`, userData, httpOptions)
+      .pipe(
+        tap(user => {
+          this.updateStoredUser(user);
+          this.currentUserSubject.next(user);
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  // ============ TOKEN MANAGEMENT ============
+
+  getToken(): string | null {
+    if (!this.isAdmin()) return null;
+    return this.getFromStorage('authToken');
+  }
+
+  getRefreshToken(): string | null {
+    if (!this.isAdmin()) return null;
+    return this.getFromStorage('refreshToken');
+  }
+
+  getCurrentUser(): User | null {
+    const userData = this.getFromStorage('userData');
     try {
-      const usersRef = collection(this.firestore, 'users');
-      const q = query(usersRef, where('phone', '==', phoneNumber));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        return {
-          exists: true,
-          userEmail: userData['email'],
-          userData: userData
-        };
-      }
-      
-      return { exists: false };
-
+      return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      console.error('Error checking phone existence:', error);
-      return { exists: false };
-    }
-  }
-
-  // Get user data from Firestore
-  private async getUserData(phoneNumber: string): Promise<any> {
-    try {
-      const usersRef = collection(this.firestore, 'users');
-      const q = query(usersRef, where('phone', '==', phoneNumber));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        return {
-          id: querySnapshot.docs[0].id,
-          ...userData
-        };
-      }
-      
-      return null;
-
-    } catch (error) {
-      console.error('Error getting user data:', error);
+      console.warn('Error parsing user data:', error);
       return null;
     }
   }
 
-  // Format phone number to international format
-  private formatPhoneNumber(phoneNumber: string): string {
-    // Remove all non-digit characters
-    let cleaned = phoneNumber.replace(/\D/g, '');
-    
-    // Add country code if not present (assuming Kenya +254)
-    if (cleaned.startsWith('0')) {
-      cleaned = '254' + cleaned.slice(1);
-    } else if (!cleaned.startsWith('254') && !cleaned.startsWith('+254')) {
-      cleaned = '254' + cleaned;
-    }
-    
-    // Ensure it starts with +
-    if (!cleaned.startsWith('+')) {
-      cleaned = '+' + cleaned;
-    }
-    
-    return cleaned;
-  }
-
-  // Check if user is authenticated
   isAuthenticated(): boolean {
-    return !!this.auth.currentUser || localStorage.getItem('isAuthenticated') === 'true';
-  }
-
-  // Get current user
-  getCurrentUser(): any {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      return JSON.parse(storedUser);
+    if (!this.isBrowser) return false;
+    
+    const user = this.getCurrentUser();
+    if (!user) return false;
+    
+    if (user.role === UserRole.ADMIN) {
+      return this.hasValidToken();
     }
-    return this.auth.currentUser;
+    
+    return true;
   }
 
-  // Logout
-  async logout(): Promise<void> {
+  isRemembered(): boolean {
+    if (!this.isBrowser) return false;
     try {
-      await this.auth.signOut();
-      localStorage.removeItem('user');
-      localStorage.removeItem('isAuthenticated');
-      this.cleanupRecaptcha();
+      return !!localStorage.getItem('userData');
     } catch (error) {
-      console.error('Error during logout:', error);
+      return false;
     }
   }
 
-  // Clean up reCAPTCHA verifier
-  cleanupRecaptcha(): void {
-    if (this.recaptchaVerifier) {
-      try {
-        this.recaptchaVerifier.clear();
-      } catch (error) {
-        console.error('Error clearing reCAPTCHA:', error);
-      }
-      this.recaptchaVerifier = null;
+  // ============ HEADER CREATION METHODS ============
+
+  private createAuthHeaders(): HttpHeaders {
+    const token = this.getToken();
+    if (token) {
+      return new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
     }
-    this.verificationId = '';
+    return this.createBasicHeaders();
   }
+
+  private createBasicHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+  }
+
+  getAuthHeaders(): HttpHeaders {
+    return this.createAuthHeaders();
+  }
+
+  // ============ UTILITY METHODS ============
+
+  redirectToLogin(): void {
+    if (this.isBrowser) {
+      this.router.navigate(['/login']);
+    }
+  }
+
+  hasRole(role: string): boolean {
+    const user = this.getCurrentUser();
+    return user?.role?.toUpperCase() === role.toUpperCase();
+  }
+
+  hasAnyRole(roles: string[]): boolean {
+    const user = this.getCurrentUser();
+    if (!user?.role) return false;
+    
+    return roles.some(role => 
+      user.role?.toUpperCase() === role.toUpperCase()
+    );
+  }
+
+  isAdmin(): boolean {
+    return this.hasRole(UserRole.ADMIN);
+  }
+
+  isTenant(): boolean {
+    return this.hasRole(UserRole.TENANT);
+  }
+
+  isLandlord(): boolean {
+    return this.hasRole(UserRole.LANDLORD);
+  }
+
+  // ============ PRIVATE HELPER METHODS ============
+
+  private handleAuthSuccess(response: AdminAuthResponse | UserAuthResponse, rememberMe: boolean = false): void {
+    if (!this.isBrowser) return;
+    
+    if ('token' in response && response.token) {
+      this.setInStorage('authToken', response.token, rememberMe);
+      if ('refreshToken' in response && response.refreshToken) {
+        this.setInStorage('refreshToken', response.refreshToken, rememberMe);
+      }
+    }
+    
+    this.setInStorage('userData', JSON.stringify(response.user), rememberMe);
+    
+    this.currentUserSubject.next(response.user);
+    this.isAuthenticatedSubject.next(true);
+  }
+
+  private handleLogout(): void {
+    if (!this.isBrowser) return;
+    
+    this.clearAllStorage();
+    this.currentUserSubject.next(null);
+    this.isAuthenticatedSubject.next(false);
+    this.redirectToLogin();
+  }
+
+  private hasValidToken(): boolean {
+    if (!this.isBrowser) return false;
+    
+    const token = this.getToken();
+    if (!token) return false;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp > currentTime;
+    } catch (error) {
+      console.warn('Token validation error:', error);
+      return false;
+    }
+  }
+
+  private checkAuthenticationStatus(): boolean {
+    if (!this.isBrowser) return false;
+    
+    const user = this.getCurrentUser();
+    if (!user) return false;
+    
+    if (user.role === UserRole.ADMIN) {
+      return this.hasValidToken();
+    }
+    
+    return true;
+  }
+
+  private initializeAuthState(): void {
+    if (!this.isBrowser) return;
+    
+    const user = this.getCurrentUser();
+    const isAuthenticated = this.checkAuthenticationStatus();
+    
+    this.currentUserSubject.next(user);
+    this.isAuthenticatedSubject.next(isAuthenticated);
+    
+    if (user && user.role === UserRole.ADMIN && !this.hasValidToken()) {
+      this.handleLogout();
+    }
+  }
+
+  private updateStoredUser(user: User): void {
+    if (!this.isBrowser) return;
+    
+    const isPermanent = this.isRemembered();
+    this.setInStorage('userData', JSON.stringify(user), isPermanent);
+  }
+
+  private handleError = (error: HttpErrorResponse): Observable<never> => {
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = error.error.message;
+    } else {
+      switch (error.status) {
+        case 400:
+          errorMessage = error.error?.message || 'Bad request. Please check your input.';
+          break;
+        case 401:
+          errorMessage = error.error?.message || 'Invalid credentials';
+          break;
+        case 403:
+          errorMessage = 'Access forbidden';
+          break;
+        case 404:
+          errorMessage = 'Service not found';
+          break;
+        case 409:
+          errorMessage = error.error?.message || 'User already exists';
+          break;
+        case 422:
+          errorMessage = error.error?.message || 'Validation error';
+          break;
+        case 500:
+          errorMessage = 'Internal server error. Please try again later.';
+          break;
+        case 0:
+          errorMessage = 'Unable to connect to server. Please check your internet connection.';
+          break;
+        default:
+          errorMessage = error.error?.message || `Error Code: ${error.status}`;
+      }
+    }
+    
+    console.error('Auth Service Error:', error);
+    return throwError(() => new Error(errorMessage));
+  };
 }

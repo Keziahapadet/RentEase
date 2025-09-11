@@ -3,20 +3,30 @@ import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-pricing',
   templateUrl: './pricing.html',
   styleUrls: ['./pricing.css'],
   standalone: true,
-  imports: [CommonModule, MatIconModule]
+  imports: [CommonModule, MatIconModule,RouterModule]
 })
 export class PricingComponent implements OnInit {
   private isBrowser: boolean;
   isNavScrolled: boolean = false;
   isMobileMenuOpen: boolean = false;
   currentYear: number = new Date().getFullYear();
+  activeMenu: string = 'pricing'; 
 
+
+
+
+
+  setActiveMenu(menu: string) {
+  this.activeMenu = menu;
+  this.isMobileMenuOpen = false; // close menu after click (optional)
+}
   pricingPlans = [
     {
       name: 'Basic',
@@ -159,9 +169,6 @@ export class PricingComponent implements OnInit {
     this.router.navigate(['/about']);
   }
 
-  navigateToServices(): void {
-    this.router.navigate(['/services']);
-  }
 
   navigateToPricing(): void {
     this.router.navigate(['/pricing']);

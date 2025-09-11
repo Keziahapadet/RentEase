@@ -199,6 +199,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
 * {
   margin: 0;
   padding: 0;
@@ -210,6 +211,59 @@ body {
   line-height: 1.6;
   color: var(--text-primary);
   background: var(--white);
+}
+
+/* ========================================
+   NAVIGATION UNDERLINE FIX - GLOBAL
+   ======================================== */
+/* Complete text-decoration reset for navigation */
+.navbar .nav-links a,
+.nav-links a {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-style: none !important;
+  text-decoration-thickness: 0 !important;
+}
+
+.navbar .nav-links a:hover,
+.navbar .nav-links a:focus,
+.navbar .nav-links a:active,
+.navbar .nav-links a:visited,
+.nav-links a:hover,
+.nav-links a:focus,
+.nav-links a:active,
+.nav-links a:visited {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-style: none !important;
+  text-decoration-thickness: 0 !important;
+}
+
+/* Remove the blue line under nav links */
+.nav-links a::after {
+  display: none !important;
+}
+
+/* Also fix footer links */
+.footer a {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-style: none !important;
+  text-decoration-thickness: 0 !important;
+}
+
+.footer a:hover,
+.footer a:focus,
+.footer a:active,
+.footer a:visited {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-style: none !important;
+  text-decoration-thickness: 0 !important;
 }
 
 /* Navigation Styles - Shared across all components */
@@ -282,7 +336,6 @@ body {
 }
 
 .nav-links a {
-  text-decoration: none;
   color: var(--text-secondary);
   font-weight: 500;
   cursor: pointer;
@@ -295,22 +348,6 @@ body {
 .nav-links a.active {
   color: var(--primary-color);
   transform: translateY(-1px);
-}
-
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--gradient-primary);
-  transition: width 0.3s ease;
-}
-
-.nav-links a:hover::after,
-.nav-links a.active::after {
-  width: 100%;
 }
 
 .nav-actions {
@@ -432,7 +469,6 @@ body {
 
 .footer-column a {
   color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
   transition: color 0.3s ease;
   cursor: pointer;
 }

@@ -4,19 +4,26 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-contact',
   templateUrl: './contacts.html',
   styleUrls: ['./contacts.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule]
+  imports: [CommonModule, FormsModule, MatIconModule,RouterModule]
 })
 export class ContactComponent implements OnInit {
   private isBrowser: boolean;
   isNavScrolled: boolean = false;
   isMobileMenuOpen: boolean = false;
   currentYear: number = new Date().getFullYear();
+  activeMenu: string = 'contacts';
+
+  setActiveMenu(menu: string) {
+  this.activeMenu = menu;
+  this.isMobileMenuOpen = false; // close menu after click (optional)
+}
 
   contactMethods = [
     {
@@ -88,9 +95,6 @@ export class ContactComponent implements OnInit {
     this.router.navigate(['/about']);
   }
 
-  navigateToServices(): void {
-    this.router.navigate(['/services']);
-  }
  navigateToContact(): void {
     this.router.navigate(['/contact']);
   }

@@ -3,15 +3,28 @@
     <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
       <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
     </a>
+<ul class="nav-links" [class.active]="isMobileMenuOpen">
+  <li>
+    <a routerLink="/" 
+       routerLinkActive="active" 
+       [routerLinkActiveOptions]="{ exact: true }">
+       Home
+    </a>
+  <li>
+    <a routerLink="/features" routerLinkActive="active" (click)="setActiveMenu('features')">Features</a>
+  </li>
+  <li>
+    <a routerLink="/pricing" routerLinkActive="active" (click)="setActiveMenu('pricing')">Pricing</a>
+  </li>
+  <li>
+    <a routerLink="/contact" routerLinkActive="active" (click)="setActiveMenu('contact')">Contact</a>
+  </li>
+  <li>
+    <a routerLink="/about" routerLinkActive="active" (click)="setActiveMenu('about')">About</a>
+  </li>
+</ul>
 
-    <ul class="nav-links" [class.active]="isMobileMenuOpen">
-      <li><a (click)="navigateToHome()">Home</a></li>
-      <li><a (click)="navigateToFeatures()">Features</a></li>
-      <li><a (click)="navigateToPricing()">Pricing</a></li>
-      <li><a (click)="navigateToContact()">Contact</a></li>
-      <li><a routerLink="/about" routerLinkActive="active">About</a></li>
-      <li><a (click)="navigateToServices()">Services</a></li>
-    </ul>
+
 
     <div class="nav-actions">
       <button class="nav-cta" (click)="navigateToLogin()">Login</button>

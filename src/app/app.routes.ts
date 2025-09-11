@@ -66,8 +66,8 @@ export const routes: Routes = [
   { path: 'privacy', component: PrivacyComponent },
   { 
     path: '**', 
-    redirectTo: '' 
-  }
+    redirectTo: '/' }
+  
   ];
   export const appRouterProviders = [
   provideRouter(

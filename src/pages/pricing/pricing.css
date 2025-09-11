@@ -1,5 +1,6 @@
 /* pricing.component.css */
 @import url('../../styles.css');
+
 /* Logo Image Styles */
 .logo {
   display: flex;
@@ -59,10 +60,27 @@
   margin-bottom: 1rem;
 }
 
+/* Animated gradient text for hero section */
 .page-hero .gradient-text {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  background: linear-gradient(
+    45deg,
+    #3b82f6 0%,
+    #8b5cf6 20%,
+    #1d4ed8 40%,
+    #7c3aed 60%,
+    #1e40af 80%,
+    #3b82f6 100%
+  );
+  background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: pricingGradientText 5s ease-in-out infinite;
+}
+
+@keyframes pricingGradientText {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .page-hero .hero-description {
@@ -72,7 +90,6 @@
   margin: 0 auto;
   line-height: 1.6;
 }
-
 
 .pricing-section {
   padding: 100px 0;
@@ -240,11 +257,22 @@
   line-height: 1.2;
 }
 
+/* Animated gradient text for section titles */
 .section-title .gradient-text {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  background: linear-gradient(
+    45deg,
+    #3b82f6 0%,
+    #8b5cf6 20%,
+    #1d4ed8 40%,
+    #7c3aed 60%,
+    #1e40af 80%,
+    #3b82f6 100%
+  );
+  background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: pricingGradientText 5s ease-in-out infinite;
 }
 
 .section-description {
@@ -436,8 +464,8 @@
 /* CTA Section */
 .cta-section {
   padding: 100px 0;
-  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
-  color: white;
+   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #1e293b;
   text-align: center;
 }
 
@@ -582,5 +610,17 @@
   .comparison-table td {
     padding: 0.5rem 0.25rem;
     font-size: 0.8rem;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .page-hero .gradient-text,
+  .section-title .gradient-text {
+    animation: none;
+    background: #3b82f6;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

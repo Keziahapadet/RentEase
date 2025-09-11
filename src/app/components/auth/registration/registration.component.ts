@@ -1,3 +1,5 @@
+// src/app/components/registration/registration.component.ts
+
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { AuthService } from '../../../services/auth.service';
+import { RegisterRequest, UserRole } from '../../../services/auth-interfaces';
 
 interface FormData {
   role: string;
@@ -33,13 +36,12 @@ interface FormData {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-    HttpClientModule
+    MatButtonModule
   ]
 })
 export class RegistrationComponent implements OnInit {
   private router: Router = inject(Router);
-  private http: HttpClient = inject(HttpClient);
+  private authService: AuthService = inject(AuthService);
 
   formData: FormData = {
     role: '',
@@ -50,6 +52,14 @@ export class RegistrationComponent implements OnInit {
     confirmPassword: ''
   };
 
+  // Available roles for registration
+  availableRoles = [
+    { value: UserRole.TENANT, label: 'Tenant' },
+    { value: UserRole.LANDLORD, label: 'Landlord' },
+    { value: UserRole.PROPERTY_MANAGER, label: 'Property Manager' },
+    { value: UserRole.ADMIN, label: 'Administrator' }
+  ];
+
   showPassword = false;
   showConfirmPassword = false;
   agreedToTerms = false;
@@ -58,6 +68,11 @@ export class RegistrationComponent implements OnInit {
   successMessage = '';
 
   ngOnInit(): void {
+    // Redirect if already authenticated
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
     this.resetForm();
   }
 
@@ -77,7 +92,7 @@ export class RegistrationComponent implements OnInit {
   }
 
   onRoleChange(): void {
-    if (this.formData.role !== 'ADMIN') {
+    if (this.formData.role !== UserRole.ADMIN) {
       delete this.formData.accessCode;
     }
     this.errorMessage = '';
@@ -98,26 +113,68 @@ export class RegistrationComponent implements OnInit {
   validateForm(): boolean {
     this.errorMessage = '';
 
-    if (!this.formData.role) { this.errorMessage = 'Role is required'; return false; }
-    if (!this.formData.fullName.trim()) { this.errorMessage = 'Full name is required'; return false; }
-    if (!this.formData.email.trim()) { this.errorMessage = 'Email is required'; return false; }
+    if (!this.formData.role) { 
+      this.errorMessage = 'Role is required'; 
+      return false; 
+    }
+    
+    if (!this.formData.fullName.trim()) { 
+      this.errorMessage = 'Full name is required'; 
+      return false; 
+    }
+    
+    if (!this.formData.email.trim()) { 
+      this.errorMessage = 'Email is required'; 
+      return false; 
+    }
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.formData.email)) { this.errorMessage = 'Invalid email address'; return false; }
-
-    if (!this.formData.phoneNumber.trim()) { this.errorMessage = 'Phone number is required'; return false; }
-    const phoneRegex = /^(\+254|0)[17]\d{8}$/;
-    if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
-      this.errorMessage = 'Invalid Kenyan phone number'; return false;
+    if (!emailRegex.test(this.formData.email)) { 
+      this.errorMessage = 'Invalid email address'; 
+      return false; 
     }
 
-    if (!this.formData.password) { this.errorMessage = 'Password required'; return false; }
-    if (this.formData.password.length < 8) { this.errorMessage = 'Password must be at least 8 characters'; return false; }
-    if (!this.formData.confirmPassword) { this.errorMessage = 'Confirm your password'; return false; }
-    if (!this.passwordsMatch()) { this.errorMessage = 'Passwords do not match'; return false; }
+    if (!this.formData.phoneNumber.trim()) { 
+      this.errorMessage = 'Phone number is required'; 
+      return false; 
+    }
+    
+    // Updated phone regex for more flexible validation
+    const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
+    if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
+      this.errorMessage = 'Invalid phone number format'; 
+      return false;
+    }
 
-    if (!this.agreedToTerms) { this.errorMessage = 'Please agree to Terms and Conditions'; return false; }
-    if (this.formData.role === 'ADMIN' && this.formData.accessCode !== 'ADMIN2024') {
-      this.errorMessage = 'Invalid admin access code'; return false;
+    if (!this.formData.password) { 
+      this.errorMessage = 'Password required'; 
+      return false; 
+    }
+    
+    if (this.formData.password.length < 8) { 
+      this.errorMessage = 'Password must be at least 8 characters'; 
+      return false; 
+    }
+    
+    if (!this.formData.confirmPassword) { 
+      this.errorMessage = 'Confirm your password'; 
+      return false; 
+    }
+    
+    if (!this.passwordsMatch()) { 
+      this.errorMessage = 'Passwords do not match'; 
+      return false; 
+    }
+
+    if (!this.agreedToTerms) { 
+      this.errorMessage = 'Please agree to Terms and Conditions'; 
+      return false; 
+    }
+    
+    // Validate admin access code
+    if (this.formData.role === UserRole.ADMIN && this.formData.accessCode !== 'ADMIN2024') {
+      this.errorMessage = 'Invalid admin access code'; 
+      return false;
     }
 
     return true;
@@ -125,32 +182,40 @@ export class RegistrationComponent implements OnInit {
 
   async onSubmit(): Promise<void> {
     if (!this.validateForm()) return;
+    
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    const payload = {
+    const registerRequest: RegisterRequest = {
       fullName: this.formData.fullName.trim(),
       email: this.formData.email.trim().toLowerCase(),
       phoneNumber: this.formData.phoneNumber.replace(/\s/g, ''),
       password: this.formData.password,
       confirmPassword: this.formData.confirmPassword,
-      role: this.formData.role.toUpperCase() 
+      role: this.formData.role,
+      accessCode: this.formData.accessCode
     };
 
-    this.http.post('http://10.20.33.70:8080/api/auth/signup', payload)
-      .subscribe({
-        next: () => {
-          this.successMessage = 'User registered successfully!';
-          setTimeout(() => this.router.navigate(['/login']), 2000);
-        },
-        error: (err) => {
-          this.errorMessage = err.error?.message || 'Registration failed';
-        },
-        complete: () => {
-          this.isLoading = false;
-        }
-      });
+    this.authService.register(registerRequest).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.successMessage = response.message || 'Registration successful!';
+        
+        // Redirect based on role
+        setTimeout(() => {
+          if (this.formData.role === UserRole.ADMIN) {
+            this.router.navigate(['/admin-dashboard']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
+        }, 2000);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.message;
+      }
+    });
   }
 
   navigateToLogin(): void {
@@ -163,5 +228,10 @@ export class RegistrationComponent implements OnInit {
 
   navigateToPrivacy(): void {
     window.open('/privacy', '_blank');
+  }
+
+  // Helper method to check if admin access code field should be shown
+  showAdminAccessCode(): boolean {
+    return this.formData.role === UserRole.ADMIN;
   }
 }
