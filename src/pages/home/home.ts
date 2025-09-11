@@ -82,7 +82,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   startHeroCarousel(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextSlide();
-    }, 4000);
+    }, 8000);
   }
 
   stopHeroCarousel(): void {
