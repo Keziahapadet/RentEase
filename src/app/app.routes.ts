@@ -1,7 +1,6 @@
-import { Routes } from '@angular/router';
+import { Routes ,provideRouter, withInMemoryScrolling } from '@angular/router';
 import { HomeComponent } from '../pages/home/home';
-import { RegistrationComponent } from './components/auth/registration/registration.component';
-import { VerifyOtpComponent } from './components/auth/veryfy-otp/verify-otp.component'; 
+import { RegistrationComponent } from './components/auth/registration/registration.component'; 
 import { TenantDashboardComponent } from './components/dashboard/tenant-dashboard/tenant-dashboard.component';
 import { LoginComponent } from './components/auth/login/login';
 import { LandlordDashboardComponent } from './components/dashboard/landlord-dashboard/landlord-dashboard'
@@ -24,10 +23,7 @@ export const routes: Routes = [
     path: 'registration', 
     component: RegistrationComponent 
   },
-  { 
-    path: 'verify-otp', 
-    component: VerifyOtpComponent 
-  },
+  
   { 
     path: 'tenant-dashboard',           
     component: TenantDashboardComponent 
@@ -72,4 +68,13 @@ export const routes: Routes = [
     path: '**', 
     redirectTo: '' 
   }
+  ];
+  export const appRouterProviders = [
+  provideRouter(
+    routes,
+      withInMemoryScrolling({
+      scrollPositionRestoration: 'top', 
+      anchorScrolling: 'enabled'        
+    })
+  )
 ];
