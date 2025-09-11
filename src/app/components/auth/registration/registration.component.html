@@ -16,37 +16,31 @@
       <!-- Role -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Role</mat-label>
-        <mat-select [(ngModel)]="formData.role" name="role" (selectionChange)="onRoleChange()" [disabled]="isInvitation" required>
-          <mat-option value="tenant">Tenant</mat-option>
-          <mat-option value="landlord">Landlord</mat-option>
-          <mat-option value="caretaker">Caretaker</mat-option>
-          <mat-option value="business">Business</mat-option>
-          <mat-option value="admin">Admin</mat-option>
+        <mat-select [(ngModel)]="formData.role" name="role" required>
+          <mat-option value="TENANT">Tenant</mat-option>
+          <mat-option value="LANDLORD">Landlord</mat-option>
+          <mat-option value="CARETAKER">Caretaker</mat-option>
+          <mat-option value="BUSINESS">Business</mat-option>
+          <mat-option value="ADMIN">Admin</mat-option>
         </mat-select>
       </mat-form-field>
 
-      <!-- Property info for invited tenant/caretaker -->
-      <mat-form-field *ngIf="isInvitation && (formData.role === 'tenant' || formData.role === 'caretaker')" appearance="outline" class="full-width">
-        <mat-label>Property / Unit</mat-label>
-        <input matInput [value]="formData.propertyName" readonly />
-      </mat-form-field>
-
-      <!-- User Name -->
+      <!-- Full Name -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>User Name</mat-label>
-        <input matInput type="text" [(ngModel)]="formData.userName" name="fullName" required />
+        <mat-label>Full Name</mat-label>
+        <input matInput type="text" [(ngModel)]="formData.fullName" name="fullName" required />
       </mat-form-field>
 
       <!-- Email -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email</mat-label>
-        <input matInput type="email" [(ngModel)]="formData.email" name="email" [readonly]="isInvitation" required />
+        <input matInput type="email" [(ngModel)]="formData.email" name="email" required />
       </mat-form-field>
 
       <!-- Phone -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Phone Number</mat-label>
-        <input matInput type="tel" placeholder="+254 700 000 000" [(ngModel)]="formData.phone" name="phone" required />
+        <input matInput type="tel" placeholder="+254 700 000 000" [(ngModel)]="formData.phoneNumber" name="phoneNumber" required />
       </mat-form-field>
 
       <!-- Password -->
@@ -68,26 +62,23 @@
       </mat-form-field>
 
       <!-- Admin Access Code -->
-      <mat-form-field *ngIf="formData.role === 'admin'" appearance="outline" class="full-width">
+      <mat-form-field *ngIf="formData.role === 'ADMIN'" appearance="outline" class="full-width">
         <mat-label>Admin Access Code</mat-label>
         <input matInput type="text" [(ngModel)]="formData.accessCode" name="accessCode" />
       </mat-form-field>
 
+      <!-- Terms -->
       <div class="terms-container">
-  <mat-checkbox [(ngModel)]="agreedToTerms" name="agreedToTerms">
-    I agree to the 
-    <span class="clickable-text" (click)="navigateToTerms()">Terms and Conditions</span> and 
-    <span class="clickable-text" (click)="navigateToPrivacy()">Privacy Policy</span>.
-  </mat-checkbox>
-</div>
-
-<!-- Display validation error -->
-<div *ngIf="errorMessage" class="error-message">
-  {{ errorMessage }}
-</div>
+        <mat-checkbox [(ngModel)]="agreedToTerms" name="agreedToTerms">
+          I agree to the 
+          <span class="clickable-text" (click)="navigateToTerms()">Terms and Conditions</span> and 
+          <span class="clickable-text" (click)="navigateToPrivacy()">Privacy Policy</span>.
+        </mat-checkbox>
+      </div>
 
       <!-- Submit -->
-      <button mat-raised-button color="primary" class="full-width submit-btn" [disabled]="isLoading || !registrationForm.valid || !agreedToTerms">
+      <button mat-raised-button color="primary" class="full-width submit-btn"
+        [disabled]="isLoading || !registrationForm.valid || !agreedToTerms">
         {{ isLoading ? 'Creating Account...' : 'Create Account' }}
       </button>
     </form>
