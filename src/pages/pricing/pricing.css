@@ -38,9 +38,42 @@
 }
 
 .footer .logo .logo-image {
-  filter: brightness(0) invert(1); /* Makes logo white in footer */
+  filter: brightness(0) invert(1); 
 }
-/* Pricing Section */
+
+.page-hero {
+  padding: 120px 20px 80px;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh; 
+  box-sizing: border-box;
+}
+
+.page-hero .hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.page-hero .gradient-text {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-hero .hero-description {
+  font-size: 1.2rem;
+  color: #64748b;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+
 .pricing-section {
   padding: 100px 0;
   background: #f8fafc;
