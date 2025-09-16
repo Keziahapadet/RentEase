@@ -1,0 +1,200 @@
+<div class="maintenance-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()" aria-label="Go back to dashboard">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Dashboard
+    </button>
+    <div class="page-title">
+      <h2>Maintenance Requests</h2>
+      <p>Submit and track maintenance issues for your property</p>
+    </div>
+  </div>
+
+  <!-- Summary Statistics -->
+  <div class="summary-stats">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{getRequestSummaryStats().total}}</span>
+        <span class="stat-label">Total Requests</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon active">
+        <mat-icon>build</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{getRequestSummaryStats().active}}</span>
+        <span class="stat-label">Active Requests</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon completed">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{getRequestSummaryStats().completed}}</span>
+        <span class="stat-label">Completed</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon urgent">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{getRequestSummaryStats().urgent}}</span>
+        <span class="stat-label">Urgent</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button class="tab-btn" 
+            [class.active]="selectedTab === 'new'"
+            (click)="setActiveTab('new')">
+      <mat-icon>add</mat-icon>
+      New Request
+    </button>
+    <button class="tab-btn" 
+            [class.active]="selectedTab === 'active'"
+            (click)="setActiveTab('active')">
+      <mat-icon>pending</mat-icon>
+      Active ({{getRequestSummaryStats().active}})
+    </button>
+    <button class="tab-btn" 
+            [class.active]="selectedTab === 'completed'"
+            (click)="setActiveTab('completed')">
+      <mat-icon>done_all</mat-icon>
+      Completed ({{getRequestSummaryStats().completed}})
+    </button>
+    <button class="tab-btn" 
+            [class.active]="selectedTab === 'all'"
+            (click)="setActiveTab('all')">
+      <mat-icon>list</mat-icon>
+      All Requests
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    
+    <!-- New Request Tab -->
+    <div class="tab-panel" *ngIf="selectedTab === 'new'">
+      <div class="content-grid">
+        <!-- Quick Issue Selection -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <mat-icon class="card-icon">flash_on</mat-icon>
+              <h3>Common Issues</h3>
+            </div>
+          </div>
+          <div class="card-content">
+            <p>Click on a common issue to pre-fill the form:</p>
+            <div class="common-issues-grid">
+              <button class="common-issue-btn" 
+                      *ngFor="let issue of commonIssues"
+                      (click)="selectCommonIssue(issue)">
+                <mat-icon>{{getCategoryIcon(issue.category)}}</mat-icon>
+                <span>{{issue.title}}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Request Form -->
+        <div class="card collapsible-card" 
+             [class.collapsed]="isSectionCollapsed('new-request')"
+             [class.animating]="isAnimating('new-request')">
+          <div class="card-header clickable-header" (click)="toggleSection('new-request')">
+            <div class="card-title">
+              <mat-icon class="card-icon">add_task</mat-icon>
+              <h3>Submit New Request</h3>
+            </div>
+            <button class="collapse-toggle" [attr.aria-label]="getAriaLabel('new-request')">
+              <mat-icon class="collapse-icon">expand_more</mat-icon>
+            </button>
+          </div>
+          <div class="card-content collapsible-content" [class.collapsed]="isSectionCollapsed('new-request')">
+            <form [formGroup]="maintenanceForm" (ngSubmit)="submitMaintenanceRequest()" class="maintenance-form">
+              <!-- Title -->
+              <div class="form-group">
+                <label for="title" class="form-label">
+                  <mat-icon>title</mat-icon>
+                  Issue Title *
+                </label>
+                <input type="text" 
+                       id="title" 
+                       formControlName="title"
+                       class="form-input" 
+                       [class.error]="isFieldInvalid('title')"
+                       placeholder="Brief description of the issue">
+                <div class="form-error" *ngIf="isFieldInvalid('title')">
+                  {{getFieldError('title')}}
+                </div>
+              </div>
+
+              <!-- Category and Priority Row -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="category" class="form-label">
+                    <mat-icon>category</mat-icon>
+                    Category *
+                  </label>
+                  <select id="category" 
+                          formControlName="category"
+                          class="form-select"
+                          [class.error]="isFieldInvalid('category')">
+                    <option value="">Select category</option>
+                    <option *ngFor="let category of categoryOptions" [value]="category">
+                      {{category}}
+                    </option>
+                  </select>
+                  <div class="form-error" *ngIf="isFieldInvalid('category')">
+                    {{getFieldError('category')}}
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="priority" class="form-label">
+                    <mat-icon>priority_high</mat-icon>
+                    Priority *
+                  </label>
+                  <select id="priority" 
+                          formControlName="priority"
+                          class="form-select">
+                    <option *ngFor="let priority of priorityOptions" [value]="priority">
+                      {{priority | titlecase}}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Location -->
+              <div class="form-group">
+                <label for="location" class="form-label">
+                  <mat-icon>location_on</mat-icon>
+                  Location *
+                </label>
+                <input type="text" 
+                       id="location" 
+                       formControlName="location"
+                       class="form-input"
+                       [class.error]="isFieldInvalid('location')"
+                       placeholder="Specific location (e.g., Kitchen sink, Master bedroom)">
+                <div class="form-error" *ngIf="isFieldInvalid('location')">
+                  {{getFieldError('location')}}
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="form-group">
+                <label for="description" class="form-label">
+                  <mat-icon>description</mat-icon>
+                  Description *
+                </label>
+                

@@ -1,0 +1,172 @@
+/* ==========================================================================
+   Property Dashboard - Modern Dashboard Look
+   ========================================================================== */
+
+.property-dashboard {
+  padding: 1.5rem 2rem;
+  background: #f3f4f6; /* light gray background */
+  min-height: 100vh;
+}
+
+/* Page Header */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.2rem;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.page-header .btn {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.75rem 1.4rem;
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  border: none;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  transition: 0.25s;
+}
+
+.page-header .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+/* Grid Layout */
+.property-dashboard .row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Property Card */
+.property-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  transition: 0.3s ease;
+  background: #fff;
+}
+
+.property-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.property-card .card-body {
+  padding: 1.5rem;
+}
+
+.property-card .card-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  color: #1f2937;
+}
+
+.property-card .card-text {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  display: flex;
+  align-items: center;
+}
+
+.property-card .card-text mat-icon {
+  font-size: 1.1rem;
+  margin-right: 0.4rem;
+  color: #2563eb;
+}
+
+.property-card .card-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem 1.2rem;
+  background: #fafafa;
+}
+
+/* Buttons inside cards */
+.property-card .btn {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.property-card .btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.property-card .btn mat-icon {
+  font-size: 1rem;
+  margin-right: 0.25rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: #fff;
+  border-radius: 1rem;
+  max-width: 600px;
+  margin: 2rem auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.empty-state-icon mat-icon {
+  font-size: 4rem;
+  color: #9ca3af;
+}
+
+.empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem;
+  color: #111827;
+}
+
+.empty-state-description {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state .btn {
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.6rem;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.loading-state .spinner-border {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: #2563eb;
+}
+
+.loading-state p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-top: 1rem;
+}

@@ -1,0 +1,93 @@
+<div class="property-dashboard">
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="page-title">Properties</h1>
+        <p class="page-subtitle text-muted">Manage your property portfolio</p>
+      </div>
+      <button 
+        type="button" 
+        class="btn btn-primary btn-lg"
+        (click)="createNewProperty()">
+        <mat-icon class="me-2">add</mat-icon>Add New Property
+      </button>
+    </div>
+  </div>
+
+  <!-- Properties List -->
+  <div class="row" *ngIf="!isLoading && properties.length > 0">
+    <div class="col-lg-4 col-md-6 mb-4" *ngFor="let property of properties">
+      <div class="card property-card h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ property.name }}</h5>
+          <p class="card-text">
+            <mat-icon class="text-muted me-1">location_on</mat-icon>
+            {{ property.location }}
+          </p>
+          <p class="card-text">
+            <mat-icon class="text-muted me-1">home</mat-icon>
+            {{ property.propertyType }}
+          </p>
+          <p class="card-text">
+            <mat-icon class="text-muted me-1">door_front</mat-icon>
+            {{ property.totalUnits }} units
+          </p>
+          <p class="card-text text-muted" *ngIf="property.description">
+            {{ property.description }}
+          </p>
+        </div>
+        <div class="card-footer bg-transparent">
+          <div class="btn-group w-100">
+            <button 
+              type="button" 
+              class="btn btn-outline-primary btn-sm"
+              (click)="viewProperty(property.id)">
+              <mat-icon class="me-1">visibility</mat-icon>View
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-sm"
+              (click)="editProperty(property.id)">
+              <mat-icon class="me-1">edit</mat-icon>Edit
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline-danger btn-sm"
+              (click)="deleteProperty(property.id)">
+              <mat-icon class="me-1">delete</mat-icon>Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state text-center py-5" *ngIf="!isLoading && properties.length === 0">
+    <div class="empty-state-icon mb-3">
+      <mat-icon class="display-1 text-muted">business</mat-icon>
+    </div>
+    <h3 class="empty-state-title">No Properties Found</h3>
+    <p class="empty-state-description text-muted mb-4">
+      You haven't added any properties yet. Start building your portfolio by adding your first property.
+    </p>
+    <button 
+      type="button" 
+      class="btn btn-primary btn-lg"
+      (click)="createNewProperty()">
+      <mat-icon class="me-2">add</mat-icon>Add Your First Property
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state text-center py-5" *ngIf="isLoading">
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted">Loading properties...</p>
+  </div>
+
+  <!-- Router Outlet for Child Routes -->
+  <router-outlet></router-outlet>
+</div>

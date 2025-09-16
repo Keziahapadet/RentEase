@@ -1,0 +1,204 @@
+<div class="dashboard-content">
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/landlord-dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a routerLink="/landlord-dashboard/property">Property</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Add New Property</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="page-title">Add New Property</h1>
+        <p class="page-subtitle text-muted">Create a new property in your portfolio</p>
+      </div>
+      <button 
+        type="button" 
+        class="btn btn-outline-secondary"
+        (click)="router.navigate(['/landlord-dashboard/property'])">
+        <mat-icon class="me-2">arrow_back</mat-icon>Back to Properties
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Form Card -->
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">
+            <mat-icon class="me-2">business</mat-icon>Property Information
+          </h5>
+        </div>
+        
+        <div class="card-body p-4">
+          <form [formGroup]="propertyForm" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
+            
+            <!-- Property Name -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="name" class="form-label required">
+                  <mat-icon class="me-1">label</mat-icon>Property Name
+                </label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  formControlName="name"
+                  autocomplete="off"
+                  class="form-control form-control-lg"
+                  [class.is-invalid]="propertyForm.get('name')?.invalid && propertyForm.get('name')?.touched"
+                  placeholder="Enter property name">
+                <div class="invalid-feedback" *ngIf="propertyForm.get('name')?.invalid && propertyForm.get('name')?.touched">
+                  {{ getErrorMessage('name') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="location" class="form-label required">
+                  <mat-icon class="me-1">location_on</mat-icon>Location
+                </label>
+                <input 
+                  type="text" 
+                  id="location" 
+                  formControlName="location"
+                  autocomplete="street-address"
+                  class="form-control form-control-lg"
+                  [class.is-invalid]="propertyForm.get('location')?.invalid && propertyForm.get('location')?.touched"
+                  placeholder="Enter property address or location">
+                <div class="invalid-feedback" *ngIf="propertyForm.get('location')?.invalid && propertyForm.get('location')?.touched">
+                  {{ getErrorMessage('location') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Property Type and Total Units Row -->
+            <div class="row mb-3">
+              <div class="col-md-8">
+                <label for="propertyType" class="form-label required">
+                  <mat-icon class="me-1">home</mat-icon>Property Type
+                </label>
+                <select 
+                  id="propertyType" 
+                  formControlName="propertyType"
+                  autocomplete="off"
+                  class="form-select form-select-lg"
+                  [class.is-invalid]="propertyForm.get('propertyType')?.invalid && propertyForm.get('propertyType')?.touched">
+                  <option value="">Select Property Type</option>
+                  <option *ngFor="let type of propertyTypes" [value]="type">{{ type }}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="propertyForm.get('propertyType')?.invalid && propertyForm.get('propertyType')?.touched">
+                  {{ getErrorMessage('propertyType') }}
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label for="totalUnits" class="form-label required">
+                  <mat-icon class="me-1">door_front</mat-icon>Total Units
+                </label>
+                <input 
+                  type="number" 
+                  id="totalUnits" 
+                  formControlName="totalUnits"
+                  autocomplete="off"
+                  min="1"
+                  class="form-control form-control-lg"
+                  [class.is-invalid]="propertyForm.get('totalUnits')?.invalid && propertyForm.get('totalUnits')?.touched"
+                  placeholder="1">
+                <div class="invalid-feedback" *ngIf="propertyForm.get('totalUnits')?.invalid && propertyForm.get('totalUnits')?.touched">
+                  {{ getErrorMessage('totalUnits') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <label for="description" class="form-label">
+                  <mat-icon class="me-1">description</mat-icon>Description
+                  <span class="text-muted">(Optional)</span>
+                </label>
+                <textarea 
+                  id="description" 
+                  formControlName="description"
+                  autocomplete="off"
+                  class="form-control"
+                  rows="4"
+                  placeholder="Enter any additional details about the property..."></textarea>
+                <div class="form-text">
+                  Provide any additional information about the property, amenities, or special features.
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="row">
+              <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="form-text">
+                    <mat-icon class="me-1">info</mat-icon>
+                    <span class="required"></span> indicates required fields
+                  </div>
+                  
+                  <div class="btn-group">
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary btn-lg me-2"
+                      (click)="router.navigate(['/landlord-dashboard/property'])"
+                      [disabled]="isSubmitting">
+                      <mat-icon class="me-2">close</mat-icon>Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      class="btn btn-primary btn-lg"
+                      [disabled]="propertyForm.invalid || isSubmitting">
+                      <span *ngIf="isSubmitting">
+                        <mat-icon class="me-2 spinning">refresh</mat-icon>Creating...
+                      </span>
+                      <span *ngIf="!isSubmitting">
+                        <mat-icon class="me-2">add</mat-icon>Create Property
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" *ngIf="showSuccessMessage">
+      <div class="d-flex">
+        <div class="toast-body">
+          <mat-icon class="me-2">check_circle</mat-icon>
+          Property created successfully!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="showSuccessMessage = false">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" *ngIf="showErrorMessage">
+      <div class="d-flex">
+        <div class="toast-body">
+          <mat-icon class="me-2">error</mat-icon>
+          Failed to create property. Please try again.
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="showErrorMessage = false">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

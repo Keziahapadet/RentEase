@@ -1,0 +1,293 @@
+<div class="dashboard-container">
+  <div class="mobile-menu-overlay" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
+  <nav class="sidebar" [class.mobile-open]="isMobileMenuOpen">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <mat-icon>apartment</mat-icon>
+        </div>
+        <span class="logo-text">RentEase</span>
+      </div>
+    </div>
+
+    <div class="user-section">
+      <div class="user-info">
+        <div class="user-avatar">
+          <mat-icon>account_circle</mat-icon>
+        </div>
+        <div class="user-details">
+          <span class="user-name">John Landlord</span>
+          <span class="user-role">Property Owner</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-menu">
+      <!-- Dashboard -->
+      <div class="nav-item" [class.active]="currentSection === 'dashboard'" (click)="navigateToSection('dashboard')">
+        <mat-icon>dashboard</mat-icon>
+        <span>Dashboard</span>
+      </div>
+
+      <!-- Financials -->
+      <div class="nav-section">
+        <div class="nav-item expandable" (click)="toggleMenu('financials')">
+          <mat-icon>payments</mat-icon>
+          <span>Financials</span>
+          <span class="chevron" [class.expanded]="expandedMenus.financials">
+            <mat-icon>chevron_right</mat-icon>
+          </span>
+        </div>
+        <div *ngIf="expandedMenus.financials" class="sub-menu">
+          <div class="sub-item" [class.active]="currentSection === 'financials'" (click)="navigateToSection('financials')">
+            <mat-icon>dashboard</mat-icon>
+            <span>Overview</span>
+          </div>
+          <div class="sub-item" [class.active]="currentSection === 'invoices'" (click)="navigateToSection('invoices')">
+            <mat-icon>receipt</mat-icon>
+            <span>Invoices</span>
+          </div>
+          <div class="sub-item" [class.active]="currentSection === 'payments'" (click)="navigateToSection('payments')">
+            <mat-icon>credit_card</mat-icon>
+            <span>Payments</span>
+          </div>
+          <div class="sub-item" [class.active]="currentSection === 'expenses'" (click)="navigateToSection('expenses')">
+            <mat-icon>trending_down</mat-icon>
+            <span>Expenses</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tenants -->
+      <div class="nav-item" [class.active]="currentSection === 'tenants'" (click)="navigateToTenants()">
+        <mat-icon>groups</mat-icon>
+        <span>Tenants</span>
+      </div>
+
+      <!-- Property - SIMPLIFIED (No Units submenu) -->
+      <div class="nav-item" [class.active]="currentSection === 'properties'" (click)="navigateToSection('properties')">
+        <mat-icon>apartment</mat-icon>
+        <span>Properties</span>
+      </div>
+
+      <!-- Communication -->
+      <div class="nav-item" [class.active]="currentSection === 'messages'" (click)="navigateToSection('messages')">
+        <mat-icon>message</mat-icon>
+        <span>Communication</span>
+        <span class="notification-dot">3</span>
+      </div>
+
+      <!-- Documents -->
+      <div class="nav-item" [class.active]="currentSection === 'documents'" (click)="navigateToSection('documents')">
+        <mat-icon>description</mat-icon>
+        <span>Documents</span>
+      </div>
+
+      <!-- Marketplace -->
+      <div class="nav-item" [class.active]="currentSection === 'marketplace'" (click)="navigateToSection('marketplace')">
+        <mat-icon>storefront</mat-icon>
+        <span>Marketplace</span>
+      </div>
+
+      <!-- Reviews & Ratings -->
+      <div class="nav-item" [class.active]="currentSection === 'reviews'" (click)="navigateToSection('reviews')">
+        <mat-icon>star_rate</mat-icon>
+        <span>Reviews & Ratings</span>
+      </div>
+
+      <!-- Reports -->
+      <div class="nav-item" [class.active]="currentSection === 'reports'" (click)="navigateToSection('reports')">
+        <mat-icon>analytics</mat-icon>
+        <span>Reports</span>
+      </div>
+
+      <!-- Settings -->
+      <div class="nav-section">
+        <div class="nav-item expandable" (click)="toggleMenu('settings')">
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+          <span class="chevron" [class.expanded]="expandedMenus.settings">
+            <mat-icon>chevron_right</mat-icon>
+          </span>
+        </div>
+        <div *ngIf="expandedMenus.settings" class="sub-menu">
+          <div class="sub-item" [class.active]="currentSection === 'general'" (click)="navigateToSection('general')">
+            <mat-icon>tune</mat-icon>
+            <span>General</span>
+          </div>
+          <div class="sub-item" [class.active]="currentSection === 'account'" (click)="navigateToSection('account')">
+            <mat-icon>person</mat-icon>
+            <span>Account Info</span>
+          </div>
+          <div class="sub-item" [class.active]="currentSection === 'alerts'" (click)="navigateToSection('alerts')">
+            <mat-icon>notifications</mat-icon>
+            <span>Alerts</span>
+          </div>
+          <div class="sub-item" [class.active]="currentSection === 'security'" (click)="navigateToSection('security')">
+            <mat-icon>lock</mat-icon>
+            <span>Security</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="sidebar-footer">
+      <div class="nav-item">
+        <mat-icon>help</mat-icon>
+        <span>Help & Support</span>
+      </div>
+      <div class="nav-item logout" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <!-- Dashboard Home Content (only shows when currentSection is 'dashboard') -->
+    <div *ngIf="currentSection === 'dashboard'" class="dashboard-home">
+      <div class="content-header">
+        <div class="header-left">
+          <h1>Landlord Dashboard</h1>
+          <p>Manage your properties and track performance</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-primary" (click)="addNewProperty()">
+            <mat-icon>add</mat-icon>
+            Add Property
+          </button>
+          <button class="notification-btn" (click)="viewNotifications()">
+            <mat-icon>notifications</mat-icon>
+            <span class="notification-badge">3</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Content -->
+      <div class="dashboard-content">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Total Properties</span>
+              <div class="stat-icon primary">
+                <mat-icon>apartment</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ totalProperties }}</div>
+            <div class="stat-change positive">
+              <mat-icon>trending_up</mat-icon>
+              <span>+2 this month</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Active Tenants</span>
+              <div class="stat-icon success">
+                <mat-icon>groups</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ activeTenants }}</div>
+            <div class="stat-change positive">
+              <mat-icon>trending_up</mat-icon>
+              <span>+5 this month</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Monthly Revenue</span>
+              <div class="stat-icon warning">
+                <mat-icon>attach_money</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ monthlyRevenue }}</div>
+            <div class="stat-change positive">
+              <mat-icon>trending_up</mat-icon>
+              <span>+8.2% from last month</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-title">Vacant Units</span>
+              <div class="stat-icon danger">
+                <mat-icon>meeting_room</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ vacantUnits }}</div>
+            <div class="stat-change negative">
+              <mat-icon>trending_down</mat-icon>
+              <span>2 new vacancies</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+          <!-- Recent Activity -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Recent Activity</h3>
+              <p>Latest updates from your properties</p>
+            </div>
+            <div class="card-content">
+              <div class="activity-list">
+                <div class="activity-item" *ngFor="let activity of recentActivities">
+                  <div class="activity-icon">
+                    <mat-icon [style.color]="activity.color">{{ activity.icon }}</mat-icon>
+                  </div>
+                  <div class="activity-details">
+                    <div class="activity-text">{{ activity.text }}</div>
+                    <div class="activity-time">{{ activity.time }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Quick Stats</h3>
+              <p>Key performance indicators</p>
+            </div>
+            <div class="card-content">
+              <div class="quick-stats">
+                <div class="quick-stat" *ngFor="let stat of quickStats">
+                  <div class="quick-stat-icon">
+                    <mat-icon>{{ stat.icon }}</mat-icon>
+                  </div>
+                  <div class="quick-stat-info">
+                    <div class="stat-amount">{{ stat.amount }}</div>
+                    <div class="stat-label">{{ stat.label }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIXED: Router Outlet for Child Components (replaces conditional sections) -->
+    <router-outlet></router-outlet>
+
+    <!-- Placeholder for other sections that don't have routing yet -->
+    <div *ngIf="currentSection !== 'dashboard' && currentSection !== 'financials' && currentSection !== 'invoices' && currentSection !== 'payments' && currentSection !== 'expenses' && currentSection !== 'properties'" class="section-content">
+      <div class="placeholder-content">
+        <h2>{{ getSectionTitle(currentSection) }}</h2>
+        <p>This section is under development.</p>
+        <p>Current section: <strong>{{ currentSection }}</strong></p>
+      </div>
+    </div>
+  </main>
+</div>
