@@ -1,13 +1,11 @@
 export interface User {
   id: string;
-  fullName: string;
   email: string;
-  phoneNumber: string;
-  nationalId: string;
+  name: string;
+  phone: string;
   role: UserRole;
-  isVerified: boolean;
-  isActive: boolean;
-  profilePicture?: string;
+  status: UserStatus;
+  avatar?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,25 +15,54 @@ export enum UserRole {
   LANDLORD = 'landlord',
   CARETAKER = 'caretaker',
   BUSINESS = 'business',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
+  PROPERTY_MANAGER = 'property_manager'
 }
 
-export interface UserProfile {
+export enum UserStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  SUSPENDED = 'suspended',
+  PENDING = 'pending'
+}
+
+// src/app/models/tenant.model.ts
+export interface Tenant extends User {
+  unitId: string;
+  unitNumber: string;
+  propertyId: string;
+  propertyAddress: string;
+  landlordId: string;
+  landlordName: string;
+  leaseStartDate: Date;
+  leaseEndDate: Date;
+  monthlyRent: number;
+  securityDeposit: number;
+  emergencyContact: EmergencyContact;
+  documents: TenantDocument[];
+}
+
+export interface EmergencyContact {
+  name: string;
+  relationship: string;
+  phone: string;
+  email?: string;
+}
+
+export interface TenantDocument {
   id: string;
-  userId: string;
-  bio?: string;
-  address?: string;
-  emergencyContact?: string;
-  employmentStatus?: string;
-  businessDetails?: BusinessDetails;
+  name: string;
+  type: DocumentType;
+  url: string;
+  uploadedAt: Date;
+  size: number;
 }
 
-export interface BusinessDetails {
-  businessName: string;
-  businessType: string;
-  registrationNumber?: string;
-  taxCertificate?: string;
-  serviceDescription: string;
-  operatingHours: string;
-  coverageArea: string;
+export enum DocumentType {
+  ID_COPY = 'id_copy',
+  LEASE_AGREEMENT = 'lease_agreement',
+  DEPOSIT_RECEIPT = 'deposit_receipt',
+  UTILITY_BILL = 'utility_bill',
+  BANK_STATEMENT = 'bank_statement',
+  OTHER = 'other'
 }

@@ -1,4 +1,4 @@
-import { BusinessDetails, UserRole } from "./user.model";
+import {  UserRole } from "./user.model";
 
 export interface RegistrationRequest {
   fullName: string;
@@ -9,7 +9,7 @@ export interface RegistrationRequest {
   termsAccepted: boolean;
   invitationCode?: string;
   invitationType?: string;
-  businessDetails?: BusinessDetails;
+  
 }
 
 export interface RegistrationResponse {
