@@ -84,7 +84,7 @@ export class AboutComponent implements OnInit {
     }, 100);
   }
 
-  // Navigation methods
+  
   navigateToHome(): void { this.router.navigate(['/home']); }
   navigateToFeatures(): void { this.router.navigate(['/features']); }
   navigateToPricing(): void { this.router.navigate(['/pricing']); }

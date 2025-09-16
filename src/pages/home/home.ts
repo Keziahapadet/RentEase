@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   setActiveMenu(menu: string) {
     this.activeMenu = menu;
-    this.isMobileMenuOpen = false; // close menu after click (optional)
+    this.isMobileMenuOpen = false; 
   }
 
   slides = [
@@ -65,51 +65,13 @@ export class HomeComponent implements OnInit, OnDestroy {
       badge: 'Most Popular',
       benefits: [
         'Blockchain-secured deposit escrow',
-        'Automated refund processing',
         'Transparent deposit tracking',
         'Legal protection for all parties',
-        'Instant deposit verification'
+        
       ]
     },
-    {
-      id: 'fraud-prevention',
-      icon: 'security',
-      title: 'Advanced Fraud Prevention',
-      description: 'Comprehensive verification system that protects landlords and tenants from rental scams and fraudulent activities.',
-      benefits: [
-        'AI-powered fraud detection',
-        'Identity verification system',
-        'Property ownership validation',
-        'Real-time risk assessment',
-        'Scam database protection'
-      ]
-    },
-    {
-      id: 'digital-contracts',
-      icon: 'description',
-      title: 'Digital Contract Management',
-      description: 'Streamlined lease agreements with digital signatures, automated renewals, and legal compliance built-in.',
-      benefits: [
-        'Legally binding digital signatures',
-        'Automated contract templates',
-        'Renewal reminders and processing',
-        'Document version control',
-        'Mobile-friendly contract signing'
-      ]
-    },
-    {
-      id: 'property-verification',
-      icon: 'verified',
-      title: 'Property Verification',
-      description: 'Comprehensive property validation including ownership verification, occupancy status, and condition assessment.',
-      benefits: [
-        'Ownership verification through land records',
-        'Physical property inspection',
-        'Occupancy status confirmation',
-        'Property condition documentation',
-        'Location and accessibility verification'
-      ]
-    },
+   
+  
     {
       id: 'communication-hub',
       icon: 'forum',
@@ -173,7 +135,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   startHeroCarousel(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextSlide();
-    }, 5000);
+    }, 4000);
   }
 
   stopHeroCarousel(): void {
