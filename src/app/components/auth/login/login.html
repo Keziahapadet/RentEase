@@ -6,43 +6,42 @@
       <h2>Login</h2>
     </div>
 
-    <!-- Error / Success -->
+   
     <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
     <div *ngIf="successMessage" class="alert-success">{{ successMessage }}</div>
 
-    <!-- Login Form -->
+    
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
 
-      <!-- Email -->
+   
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email</mat-label>
-        <input matInput type="email" [(ngModel)]="loginData.email" name="email" required />
+        <input matInput type="email" [(ngModel)]="loginData.email" name="email" [disabled]="isLoading" />
       </mat-form-field>
 
-      <!-- Password -->
+   
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
-        <input matInput [type]="showPassword ? 'text' : 'password'" [(ngModel)]="loginData.password" name="password" required />
+        <input matInput [type]="showPassword ? 'text' : 'password'" [(ngModel)]="loginData.password" name="password" [disabled]="isLoading" />
         <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
           <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
       </mat-form-field>
 
-      <!-- Remember Me -->
-      <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe">Remember Me</mat-checkbox>
+     
+      <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe" [disabled]="isLoading">Remember Me</mat-checkbox>
 
        <p class="forgot-password-link">         
         <a href="#" (click)="navigateToForgotPassword(); $event.preventDefault()" style="cursor: pointer;">Forgot Password?</a>       
       </p>
 
-      <!-- Submit -->
+     
       <button mat-raised-button color="primary" class="full-width submit-btn" 
               [disabled]="isLoading || !loginForm.valid">
         {{ isLoading ? 'Logging in...' : 'Login' }}
       </button>
     </form>
 
-    <!-- Register Link -->
     <p class="register-link">       
       Don't have an account? <a href="#" (click)="navigateToRegister(); $event.preventDefault()" style="cursor: pointer;">Register</a>     
     </p>  

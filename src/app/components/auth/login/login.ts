@@ -1,4 +1,4 @@
-// src/app/components/login/login.component.ts
+
 
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -47,14 +47,13 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     console.log('Login component initialized');
     
-    // Redirect if already authenticated
     if (this.authService.isAuthenticated()) {
       console.log('User already authenticated, redirecting...');
       this.redirectToDashboard();
       return;
     }
 
-    // Get return URL from route parameters
+
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
     console.log('Return URL set to:', this.returnUrl);
   }

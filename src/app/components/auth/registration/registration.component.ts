@@ -23,6 +23,22 @@ interface FormData {
   accessCode?: string;
 }
 
+// Interface for timeline events
+interface TimelineEvent {
+  title: string;
+  date: string;
+  description: string;
+  completed: boolean;
+}
+
+// Interface for maintenance requests
+interface MaintenanceRequest {
+  title: string;
+  description: string;
+  priority: string;
+  category: string;
+}
+
 @Component({
   selector: 'app-registration',
   templateUrl: './registration.component.html',
@@ -66,6 +82,46 @@ export class RegistrationComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+
+  // ADD THESE MISSING PROPERTIES FOR DASHBOARD FUNCTIONALITY
+  activeSection = 'dashboard';
+  depositAmount = 50000; // Example deposit amount in KES
+  
+  // Deposit timeline for tracking progress
+  depositTimeline: TimelineEvent[] = [
+    {
+      title: 'Application Submitted',
+      date: '2024-01-15',
+      description: 'Your rental application has been submitted successfully.',
+      completed: true
+    },
+    {
+      title: 'Background Check',
+      date: '2024-01-16',
+      description: 'Background verification in progress.',
+      completed: true
+    },
+    {
+      title: 'Deposit Payment',
+      date: '2024-01-18',
+      description: 'Security deposit payment confirmed.',
+      completed: false
+    },
+    {
+      title: 'Lease Agreement',
+      date: '2024-01-20',
+      description: 'Digital lease agreement signing.',
+      completed: false
+    }
+  ];
+
+  // Maintenance request object
+  newMaintenanceRequest: MaintenanceRequest = {
+    title: '',
+    description: '',
+    priority: 'medium',
+    category: 'general'
+  };
 
   ngOnInit(): void {
     // Redirect if already authenticated
@@ -233,5 +289,165 @@ export class RegistrationComponent implements OnInit {
   // Helper method to check if admin access code field should be shown
   showAdminAccessCode(): boolean {
     return this.formData.role === UserRole.ADMIN;
+  }
+
+  // ADD THESE MISSING METHODS TO RESOLVE TEMPLATE ERRORS
+
+  /**
+   * Format number with Kenyan locale
+   */
+  formatNumber(num: number): string {
+    return new Intl.NumberFormat('en-KE').format(num);
+  }
+
+  /**
+   * Format currency in Kenyan Shillings
+   */
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES'
+    }).format(amount);
+  }
+
+  /**
+   * Set active section for navigation
+   */
+  setActiveSection(section: string): void {
+    this.activeSection = section;
+  }
+
+  /**
+   * Submit maintenance request
+   */
+  submitMaintenanceRequest(): void {
+    if (!this.newMaintenanceRequest.title.trim()) {
+      this.errorMessage = 'Maintenance request title is required';
+      return;
+    }
+
+    if (!this.newMaintenanceRequest.description.trim()) {
+      this.errorMessage = 'Maintenance request description is required';
+      return;
+    }
+
+    // Here you would typically call a maintenance service
+    console.log('Submitting maintenance request:', this.newMaintenanceRequest);
+    
+    // For now, just show success message and reset form
+    this.successMessage = 'Maintenance request submitted successfully!';
+    this.resetMaintenanceForm();
+    
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000);
+  }
+
+  /**
+   * Reset maintenance request form
+   */
+  private resetMaintenanceForm(): void {
+    this.newMaintenanceRequest = {
+      title: '',
+      description: '',
+      priority: 'medium',
+      category: 'general'
+    };
+  }
+
+  /**
+   * Get count of completed timeline events
+   */
+  getCompletedTimelineCount(): number {
+    return this.depositTimeline.filter(event => event.completed).length;
+  }
+
+  /**
+   * Get total timeline events count
+   */
+  getTotalTimelineCount(): number {
+    return this.depositTimeline.length;
+  }
+
+  /**
+   * Get timeline completion percentage
+   */
+  getTimelineCompletionPercentage(): number {
+    if (this.depositTimeline.length === 0) return 0;
+    return (this.getCompletedTimelineCount() / this.getTotalTimelineCount()) * 100;
+  }
+
+  /**
+   * Get deposit status text
+   */
+  getDepositStatusText(): string {
+    const completedCount = this.getCompletedTimelineCount();
+    const totalCount = this.getTotalTimelineCount();
+    
+    if (completedCount === totalCount) {
+      return 'Completed';
+    } else if (completedCount > 0) {
+      return 'In Progress';
+    } else {
+      return 'Pending';
+    }
+  }
+
+  /**
+   * Check if user has recent activities
+   */
+  hasRecentActivities(): boolean {
+    // This would typically check a real activities array
+    return true; // For demo purposes
+  }
+
+  /**
+   * Get recent activities count
+   */
+  getRecentActivitiesCount(): number {
+    // This would return actual count from activities service
+    return 3; // For demo purposes
+  }
+
+  /**
+   * Track by function for timeline events
+   */
+  trackByActivityId(index: number, item: TimelineEvent): string {
+    return `${item.title}-${item.date}`;
+  }
+
+  /**
+   * Get activity icon class based on type
+   */
+  getActivityIconClass(type: string): string {
+    switch (type) {
+      case 'payment':
+        return 'payment';
+      case 'maintenance':
+        return 'maintenance';
+      case 'document':
+        return 'document';
+      case 'message':
+        return 'message';
+      default:
+        return 'general';
+    }
+  }
+
+  /**
+   * Refresh data (placeholder for actual implementation)
+   */
+  refreshData(): void {
+    console.log('Refreshing data...');
+    // This would typically reload data from services
+  }
+
+  /**
+   * Validate email format
+   */
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 }
