@@ -1,8 +1,8 @@
 import { Routes, provideRouter, withInMemoryScrolling } from '@angular/router';
 import { HomeComponent } from '../pages/home/home';
-import { RegistrationComponent } from './components/auth/registration/registration.component'; 
+import { RegistrationComponent } from './components/auth/registration/registration.component';
+import { LoginComponent } from './components/auth/login/login.component';
 import { TenantDashboardComponent } from './components/dashboard/tenant/tenant-dashboard/tenant-dashboard.component';
-import { LoginComponent } from './components/auth/login/login';
 import { LandlordDashboardComponent } from './components/dashboard/landlord/landlord-dashboard/landlord-dashboard'
 import { FeaturesComponent } from '../pages/features/features';
 import { PricingComponent } from '../pages/pricing/pricing';
@@ -28,29 +28,34 @@ import { InvoicesComponent } from './components/dashboard/landlord/landlord-dash
 import { PaymentComponent } from './components/dashboard/landlord/landlord-dashboard/financials/payment/payment';
 import { PropertyComponent } from './components/dashboard/landlord/landlord-dashboard/property/property.component';
 import { PropertyCreateComponent } from './components/dashboard/landlord/landlord-dashboard/property/property-create/property-create';
+import { VerifyOtpComponent } from './components/auth/verify-otp/verify-otp.component';
 
 export const routes: Routes = [
-  { 
-    path: '', 
-    component: HomeComponent, 
-    pathMatch: 'full' 
+  {
+    path: '',
+    component: HomeComponent,
+    pathMatch: 'full'
   },
-  { 
-    path: 'registration', 
-    component: RegistrationComponent 
+  {
+    path: 'registration',
+    component: RegistrationComponent
   },
-  { 
-    path: 'login', 
-    component: LoginComponent 
-  }, 
-  { 
-    path: 'forgot-password', 
-    component: ForgotPasswordComponent 
+  {
+    path: 'login',
+    component: LoginComponent
   },
-  
+  {
+    path: 'verify-otp',
+    component: VerifyOtpComponent
+  },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent
+  },
+
   // Tenant Dashboard with child routes
-  { 
-    path: 'tenant-dashboard',           
+  {
+    path: 'tenant-dashboard',
     component: TenantDashboardComponent,
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -64,44 +69,29 @@ export const routes: Routes = [
       { path: 'reviews', component: ReviewComponent },
       { path: 'settings', component: SettingsComponent }
     ]
-  }, 
-  
-  // Landlord Dashboard with nested child routes
-  { 
-    path: 'landlord-dashboard',         
+  },
+
+  // FIXED: Landlord Dashboard with proper nested routing
+  {
+    path: 'landlord-dashboard',
     component: LandlordDashboardComponent,
     children: [
-      // Default redirect to dashboard overview when accessing landlord-dashboard
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      
-      // Dashboard overview route (shows the main dashboard)
-      { path: 'dashboard', component: LandlordDashboardComponent },
-      
-      // Financials route with its own child routes
-      {
-        path: 'financials', 
-        component: FinancialsComponent,
-        children: [
-          { path: 'invoices', component: InvoicesComponent },
-          { path: 'payments', component: PaymentComponent },
-          // { path: 'expenses', component: ExpensesComponent },
-          // { path: 'reports', component: ReportsComponent }
-        ]
-      },
-      
-      // Property route (SINGULAR) with its own child routes
-      {
-        path: 'property', 
-        component: PropertyComponent,
-        children: [
-          { path: '', component: PropertyComponent }, // Shows property list
-          { path: 'create', component: PropertyCreateComponent }, // Add new property
-          // { path: 'edit/:id', component: PropertyEditComponent },
-          // { path: ':id', component: PropertyDetailComponent }
-        ]
-      },
-      
-      // Add other landlord dashboard routes here
+      // Default redirect - shows dashboard home content
+      { path: '', pathMatch: 'full', redirectTo: '' },
+
+      // Financials routes - FLAT structure, no nested children
+      { path: 'financials', component: FinancialsComponent },
+      { path: 'financials/invoices', component: InvoicesComponent },
+      { path: 'financials/payments', component: PaymentComponent },
+      // { path: 'financials/expenses', component: ExpensesComponent },
+
+      // Property routes - FLAT structure, no nested children
+      { path: 'property', component: PropertyComponent },
+      { path: 'property/create', component: PropertyCreateComponent },
+      // { path: 'property/edit/:id', component: PropertyEditComponent },
+      // { path: 'property/:id', component: PropertyDetailComponent },
+
+      // Add other landlord dashboard routes here as flat routes
       // { path: 'tenants', component: TenantsComponent },
       // { path: 'maintenance', component: MaintenanceManagementComponent },
       // { path: 'settings', component: LandlordSettingsComponent }
@@ -109,40 +99,40 @@ export const routes: Routes = [
   },
 
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
-  { 
-    path: 'dashboard',                  
-    redirectTo: '/tenant-dashboard', 
-    pathMatch: 'full' 
+  {
+    path: 'dashboard',
+    redirectTo: '/tenant-dashboard',
+    pathMatch: 'full'
   },
- 
-  { 
-    path: 'features', 
-    component: FeaturesComponent 
+
+  {
+    path: 'features',
+    component: FeaturesComponent
   },
-  { 
-    path: 'pricing', 
-    component: PricingComponent 
+  {
+    path: 'pricing',
+    component: PricingComponent
   },
-  { 
-    path: 'contact', 
+  {
+    path: 'contact',
     component: ContactComponent
   },
-  { 
-    path: 'about', 
+  {
+    path: 'about',
     component: AboutComponent
   },
-  { 
-    path: 'terms', 
-    component: TermsComponent 
+  {
+    path: 'terms',
+    component: TermsComponent
   },
-  { 
-    path: 'privacy', 
-    component: PrivacyComponent 
+  {
+    path: 'privacy',
+    component: PrivacyComponent
   },
-  
-  { 
-    path: '**', 
-    redirectTo: '/' 
+
+  {
+    path: '**',
+    redirectTo: '/'
   }
 ];
 
@@ -150,8 +140,8 @@ export const appRouterProviders = [
   provideRouter(
     routes,
     withInMemoryScrolling({
-      scrollPositionRestoration: 'top', 
-      anchorScrolling: 'enabled'        
+      scrollPositionRestoration: 'top',
+      anchorScrolling: 'enabled'
     })
   )
 ];
