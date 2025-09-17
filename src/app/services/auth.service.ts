@@ -3,20 +3,20 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { map, tap, catchError } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
-import { 
-  User, 
-  LoginRequest, 
+import {
+  User,
+  LoginRequest,
   RegisterRequest,
-  AdminAuthResponse,
-  UserAuthResponse,
   RegisterResponse,
-  PasswordResetRequest,
-  PasswordResetConfirm,
-  ChangePasswordRequest,
-  UserRole
+  UserRole,
+  AuthResponse,
+  OtpRequest,
+  OtpVerifyRequest,
+  OtpResponse,
+  PasswordResetRequest
 } from './auth-interfaces';
 
 @Injectable({
@@ -27,34 +27,28 @@ export class AuthService {
   private router: Router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private isBrowser: boolean;
-  
+
   private readonly apiUrl = 'http://10.20.33.70:8080/api/auth';
-  
-  // Reactive state management
+
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  
-  // Public observables
+
   public currentUser$ = this.currentUserSubject.asObservable();
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
-    
-    // Only initialize auth state if we're in the browser
-    if (this.isBrowser) {
-      this.initializeAuthState();
-    }
+    if (this.isBrowser) this.initializeAuthState();
   }
 
-  // ============ STORAGE HELPER METHODS ============
-
+  // ================= STORAGE HELPERS =================
   private getFromStorage(key: string): string | null {
     if (!this.isBrowser) return null;
     try {
-      return localStorage.getItem(key) || sessionStorage.getItem(key);
-    } catch (error) {
-      console.warn('Storage access error:', error);
+      const value = localStorage.getItem(key) || sessionStorage.getItem(key);
+      if (value === 'undefined' || value === 'null') return null;
+      return value;
+    } catch {
       return null;
     }
   }
@@ -64,9 +58,7 @@ export class AuthService {
     try {
       const storage = permanent ? localStorage : sessionStorage;
       storage.setItem(key, value);
-    } catch (error) {
-      console.warn('Storage write error:', error);
-    }
+    } catch {}
   }
 
   private removeFromStorage(key: string): void {
@@ -74,403 +66,159 @@ export class AuthService {
     try {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
-    } catch (error) {
-      console.warn('Storage remove error:', error);
-    }
+    } catch {}
   }
 
   private clearAllStorage(): void {
     if (!this.isBrowser) return;
-    try {
-      const authKeys = ['authToken', 'refreshToken', 'userData'];
-      authKeys.forEach(key => {
-        localStorage.removeItem(key);
-        sessionStorage.removeItem(key);
-      });
-    } catch (error) {
-      console.warn('Storage clear error:', error);
-    }
+    const keys = ['authToken', 'refreshToken', 'userData'];
+    keys.forEach(key => this.removeFromStorage(key));
   }
 
-  // ============ AUTHENTICATION METHODS ============
+  clearCorruptedStorage(): void {
+    console.log('Clearing corrupted storage...');
+    this.clearAllStorage();
+    this.currentUserSubject.next(null);
+    this.isAuthenticatedSubject.next(false);
+  }
 
-  login(credentials: LoginRequest): Observable<AdminAuthResponse | UserAuthResponse> {
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json'
-      })
-    };
-
-    return this.http.post<AdminAuthResponse | UserAuthResponse>(`${this.apiUrl}/login`, {
-      email: credentials.email,
-      password: credentials.password
-    }, httpOptions).pipe(
-      tap(response => this.handleAuthSuccess(response, credentials.rememberMe)),
+  // ================= AUTH METHODS =================
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }).pipe(
+      tap(res => this.handleAuthSuccess(res, credentials.rememberMe)),
       catchError(this.handleError)
     );
   }
 
   register(userData: RegisterRequest): Observable<RegisterResponse> {
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json'
-      })
-    };
-
-    return this.http.post<RegisterResponse>(`${this.apiUrl}/signup`, userData, httpOptions)
-      .pipe(
-        tap(response => {
-          if (response.success && response.user) {
-            if (response.token && userData.role === UserRole.ADMIN) {
-              const adminResponse: AdminAuthResponse = {
-                token: response.token,
-                user: response.user,
-                message: response.message
-              };
-              this.handleAuthSuccess(adminResponse, false);
-            } else {
-              const userResponse: UserAuthResponse = {
-                user: response.user,
-                message: response.message || 'Registration successful',
-                success: true
-              };
-              this.handleAuthSuccess(userResponse, false);
-            }
-          }
-        }),
-        catchError(this.handleError)
-      );
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/signup`, userData, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }).pipe(
+      tap(res => {
+        if (res.success && res.user) this.handleAuthSuccess({ ...res, user: res.user }, false);
+      }),
+      catchError(this.handleError)
+    );
   }
 
-  logoutAdmin(): Observable<any> {
-    if (!this.isAdmin()) {
-      return throwError(() => new Error('Admin logout not available for non-admin users'));
-    }
-
-    const httpOptions = {
-      headers: this.createAuthHeaders()
-    };
-
-    return this.http.post(`${this.apiUrl}/logout`, {}, httpOptions)
-      .pipe(
-        tap(() => this.handleLogout()),
-        catchError(() => {
-          this.handleLogout();
-          return throwError(() => new Error('Logout completed locally'));
-        })
-      );
+  logout(): void {
+    this.clearAllStorage();
+    this.currentUserSubject.next(null);
+    this.isAuthenticatedSubject.next(false);
+    this.router.navigate(['/login']);
   }
 
-  logoutLocal(): void {
-    this.handleLogout();
+  // ================= PASSWORD RESET =================
+  requestPasswordReset(request: PasswordResetRequest): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/forgot-password`,
+      request,
+      { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
+    ).pipe(catchError(this.handleError));
   }
 
-  refreshToken(): Observable<AdminAuthResponse> {
-    if (!this.isAdmin()) {
-      return throwError(() => new Error('Token refresh not available for non-admin users'));
-    }
-
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      return throwError(() => new Error('No refresh token available'));
-    }
-
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json'
-      })
-    };
-
-    return this.http.post<AdminAuthResponse>(`${this.apiUrl}/refresh`, { refreshToken }, httpOptions)
-      .pipe(
-        tap(response => this.handleAuthSuccess(response, this.isRemembered())),
-        catchError(error => {
-          this.handleLogout();
-          return this.handleError(error);
-        })
-      );
+  // ================= OTP METHODS =================
+  sendOtp(request: OtpRequest): Observable<OtpResponse> {
+    return this.http.post<OtpResponse>(`${this.apiUrl}/send-otp`, request, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }).pipe(catchError(this.handleError));
   }
 
-  // ============ PASSWORD MANAGEMENT ============
-
-  requestPasswordReset(request: PasswordResetRequest): Observable<any> {
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json'
-      })
-    };
-
-    return this.http.post(`${this.apiUrl}/forgot-password`, request, httpOptions)
-      .pipe(catchError(this.handleError));
+  verifyOtp(request: OtpVerifyRequest): Observable<OtpResponse> {
+    return this.http.post<OtpResponse>(`${this.apiUrl}/verify-otp`, request, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }).pipe(catchError(this.handleError));
   }
 
-  resetPassword(request: PasswordResetConfirm): Observable<any> {
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json'
-      })
-    };
-
-    return this.http.post(`${this.apiUrl}/reset-password`, request, httpOptions)
-      .pipe(catchError(this.handleError));
+  resendOtp(request: OtpRequest): Observable<OtpResponse> {
+    return this.sendOtp(request);
   }
 
-  changePassword(request: ChangePasswordRequest): Observable<any> {
-    const httpOptions = {
-      headers: this.isAdmin() ? this.createAuthHeaders() : this.createBasicHeaders()
-    };
-    
-    return this.http.put(`${this.apiUrl}/change-password`, request, httpOptions)
-      .pipe(catchError(this.handleError));
-  }
-
-  // ============ USER PROFILE METHODS ============
-
-  getUserProfile(): Observable<User> {
-    const httpOptions = {
-      headers: this.isAdmin() ? this.createAuthHeaders() : this.createBasicHeaders()
-    };
-    
-    return this.http.get<User>(`${this.apiUrl}/profile`, httpOptions)
-      .pipe(
-        tap(user => {
-          this.updateStoredUser(user);
-          this.currentUserSubject.next(user);
-        }),
-        catchError(this.handleError)
-      );
-  }
-
-  updateProfile(userData: Partial<User>): Observable<User> {
-    const httpOptions = {
-      headers: this.isAdmin() ? this.createAuthHeaders() : this.createBasicHeaders()
-    };
-    
-    return this.http.put<User>(`${this.apiUrl}/profile`, userData, httpOptions)
-      .pipe(
-        tap(user => {
-          this.updateStoredUser(user);
-          this.currentUserSubject.next(user);
-        }),
-        catchError(this.handleError)
-      );
-  }
-
-  // ============ TOKEN MANAGEMENT ============
-
+  // ================= TOKEN & USER HELPERS =================
   getToken(): string | null {
-    if (!this.isAdmin()) return null;
     return this.getFromStorage('authToken');
-  }
-
-  getRefreshToken(): string | null {
-    if (!this.isAdmin()) return null;
-    return this.getFromStorage('refreshToken');
   }
 
   getCurrentUser(): User | null {
     const userData = this.getFromStorage('userData');
-    try {
-      return userData ? JSON.parse(userData) : null;
-    } catch (error) {
-      console.warn('Error parsing user data:', error);
-      return null;
-    }
+    if (!userData) return null;
+    try { return JSON.parse(userData); } 
+    catch { this.removeFromStorage('userData'); return null; }
   }
 
   isAuthenticated(): boolean {
-    if (!this.isBrowser) return false;
-    
-    const user = this.getCurrentUser();
-    if (!user) return false;
-    
-    if (user.role === UserRole.ADMIN) {
-      return this.hasValidToken();
-    }
-    
-    return true;
-  }
-
-  isRemembered(): boolean {
-    if (!this.isBrowser) return false;
-    try {
-      return !!localStorage.getItem('userData');
-    } catch (error) {
-      return false;
-    }
-  }
-
-  // ============ HEADER CREATION METHODS ============
-
-  private createAuthHeaders(): HttpHeaders {
-    const token = this.getToken();
-    if (token) {
-      return new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      });
-    }
-    return this.createBasicHeaders();
-  }
-
-  private createBasicHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
+    return this.hasValidToken();
   }
 
   getAuthHeaders(): HttpHeaders {
-    return this.createAuthHeaders();
+    const token = this.getToken();
+    return token
+      ? new HttpHeaders({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' })
+      : new HttpHeaders({ 'Content-Type': 'application/json' });
   }
 
-  // ============ UTILITY METHODS ============
-
-  redirectToLogin(): void {
-    if (this.isBrowser) {
-      this.router.navigate(['/login']);
-    }
-  }
-
-  hasRole(role: string): boolean {
+  hasRole(role: UserRole | string): boolean {
     const user = this.getCurrentUser();
     return user?.role?.toUpperCase() === role.toUpperCase();
   }
 
-  hasAnyRole(roles: string[]): boolean {
-    const user = this.getCurrentUser();
-    if (!user?.role) return false;
-    
-    return roles.some(role => 
-      user.role?.toUpperCase() === role.toUpperCase()
-    );
-  }
+  isBusiness(): boolean { return this.hasRole(UserRole.BUSINESS); }
+  isTenant(): boolean { return this.hasRole(UserRole.TENANT); }
+  isLandlord(): boolean { return this.hasRole(UserRole.LANDLORD); }
+  isCaretaker(): boolean { return this.hasRole(UserRole.CARETAKER); }
 
-  isAdmin(): boolean {
-    return this.hasRole(UserRole.ADMIN);
-  }
-
-  isTenant(): boolean {
-    return this.hasRole(UserRole.TENANT);
-  }
-
-  isLandlord(): boolean {
-    return this.hasRole(UserRole.LANDLORD);
-  }
-
-  // ============ PRIVATE HELPER METHODS ============
-
-  private handleAuthSuccess(response: AdminAuthResponse | UserAuthResponse, rememberMe: boolean = false): void {
+  // ================= PRIVATE HELPERS =================
+  private handleAuthSuccess(response: AuthResponse | RegisterResponse, rememberMe: boolean = false): void {
     if (!this.isBrowser) return;
-    
-    if ('token' in response && response.token) {
+
+    let user: User | null = null;
+    if ('userId' in response) { // AuthResponse
       this.setInStorage('authToken', response.token, rememberMe);
-      if ('refreshToken' in response && response.refreshToken) {
-        this.setInStorage('refreshToken', response.refreshToken, rememberMe);
-      }
+      user = {
+        id: response.userId,
+        email: response.email,
+        fullName: response.fullName,
+        role: response.role,
+        verified: response.verified
+      };
+    } else if ('user' in response && response.user) { // RegisterResponse
+      user = response.user;
+      if ('token' in response && response.token) this.setInStorage('authToken', response.token, rememberMe);
     }
-    
-    this.setInStorage('userData', JSON.stringify(response.user), rememberMe);
-    
-    this.currentUserSubject.next(response.user);
-    this.isAuthenticatedSubject.next(true);
-  }
 
-  private handleLogout(): void {
-    if (!this.isBrowser) return;
-    
-    this.clearAllStorage();
-    this.currentUserSubject.next(null);
-    this.isAuthenticatedSubject.next(false);
-    this.redirectToLogin();
+    if (user) {
+      this.setInStorage('userData', JSON.stringify(user), rememberMe);
+      this.currentUserSubject.next(user);
+      this.isAuthenticatedSubject.next(true);
+    }
   }
 
   private hasValidToken(): boolean {
-    if (!this.isBrowser) return false;
-    
     const token = this.getToken();
     if (!token) return false;
-    
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp > currentTime;
-    } catch (error) {
-      console.warn('Token validation error:', error);
+      return payload.exp > Math.floor(Date.now() / 1000);
+    } catch {
       return false;
     }
   }
 
-  private checkAuthenticationStatus(): boolean {
-    if (!this.isBrowser) return false;
-    
-    const user = this.getCurrentUser();
-    if (!user) return false;
-    
-    if (user.role === UserRole.ADMIN) {
-      return this.hasValidToken();
-    }
-    
-    return true;
-  }
-
   private initializeAuthState(): void {
-    if (!this.isBrowser) return;
-    
     const user = this.getCurrentUser();
-    const isAuthenticated = this.checkAuthenticationStatus();
-    
+    const isAuthenticated = this.hasValidToken();
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(isAuthenticated);
-    
-    if (user && user.role === UserRole.ADMIN && !this.hasValidToken()) {
-      this.handleLogout();
-    }
-  }
-
-  private updateStoredUser(user: User): void {
-    if (!this.isBrowser) return;
-    
-    const isPermanent = this.isRemembered();
-    this.setInStorage('userData', JSON.stringify(user), isPermanent);
   }
 
   private handleError = (error: HttpErrorResponse): Observable<never> => {
-    let errorMessage = 'An unexpected error occurred';
-    
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = error.error.message;
-    } else {
-      switch (error.status) {
-        case 400:
-          errorMessage = error.error?.message || 'Bad request. Please check your input.';
-          break;
-        case 401:
-          errorMessage = error.error?.message || 'Invalid credentials';
-          break;
-        case 403:
-          errorMessage = 'Access forbidden';
-          break;
-        case 404:
-          errorMessage = 'Service not found';
-          break;
-        case 409:
-          errorMessage = error.error?.message || 'User already exists';
-          break;
-        case 422:
-          errorMessage = error.error?.message || 'Validation error';
-          break;
-        case 500:
-          errorMessage = 'Internal server error. Please try again later.';
-          break;
-        case 0:
-          errorMessage = 'Unable to connect to server. Please check your internet connection.';
-          break;
-        default:
-          errorMessage = error.error?.message || `Error Code: ${error.status}`;
-      }
-    }
-    
-    console.error('Auth Service Error:', error);
-    return throwError(() => new Error(errorMessage));
+    let message = 'An unexpected error occurred';
+    if (error.error instanceof ErrorEvent) message = error.error.message;
+    else message = error.error?.message || message;
+
+    console.error('AuthService Error:', error);
+    return throwError(() => new Error(message));
   };
 }

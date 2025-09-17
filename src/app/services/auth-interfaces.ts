@@ -1,16 +1,21 @@
 // src/app/services/auth-interfaces.ts
 
+// ================= USER INTERFACES =================
+
 export interface User {
-  id: string;
+  id: string | number;            // backend gives userId: number
   email: string;
   fullName: string;
   phoneNumber?: string;
-  role: string;
+  role: UserRole | string;        // typed enum + string fallback
   avatar?: string;
   emailVerified?: boolean;
+  verified?: boolean;             // matches backend response field
   createdAt?: string;
   updatedAt?: string;
 }
+
+// ================= AUTH REQUEST INTERFACES =================
 
 export interface LoginRequest {
   email: string;
@@ -24,33 +29,35 @@ export interface RegisterRequest {
   confirmPassword: string;
   fullName: string;
   phoneNumber: string;
-  role: string;
+  role: UserRole | string;
   accessCode?: string; // Only for ADMIN registration
 }
 
-// Response for ADMIN login (with token)
-export interface AdminAuthResponse {
+// ================= AUTH RESPONSE INTERFACES =================
+
+// Unified login response (LANDLORD, TENANT, CARETAKER, BUSINESS, ADMIN)
+export interface AuthResponse {
   token: string;
+  tokenType: string;
+  userId: number;
+  fullName: string;
+  email: string;
+  role: UserRole | string;
+  verified: boolean;
   refreshToken?: string;
-  user: User;
   expiresIn?: number;
   message?: string;
 }
 
-// Response for non-ADMIN login (no token)
-export interface UserAuthResponse {
-  user: User;
-  message?: string;
-  success: boolean;
-}
-
-// Registration response (same for all roles)
+// Registration response
 export interface RegisterResponse {
   user?: User;
   message: string;
   success: boolean;
-  token?: string; // Only if admin
+  token?: string; // only for ADMIN, if returned
 }
+
+// ================= PASSWORD RESET INTERFACES =================
 
 export interface PasswordResetRequest {
   email: string;
@@ -68,6 +75,55 @@ export interface ChangePasswordRequest {
   confirmPassword: string;
 }
 
+// ================= OTP INTERFACES =================
+
+export interface OtpRequest {
+  email: string;
+  type: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification';
+}
+
+export interface OtpVerifyRequest {
+  email: string;
+  otp: string;
+  type: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification';
+}
+
+export interface OtpResponse {
+  success: boolean;
+  message: string;
+  token?: string; // Optional token for certain verification types
+}
+
+// ================= PROPERTY INTERFACES =================
+
+export interface PropertyRequest {
+  name: string;
+  location: string;
+  propertyType: string;
+  totalUnits: number;
+  description?: string;
+}
+
+export interface PropertyResponse {
+  success: boolean;
+  message: string;
+  property?: Property;
+}
+
+export interface Property {
+  id: string;
+  name: string;
+  location: string;
+  propertyType: string;
+  totalUnits: number;
+  description?: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ================= OTHER INTERFACES =================
+
 export interface ApiErrorResponse {
   message: string;
   status: number;
@@ -78,12 +134,13 @@ export interface ApiErrorResponse {
 // Enum for user roles
 export enum UserRole {
   TENANT = 'TENANT',
+  CARETAKER = 'CARETAKER',
   LANDLORD = 'LANDLORD',
-  ADMIN = 'ADMIN',
-  PROPERTY_MANAGER = 'PROPERTY_MANAGER'
+  BUSINESS = 'BUSINESS',
+  ADMIN = 'ADMIN'
 }
 
-// Auth state interface
+// Auth state interface (used for NgRx or local state)
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;

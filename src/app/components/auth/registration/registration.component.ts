@@ -11,7 +11,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AuthService } from '../../../services/auth.service';
-import { RegisterRequest, UserRole } from '../../../services/auth-interfaces';
+import { 
+  RegisterRequest, 
+  UserRole, 
+  OtpRequest, 
+  OtpResponse 
+} from '../../../services/auth-interfaces';
 
 interface FormData {
   role: string;
@@ -23,7 +28,6 @@ interface FormData {
   accessCode?: string;
 }
 
-// Interface for timeline events
 interface TimelineEvent {
   title: string;
   date: string;
@@ -31,7 +35,6 @@ interface TimelineEvent {
   completed: boolean;
 }
 
-// Interface for maintenance requests
 interface MaintenanceRequest {
   title: string;
   description: string;
@@ -68,12 +71,11 @@ export class RegistrationComponent implements OnInit {
     confirmPassword: ''
   };
 
-  // Available roles for registration
   availableRoles = [
     { value: UserRole.TENANT, label: 'Tenant' },
     { value: UserRole.LANDLORD, label: 'Landlord' },
-    { value: UserRole.PROPERTY_MANAGER, label: 'Property Manager' },
-    { value: UserRole.ADMIN, label: 'Administrator' }
+    { value: UserRole.CARETAKER, label: 'Caretaker' },
+    { value: UserRole.BUSINESS, label: 'Business' }
   ];
 
   showPassword = false;
@@ -83,39 +85,17 @@ export class RegistrationComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  // ADD THESE MISSING PROPERTIES FOR DASHBOARD FUNCTIONALITY
+  // Dashboard demo functionality
   activeSection = 'dashboard';
-  depositAmount = 50000; // Example deposit amount in KES
-  
-  // Deposit timeline for tracking progress
+  depositAmount = 50000;
+
   depositTimeline: TimelineEvent[] = [
-    {
-      title: 'Application Submitted',
-      date: '2024-01-15',
-      description: 'Your rental application has been submitted successfully.',
-      completed: true
-    },
-    {
-      title: 'Background Check',
-      date: '2024-01-16',
-      description: 'Background verification in progress.',
-      completed: true
-    },
-    {
-      title: 'Deposit Payment',
-      date: '2024-01-18',
-      description: 'Security deposit payment confirmed.',
-      completed: false
-    },
-    {
-      title: 'Lease Agreement',
-      date: '2024-01-20',
-      description: 'Digital lease agreement signing.',
-      completed: false
-    }
+    { title: 'Application Submitted', date: '2024-01-15', description: 'Application submitted successfully.', completed: true },
+    { title: 'Background Check', date: '2024-01-16', description: 'Background verification in progress.', completed: true },
+    { title: 'Deposit Payment', date: '2024-01-18', description: 'Security deposit payment pending.', completed: false },
+    { title: 'Lease Agreement', date: '2024-01-20', description: 'Lease signing upcoming.', completed: false }
   ];
 
-  // Maintenance request object
   newMaintenanceRequest: MaintenanceRequest = {
     title: '',
     description: '',
@@ -124,7 +104,6 @@ export class RegistrationComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    // Redirect if already authenticated
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/dashboard']);
       return;
@@ -148,7 +127,7 @@ export class RegistrationComponent implements OnInit {
   }
 
   onRoleChange(): void {
-    if (this.formData.role !== UserRole.ADMIN) {
+    if (this.formData.role !== UserRole.BUSINESS) {
       delete this.formData.accessCode;
     }
     this.errorMessage = '';
@@ -169,67 +148,28 @@ export class RegistrationComponent implements OnInit {
   validateForm(): boolean {
     this.errorMessage = '';
 
-    if (!this.formData.role) { 
-      this.errorMessage = 'Role is required'; 
-      return false; 
-    }
-    
-    if (!this.formData.fullName.trim()) { 
-      this.errorMessage = 'Full name is required'; 
-      return false; 
-    }
-    
-    if (!this.formData.email.trim()) { 
-      this.errorMessage = 'Email is required'; 
-      return false; 
-    }
-    
+    if (!this.formData.role) { this.errorMessage = 'Role is required'; return false; }
+    if (!this.formData.fullName.trim()) { this.errorMessage = 'Full name is required'; return false; }
+    if (!this.formData.email.trim()) { this.errorMessage = 'Email is required'; return false; }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.formData.email)) { 
-      this.errorMessage = 'Invalid email address'; 
-      return false; 
-    }
+    if (!emailRegex.test(this.formData.email)) { this.errorMessage = 'Invalid email address'; return false; }
 
-    if (!this.formData.phoneNumber.trim()) { 
-      this.errorMessage = 'Phone number is required'; 
-      return false; 
-    }
-    
-    // Updated phone regex for more flexible validation
+    if (!this.formData.phoneNumber.trim()) { this.errorMessage = 'Phone number is required'; return false; }
     const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
     if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
       this.errorMessage = 'Invalid phone number format'; 
       return false;
     }
 
-    if (!this.formData.password) { 
-      this.errorMessage = 'Password required'; 
-      return false; 
-    }
-    
-    if (this.formData.password.length < 8) { 
-      this.errorMessage = 'Password must be at least 8 characters'; 
-      return false; 
-    }
-    
-    if (!this.formData.confirmPassword) { 
-      this.errorMessage = 'Confirm your password'; 
-      return false; 
-    }
-    
-    if (!this.passwordsMatch()) { 
-      this.errorMessage = 'Passwords do not match'; 
-      return false; 
-    }
+    if (!this.formData.password) { this.errorMessage = 'Password required'; return false; }
+    if (this.formData.password.length < 8) { this.errorMessage = 'Password must be at least 8 characters'; return false; }
+    if (!this.formData.confirmPassword) { this.errorMessage = 'Confirm your password'; return false; }
+    if (!this.passwordsMatch()) { this.errorMessage = 'Passwords do not match'; return false; }
 
-    if (!this.agreedToTerms) { 
-      this.errorMessage = 'Please agree to Terms and Conditions'; 
-      return false; 
-    }
-    
-    // Validate admin access code
-    if (this.formData.role === UserRole.ADMIN && this.formData.accessCode !== 'ADMIN2024') {
-      this.errorMessage = 'Invalid admin access code'; 
+    if (!this.agreedToTerms) { this.errorMessage = 'Please agree to Terms and Conditions'; return false; }
+
+    if (this.formData.role === UserRole.BUSINESS && this.formData.accessCode !== 'BUSINESS2024') {
+      this.errorMessage = 'Invalid business access code'; 
       return false;
     }
 
@@ -253,23 +193,53 @@ export class RegistrationComponent implements OnInit {
       accessCode: this.formData.accessCode
     };
 
+    console.log('Registering user with role:', this.formData.role);
+
     this.authService.register(registerRequest).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        this.successMessage = response.message || 'Registration successful!';
-        
-        // Redirect based on role
-        setTimeout(() => {
-          if (this.formData.role === UserRole.ADMIN) {
-            this.router.navigate(['/admin-dashboard']);
-          } else {
-            this.router.navigate(['/dashboard']);
+      next: async (response) => {
+        if (response.success) {
+          this.successMessage = response.message || 'Registration successful! Sending verification code...';
+          
+          try {
+            const otpResponse: OtpResponse | undefined = await this.authService.sendOtp({
+              email: this.formData.email.trim().toLowerCase(),
+              type: 'email_verification'
+            } as OtpRequest).toPromise();
+
+            if (otpResponse?.success) {
+              this.successMessage = 'Registration successful! Verification code sent to your email.';
+            }
+
+            setTimeout(() => {
+              this.router.navigate(['/verify-otp'], {
+                queryParams: {
+                  email: this.formData.email.trim().toLowerCase(),
+                  type: 'email_verification'
+                }
+              });
+            }, 1500);
+
+          } catch (otpError: any) {
+            console.error('Failed to send OTP:', otpError);
+            this.successMessage = 'Registration successful! Redirecting to verification...';
+            setTimeout(() => {
+              this.router.navigate(['/verify-otp'], {
+                queryParams: {
+                  email: this.formData.email.trim().toLowerCase(),
+                  type: 'email_verification'
+                }
+              });
+            }, 1500);
           }
-        }, 2000);
+        }
       },
       error: (error) => {
+        console.error('Registration error:', error);
         this.isLoading = false;
-        this.errorMessage = error.message;
+        this.errorMessage = error.message || 'Registration failed. Please try again.';
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     });
   }
@@ -286,166 +256,109 @@ export class RegistrationComponent implements OnInit {
     window.open('/privacy', '_blank');
   }
 
-  // Helper method to check if admin access code field should be shown
-  showAdminAccessCode(): boolean {
-    return this.formData.role === UserRole.ADMIN;
+  showBusinessAccessCode(): boolean {
+    return this.formData.role === UserRole.BUSINESS;
   }
 
-  // ADD THESE MISSING METHODS TO RESOLVE TEMPLATE ERRORS
+  showAdminAccessCode(): boolean {
+    return this.showBusinessAccessCode();
+  }
 
-  /**
-   * Format number with Kenyan locale
-   */
+  isTenantSelected(): boolean { return this.formData.role === UserRole.TENANT; }
+  isLandlordSelected(): boolean { return this.formData.role === UserRole.LANDLORD; }
+  isCaretakerSelected(): boolean { return this.formData.role === UserRole.CARETAKER; }
+  isBusinessSelected(): boolean { return this.formData.role === UserRole.BUSINESS; }
+
+  getRoleWelcomeMessage(): string {
+    switch (this.formData.role) {
+      case UserRole.TENANT: return 'Join as a tenant to find your perfect rental home';
+      case UserRole.LANDLORD: return 'Join as a landlord to manage your properties';
+      case UserRole.CARETAKER: return 'Join as a caretaker to maintain properties';
+      case UserRole.BUSINESS: return 'Join as a business to access advanced features';
+      default: return 'Select your role to get started';
+    }
+  }
+
   formatNumber(num: number): string {
     return new Intl.NumberFormat('en-KE').format(num);
   }
 
-  /**
-   * Format currency in Kenyan Shillings
-   */
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES'
-    }).format(amount);
+    return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amount);
   }
 
-  /**
-   * Set active section for navigation
-   */
   setActiveSection(section: string): void {
     this.activeSection = section;
   }
 
-  /**
-   * Submit maintenance request
-   */
   submitMaintenanceRequest(): void {
     if (!this.newMaintenanceRequest.title.trim()) {
       this.errorMessage = 'Maintenance request title is required';
       return;
     }
-
     if (!this.newMaintenanceRequest.description.trim()) {
       this.errorMessage = 'Maintenance request description is required';
       return;
     }
 
-    // Here you would typically call a maintenance service
     console.log('Submitting maintenance request:', this.newMaintenanceRequest);
-    
-    // For now, just show success message and reset form
     this.successMessage = 'Maintenance request submitted successfully!';
     this.resetMaintenanceForm();
     
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      this.successMessage = '';
-    }, 3000);
+    setTimeout(() => { this.successMessage = ''; }, 3000);
   }
 
-  /**
-   * Reset maintenance request form
-   */
   private resetMaintenanceForm(): void {
-    this.newMaintenanceRequest = {
-      title: '',
-      description: '',
-      priority: 'medium',
-      category: 'general'
-    };
+    this.newMaintenanceRequest = { title: '', description: '', priority: 'medium', category: 'general' };
   }
 
-  /**
-   * Get count of completed timeline events
-   */
   getCompletedTimelineCount(): number {
     return this.depositTimeline.filter(event => event.completed).length;
   }
 
-  /**
-   * Get total timeline events count
-   */
   getTotalTimelineCount(): number {
     return this.depositTimeline.length;
   }
 
-  /**
-   * Get timeline completion percentage
-   */
   getTimelineCompletionPercentage(): number {
     if (this.depositTimeline.length === 0) return 0;
     return (this.getCompletedTimelineCount() / this.getTotalTimelineCount()) * 100;
   }
 
-  /**
-   * Get deposit status text
-   */
   getDepositStatusText(): string {
     const completedCount = this.getCompletedTimelineCount();
     const totalCount = this.getTotalTimelineCount();
-    
-    if (completedCount === totalCount) {
-      return 'Completed';
-    } else if (completedCount > 0) {
-      return 'In Progress';
-    } else {
-      return 'Pending';
-    }
+    if (completedCount === totalCount) return 'Completed';
+    else if (completedCount > 0) return 'In Progress';
+    else return 'Pending';
   }
 
-  /**
-   * Check if user has recent activities
-   */
   hasRecentActivities(): boolean {
-    // This would typically check a real activities array
-    return true; // For demo purposes
+    return true;
   }
 
-  /**
-   * Get recent activities count
-   */
   getRecentActivitiesCount(): number {
-    // This would return actual count from activities service
-    return 3; // For demo purposes
+    return 3;
   }
 
-  /**
-   * Track by function for timeline events
-   */
   trackByActivityId(index: number, item: TimelineEvent): string {
     return `${item.title}-${item.date}`;
   }
 
-  /**
-   * Get activity icon class based on type
-   */
   getActivityIconClass(type: string): string {
     switch (type) {
-      case 'payment':
-        return 'payment';
-      case 'maintenance':
-        return 'maintenance';
-      case 'document':
-        return 'document';
-      case 'message':
-        return 'message';
-      default:
-        return 'general';
+      case 'payment': return 'payment';
+      case 'maintenance': return 'maintenance';
+      case 'document': return 'document';
+      case 'message': return 'message';
+      default: return 'general';
     }
   }
 
-  /**
-   * Refresh data (placeholder for actual implementation)
-   */
   refreshData(): void {
     console.log('Refreshing data...');
-    // This would typically reload data from services
   }
 
-  /**
-   * Validate email format
-   */
   isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);

@@ -1,5 +1,4 @@
 // src/app/components/forgot-password/forgot-password.component.ts
-
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,12 +15,12 @@ import { PasswordResetRequest } from '../../../services/auth-interfaces';
   selector: 'app-forgot-password',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    MatFormFieldModule, 
-    MatInputModule, 
-    MatButtonModule, 
-    MatIconModule, 
+    CommonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
     MatCardModule
   ],
   templateUrl: './forgot-password.html',
@@ -37,6 +36,7 @@ export class ForgotPasswordComponent {
   errorMessage = '';
   emailSent = false;
 
+  // Validate the email field
   validateEmail(): boolean {
     if (!this.email.trim()) {
       this.errorMessage = 'Please enter your email address.';
@@ -49,54 +49,51 @@ export class ForgotPasswordComponent {
       return false;
     }
 
+    this.errorMessage = '';
     return true;
   }
 
-  async onSubmit() {
-    if (!this.validateEmail()) {
-      return;
-    }
+  // Handle form submission
+  onSubmit(): void {
+    if (!this.validateEmail()) return;
 
     this.isLoading = true;
-    this.errorMessage = '';
     this.successMessage = '';
+    this.errorMessage = '';
 
-    const request: PasswordResetRequest = {
-      email: this.email.trim().toLowerCase()
-    };
+    const request: PasswordResetRequest = { email: this.email.trim().toLowerCase() };
 
     this.authService.requestPasswordReset(request).subscribe({
-      next: (response) => {
+      next: (response: { success: boolean; message: string }) => {
         this.isLoading = false;
-        this.emailSent = true;
-        this.successMessage = 'Password reset instructions have been sent to your email address.';
+        if (response.success) {
+          this.emailSent = true;
+          this.successMessage = response.message || 'Password reset instructions have been sent to your email address.';
+        } else {
+          this.errorMessage = response.message || 'Failed to send password reset email.';
+        }
       },
-      error: (error) => {
+      error: (error: any) => {
         this.isLoading = false;
-        this.errorMessage = error.message;
+        console.error('Password reset error:', error);
+        this.errorMessage = error.error?.message || error.message || 'Failed to send password reset email.';
       }
     });
   }
 
-  resendEmail() {
+  // Resend password reset email
+  resendEmail(): void {
     this.emailSent = false;
     this.successMessage = '';
     this.onSubmit();
   }
 
-  navigateToLogin() {
-    console.log('Navigating to login...');
-    this.router.navigate(['/login']).then(
-      (success) => console.log('Navigation to login successful:', success),
-      (error) => console.error('Navigation to login failed:', error)
-    );
+  // Navigation helpers
+  navigateToLogin(): void {
+    this.router.navigate(['/login']).catch(err => console.error('Navigation error:', err));
   }
 
-  navigateToHome() {
-    console.log('Navigating to home...');
-    this.router.navigate(['/']).then(
-      (success) => console.log('Navigation to register successful:', success),
-      (error) => console.error('Navigation to register failed:', error)
-    );
+  navigateToHome(): void {
+    this.router.navigate(['/']).catch(err => console.error('Navigation error:', err));
   }
 }
