@@ -1,110 +1,205 @@
+// src/app/services/property.service.ts
+
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { PropertyCreateRequest, PropertyResponse } from '../models/property.model';
+import { catchError } from 'rxjs/operators';
+import { AuthService } from './auth.service';
+import { PropertyRequest, PropertyResponse, Property } from './auth-interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PropertyService {
-  private apiUrl = 'http://localhost:8080/api/properties'; // Update with your backend URL
-  
-  private httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
+  private readonly apiUrl = 'http://10.20.33.70:8080/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
+
+  // ============ PROPERTY CRUD OPERATIONS ============
 
   /**
    * Create a new property
    */
-  createProperty(property: PropertyCreateRequest): Observable<PropertyResponse> {
-    return this.http.post<PropertyResponse>(`${this.apiUrl}/properties`, property, this.httpOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+  createProperty(request: PropertyRequest): Observable<PropertyResponse> {
+    const httpOptions = {
+      headers: this.createHeaders()
+    };
+
+    // Transform data to match your backend format
+    const backendRequest = {
+      name: request.name.trim(),
+      location: request.location.trim(),
+      propertyType: request.propertyType,
+      totalUnits: request.totalUnits.toString(), // Backend expects string
+      description: request.description?.trim() || ''
+    };
+
+    return this.http.post<PropertyResponse>(`${this.apiUrl}/landlord/properties`, backendRequest, httpOptions)
+      .pipe(catchError(this.handleError));
   }
 
   /**
-   * Get all properties
+   * Get all properties for the authenticated landlord
    */
-  getProperties(): Observable<PropertyResponse[]> {
-    return this.http.get<PropertyResponse[]>(`${this.apiUrl}/properties`)
-      .pipe(
-        catchError(this.handleError)
-      );
+  getProperties(): Observable<Property[]> {
+    const httpOptions = {
+      headers: this.createHeaders()
+    };
+
+    return this.http.get<Property[]>(`${this.apiUrl}/landlord/properties`, httpOptions)
+      .pipe(catchError(this.handleError));
   }
 
   /**
-   * Get property by ID
+   * Get a specific property by ID
    */
-  getProperty(id: string): Observable<PropertyResponse> {
-    return this.http.get<PropertyResponse>(`${this.apiUrl}/properties/${id}`)
-      .pipe(
-        catchError(this.handleError)
-      );
+  getPropertyById(propertyId: string): Observable<Property> {
+    const httpOptions = {
+      headers: this.createHeaders()
+    };
+
+    return this.http.get<Property>(`${this.apiUrl}/landlord/properties/${propertyId}`, httpOptions)
+      .pipe(catchError(this.handleError));
   }
 
   /**
-   * Update property
+   * Update an existing property
    */
-  updateProperty(id: string, property: PropertyCreateRequest): Observable<PropertyResponse> {
-    return this.http.put<PropertyResponse>(`${this.apiUrl}/properties/${id}`, property, this.httpOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+  updateProperty(propertyId: string, request: PropertyRequest): Observable<PropertyResponse> {
+    const httpOptions = {
+      headers: this.createHeaders()
+    };
+
+    // Transform data to match your backend format
+    const backendRequest = {
+      name: request.name.trim(),
+      location: request.location.trim(),
+      propertyType: request.propertyType,
+      totalUnits: request.totalUnits.toString(), // Backend expects string
+      description: request.description?.trim() || ''
+    };
+
+    return this.http.put<PropertyResponse>(`${this.apiUrl}/landlord/properties/${propertyId}`, backendRequest, httpOptions)
+      .pipe(catchError(this.handleError));
   }
 
   /**
-   * Delete property
+   * Delete a property
    */
-  deleteProperty(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/properties/${id}`)
-      .pipe(
-        catchError(this.handleError)
-      );
+  deleteProperty(propertyId: string): Observable<PropertyResponse> {
+    const httpOptions = {
+      headers: this.createHeaders()
+    };
+
+    return this.http.delete<PropertyResponse>(`${this.apiUrl}/landlord/properties/${propertyId}`, httpOptions)
+      .pipe(catchError(this.handleError));
+  }
+
+  // ============ HELPER METHODS ============
+
+  /**
+   * Create HTTP headers with authentication
+   */
+  private createHeaders(): HttpHeaders {
+    return this.authService.getAuthHeaders();
   }
 
   /**
    * Handle HTTP errors
    */
-  private handleError(error: any): Observable<never> {
-    let errorMessage = 'An unknown error occurred';
+  private handleError = (error: HttpErrorResponse): Observable<never> => {
+    let errorMessage = 'An unexpected error occurred';
     
     if (error.error instanceof ErrorEvent) {
       // Client-side error
-      errorMessage = `Client Error: ${error.error.message}`;
+      errorMessage = error.error.message;
     } else {
       // Server-side error
-      if (error.status === 400) {
-        errorMessage = 'Invalid data provided. Please check your input.';
-      } else if (error.status === 401) {
-        errorMessage = 'Unauthorized. Please login again.';
-      } else if (error.status === 403) {
-        errorMessage = 'Access forbidden.';
-      } else if (error.status === 404) {
-        errorMessage = 'Property not found.';
-      } else if (error.status === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else {
-        errorMessage = `Server Error Code: ${error.status}\nMessage: ${error.message}`;
+      switch (error.status) {
+        case 400:
+          errorMessage = error.error?.message || 'Bad request. Please check your input.';
+          break;
+        case 401:
+          errorMessage = 'You are not authorized. Please log in again.';
+          break;
+        case 403:
+          errorMessage = 'Access forbidden. You do not have permission.';
+          break;
+        case 404:
+          errorMessage = 'Property not found or service unavailable.';
+          break;
+        case 409:
+          errorMessage = error.error?.message || 'Property already exists.';
+          break;
+        case 422:
+          errorMessage = error.error?.message || 'Invalid property data provided.';
+          break;
+        case 500:
+          errorMessage = 'Server error. Please try again later.';
+          break;
+        case 0:
+          errorMessage = 'Unable to connect to server. Please check your internet connection.';
+          break;
+        default:
+          errorMessage = error.error?.message || `Error Code: ${error.status}`;
       }
     }
     
-    console.error('PropertyService Error:', error);
+    console.error('Property Service Error:', error);
     return throwError(() => new Error(errorMessage));
+  };
+
+  // ============ UTILITY METHODS ============
+
+  /**
+   * Validate property data before sending to backend
+   */
+  validatePropertyData(property: PropertyRequest): string[] {
+    const errors: string[] = [];
+
+    if (!property.name?.trim()) {
+      errors.push('Property name is required');
+    }
+
+    if (!property.location?.trim()) {
+      errors.push('Location is required');
+    }
+
+    if (!property.propertyType) {
+      errors.push('Property type is required');
+    }
+
+    if (!property.totalUnits || property.totalUnits < 1) {
+      errors.push('Total units must be at least 1');
+    }
+
+    return errors;
   }
 
   /**
-   * Get property statistics
+   * Get property type display name
    */
-  getPropertyStats(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/properties/stats`)
-      .pipe(
-        catchError(this.handleError)
-      );
+  getPropertyTypeLabel(propertyType: string): string {
+    const typeMap: { [key: string]: string } = {
+      'APARTMENT': 'Apartment',
+      'HOUSE': 'House',
+      'bungallow': 'Bungalow',
+      'COMMERCIAL': 'Commercial',
+      'CONDO': 'Condominium',
+      'TOWNHOUSE': 'Townhouse'
+    };
+
+    return typeMap[propertyType] || propertyType;
+  }
+
+  /**
+   * Check if user has permission to manage properties
+   */
+  canManageProperties(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user?.role === 'LANDLORD' || user?.role === 'ADMIN' || user?.role === 'PROPERTY_MANAGER';
   }
 }

@@ -1,93 +1,169 @@
-<div class="property-dashboard">
-  <!-- Page Header -->
-  <div class="page-header mb-4">
-    <div class="d-flex justify-content-between align-items-center">
-      <div>
-        <h1 class="page-title">Properties</h1>
-        <p class="page-subtitle text-muted">Manage your property portfolio</p>
+<!-- property.component.html -->
+<div class="property-container">
+  
+  <!-- Header Section -->
+  <div class="property-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1>Properties</h1>
+        <p>Manage your property portfolio</p>
       </div>
-      <button 
-        type="button" 
-        class="btn btn-primary btn-lg"
-        (click)="createNewProperty()">
-        <mat-icon class="me-2">add</mat-icon>Add New Property
-      </button>
-    </div>
-  </div>
-
-  <!-- Properties List -->
-  <div class="row" *ngIf="!isLoading && properties.length > 0">
-    <div class="col-lg-4 col-md-6 mb-4" *ngFor="let property of properties">
-      <div class="card property-card h-100">
-        <div class="card-body">
-          <h5 class="card-title">{{ property.name }}</h5>
-          <p class="card-text">
-            <mat-icon class="text-muted me-1">location_on</mat-icon>
-            {{ property.location }}
-          </p>
-          <p class="card-text">
-            <mat-icon class="text-muted me-1">home</mat-icon>
-            {{ property.propertyType }}
-          </p>
-          <p class="card-text">
-            <mat-icon class="text-muted me-1">door_front</mat-icon>
-            {{ property.totalUnits }} units
-          </p>
-          <p class="card-text text-muted" *ngIf="property.description">
-            {{ property.description }}
-          </p>
-        </div>
-        <div class="card-footer bg-transparent">
-          <div class="btn-group w-100">
-            <button 
-              type="button" 
-              class="btn btn-outline-primary btn-sm"
-              (click)="viewProperty(property.id)">
-              <mat-icon class="me-1">visibility</mat-icon>View
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-outline-secondary btn-sm"
-              (click)="editProperty(property.id)">
-              <mat-icon class="me-1">edit</mat-icon>Edit
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-outline-danger btn-sm"
-              (click)="deleteProperty(property.id)">
-              <mat-icon class="me-1">delete</mat-icon>Delete
-            </button>
-          </div>
-        </div>
+      <div class="header-actions">
+        <button class="btn-secondary" (click)="refreshProperties()" [disabled]="loading">
+          <mat-icon [class.spinning]="loading">refresh</mat-icon>
+          Refresh
+        </button>
+        <button type="button" class="btn-primary" (click)="createNewProperty()">
+          <mat-icon>add</mat-icon>
+          Add Property
+        </button>
       </div>
     </div>
-  </div>
 
-  <!-- Empty State -->
-  <div class="empty-state text-center py-5" *ngIf="!isLoading && properties.length === 0">
-    <div class="empty-state-icon mb-3">
-      <mat-icon class="display-1 text-muted">business</mat-icon>
+    <!-- Stats Row -->
+    <div class="stats-row" *ngIf="!loading">
+      <div class="stat-item">
+        <div class="stat-value">{{ totalProperties }}</div>
+        <div class="stat-label">Total Properties</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ totalUnits }}</div>
+        <div class="stat-label">Total Units</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ occupiedUnits }}</div>
+        <div class="stat-label">Occupied Units</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ formatCurrency(totalRevenue) }}</div>
+        <div class="stat-label">Monthly Revenue</div>
+      </div>
     </div>
-    <h3 class="empty-state-title">No Properties Found</h3>
-    <p class="empty-state-description text-muted mb-4">
-      You haven't added any properties yet. Start building your portfolio by adding your first property.
-    </p>
-    <button 
-      type="button" 
-      class="btn btn-primary btn-lg"
-      (click)="createNewProperty()">
-      <mat-icon class="me-2">add</mat-icon>Add Your First Property
-    </button>
   </div>
 
   <!-- Loading State -->
-  <div class="loading-state text-center py-5" *ngIf="isLoading">
-    <div class="spinner-border text-primary mb-3" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-content">
+      <mat-icon class="loading-spinner spinning">refresh</mat-icon>
+      <p>Loading properties...</p>
     </div>
-    <p class="text-muted">Loading properties...</p>
   </div>
 
-  <!-- Router Outlet for Child Routes -->
-  <router-outlet></router-outlet>
+  <!-- Properties Grid -->
+  <div *ngIf="!loading" class="properties-grid">
+    
+    <!-- Empty State -->
+    <div *ngIf="properties.length === 0" class="empty-state">
+      <div class="empty-content">
+        <mat-icon>apartment</mat-icon>
+        <h3>No Properties Found</h3>
+        <p>Start by adding your first property to the system.</p>
+        <button type="button" class="btn-primary" (click)="createNewProperty()">
+          <mat-icon>add</mat-icon>
+          Add Your First Property
+        </button>
+      </div>
+    </div>
+
+    <!-- Property Cards -->
+    <mat-card *ngFor="let property of properties" 
+              class="property-card" 
+              (click)="viewProperty(property.id)">
+      
+      <!-- Card Header -->
+      <mat-card-header class="property-card-header">
+        <div class="property-info">
+          <mat-card-title>{{ property.name }}</mat-card-title>
+          <mat-card-subtitle>
+            <mat-icon>location_on</mat-icon>
+            {{ property.location }}
+          </mat-card-subtitle>
+        </div>
+        <div class="property-actions">
+          <button mat-icon-button 
+                  (click)="editProperty(property.id); $event.stopPropagation()"
+                  class="action-button edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button 
+                  (click)="onDeleteProperty(property.id, $event)"
+                  class="action-button delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+
+      <!-- Card Content -->
+      <mat-card-content class="property-card-content">
+        
+        <!-- Property Details -->
+        <div class="property-details">
+          <div class="detail-row">
+            <span class="detail-label">Type:</span>
+            <mat-chip [color]="getStatusColor(property.status)">
+              {{ getPropertyTypeLabel(property.propertyType) }}
+            </mat-chip>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Units:</span>
+            <span class="detail-value">{{ property.occupiedUnits }}/{{ property.totalUnits }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Occupancy:</span>
+            <span class="detail-value occupancy" 
+                  [class.high]="getOccupancyRate(property) >= 90"
+                  [class.medium]="getOccupancyRate(property) >= 70 && getOccupancyRate(property) < 90"
+                  [class.low]="getOccupancyRate(property) < 70">
+              {{ getOccupancyRate(property) }}%
+            </span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Monthly Revenue:</span>
+            <span class="detail-value revenue">{{ formatCurrency(property.monthlyRevenue) }}</span>
+          </div>
+        </div>
+
+        <!-- Property Description -->
+        <div class="property-description" *ngIf="property.description">
+          <p>{{ property.description }}</p>
+        </div>
+
+        <!-- Property Status & Date -->
+        <div class="property-footer">
+          <div class="status-section">
+            <span class="status-label">Status:</span>
+            <mat-chip [color]="getStatusColor(property.status)" class="status-chip">
+              <mat-icon>{{ property.status === 'active' ? 'check_circle' : 
+                            property.status === 'maintenance' ? 'build' : 'pause_circle' }}</mat-icon>
+              {{ property.status | titlecase }}
+            </mat-chip>
+          </div>
+          <div class="date-section">
+            <span class="created-date">Created: {{ formatDate(property.createdDate) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Card Actions -->
+      <mat-card-actions class="property-card-actions">
+        <button mat-button (click)="viewProperty(property.id); $event.stopPropagation()">
+          <mat-icon>visibility</mat-icon>
+          View Details
+        </button>
+        <button mat-button (click)="editProperty(property.id); $event.stopPropagation()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button mat-button 
+                (click)="onToggleStatus(property.id, $event)"
+                [class.active]="property.status === 'active'">
+          <mat-icon>{{ property.status === 'active' ? 'pause' : 'play_arrow' }}</mat-icon>
+          {{ property.status === 'active' ? 'Deactivate' : 'Activate' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
 </div>

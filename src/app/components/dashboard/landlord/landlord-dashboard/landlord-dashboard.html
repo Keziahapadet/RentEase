@@ -1,3 +1,4 @@
+<!-- landlord-dashboard.component.html - OPTION 2: Hybrid Approach (Minimal Changes) -->
 <div class="dashboard-container">
   <div class="mobile-menu-overlay" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
   <nav class="sidebar" [class.mobile-open]="isMobileMenuOpen">
@@ -64,7 +65,7 @@
         <span>Tenants</span>
       </div>
 
-      <!-- Property - SIMPLIFIED (No Units submenu) -->
+      <!-- Property -->
       <div class="nav-item" [class.active]="currentSection === 'properties'" (click)="navigateToSection('properties')">
         <mat-icon>apartment</mat-icon>
         <span>Properties</span>
@@ -278,11 +279,11 @@
       </div>
     </div>
 
-    <!-- FIXED: Router Outlet for Child Components (replaces conditional sections) -->
+    <!-- Router Outlet for ALL routed components (financials, property, etc.) -->
     <router-outlet></router-outlet>
 
-    <!-- Placeholder for other sections that don't have routing yet -->
-    <div *ngIf="currentSection !== 'dashboard' && currentSection !== 'financials' && currentSection !== 'invoices' && currentSection !== 'payments' && currentSection !== 'expenses' && currentSection !== 'properties'" class="section-content">
+    <!-- UPDATED: Placeholder for sections that don't have routing yet -->
+    <div *ngIf="isPlaceholderSection()" class="section-content">
       <div class="placeholder-content">
         <h2>{{ getSectionTitle(currentSection) }}</h2>
         <p>This section is under development.</p>

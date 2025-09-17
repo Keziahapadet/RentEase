@@ -1,11 +1,24 @@
+// property.component.ts (Main Property List)
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { PropertyService } from '../../../../../services/property.service';
-import { Property } from '../../../../../models/property.model';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+
+interface Property {
+  id: number;
+  name: string;
+  location: string;
+  propertyType: string;
+  totalUnits: number;
+  occupiedUnits: number;
+  description?: string;
+  monthlyRevenue: number;
+  status: 'active' | 'inactive' | 'maintenance';
+  createdDate: string;
+}
 
 @Component({
   selector: 'app-property',
@@ -13,166 +26,167 @@ import { Property } from '../../../../../models/property.model';
   imports: [
     CommonModule,
     MatIconModule,
-    RouterModule,
-    FormsModule
+    MatButtonModule,
+    MatCardModule,
+    MatChipsModule
   ],
   templateUrl: './property.component.html',
   styleUrls: ['./property.component.css']
 })
 export class PropertyComponent implements OnInit {
   properties: Property[] = [];
-  isLoading = false;
-  searchTerm = '';
-  filterStatus = 'all';
-  error: string | null = null;
+  loading = true;
 
-  constructor(
-    private router: Router,
-    private propertyService: PropertyService
-  ) {}
+  // Stats for the header
+  totalProperties = 0;
+  totalUnits = 0;
+  occupiedUnits = 0;
+  totalRevenue = 0;
 
-  ngOnInit(): void {
+  constructor(private router: Router) {}
+
+  ngOnInit() {
     this.loadProperties();
   }
 
-  /**
-   * Load properties from service - CONNECTED TO BACKEND
-   */
-  loadProperties(): void {
-    this.isLoading = true;
-    this.error = null;
-    
-    this.propertyService.getProperties().subscribe({
-      next: (properties) => {
-        this.properties = properties.map(prop => ({
-          ...prop,
-          status: prop.status || 'Active',
-          occupiedUnits: Math.floor(Math.random() * prop.totalUnits), // Temporary until backend provides this
-          monthlyRevenue: Math.floor(Math.random() * 50000) + 20000 // Temporary until backend provides this
-        }));
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading properties:', error);
-        this.error = error.message;
-        this.isLoading = false;
-        // Fallback to empty array on error
-        this.properties = [];
-      }
-    });
+  private loadProperties() {
+    // Simulate API call
+    setTimeout(() => {
+      this.properties = [
+        {
+          id: 1,
+          name: 'Sunrise Apartments',
+          location: 'Westlands, Nairobi',
+          propertyType: 'APARTMENT',
+          totalUnits: 24,
+          occupiedUnits: 22,
+          description: 'Modern apartment complex with amenities',
+          monthlyRevenue: 480000,
+          status: 'active',
+          createdDate: '2024-01-15'
+        },
+        {
+          id: 2,
+          name: 'Green Valley Townhouses',
+          location: 'Karen, Nairobi',
+          propertyType: 'TOWNHOUSE',
+          totalUnits: 12,
+          occupiedUnits: 10,
+          description: 'Luxury townhouses with gardens',
+          monthlyRevenue: 360000,
+          status: 'active',
+          createdDate: '2024-02-20'
+        },
+        {
+          id: 3,
+          name: 'Downtown Office Complex',
+          location: 'CBD, Nairobi',
+          propertyType: 'COMMERCIAL',
+          totalUnits: 8,
+          occupiedUnits: 6,
+          description: 'Prime commercial office space',
+          monthlyRevenue: 240000,
+          status: 'maintenance',
+          createdDate: '2023-11-10'
+        },
+        {
+          id: 4,
+          name: 'Riverside Condos',
+          location: 'Kilimani, Nairobi',
+          propertyType: 'CONDO',
+          totalUnits: 18,
+          occupiedUnits: 18,
+          description: 'Luxury condominiums with river views',
+          monthlyRevenue: 540000,
+          status: 'active',
+          createdDate: '2023-08-05'
+        }
+      ];
+
+      this.calculateStats();
+      this.loading = false;
+    }, 1000);
   }
 
-  /**
-   * Navigate to create new property - USING SINGULAR PROPERTY PATH
-   */
-  createNewProperty(): void {
+  private calculateStats() {
+    this.totalProperties = this.properties.length;
+    this.totalUnits = this.properties.reduce((sum, prop) => sum + prop.totalUnits, 0);
+    this.occupiedUnits = this.properties.reduce((sum, prop) => sum + prop.occupiedUnits, 0);
+    this.totalRevenue = this.properties.reduce((sum, prop) => sum + prop.monthlyRevenue, 0);
+  }
+
+  // Navigation methods
+  createNewProperty() {
     this.router.navigate(['/landlord-dashboard/property/create']);
   }
 
-  /**
-   * Edit property
-   */
-  editProperty(propertyId: string): void {
-    console.log('Edit property:', propertyId);
-    // TODO: Implement when edit component is ready
-    // this.router.navigate(['/landlord-dashboard/property/edit', propertyId]);
+  viewProperty(propertyId: number) {
+    this.router.navigate(['/landlord-dashboard/property', propertyId]);
   }
 
-  /**
-   * View property details
-   */
-  viewProperty(propertyId: string): void {
-    console.log('View property:', propertyId);
-    // TODO: Implement when detail component is ready
-    // this.router.navigate(['/landlord-dashboard/property', propertyId]);
+  editProperty(propertyId: number) {
+    this.router.navigate(['/landlord-dashboard/property', propertyId, 'edit']);
   }
 
-  /**
-   * Delete property - CONNECTED TO BACKEND
-   */
-  deleteProperty(propertyId: string): void {
-    if (confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
-      this.isLoading = true;
-      
-      this.propertyService.deleteProperty(propertyId).subscribe({
-        next: () => {
-          // Remove from local array after successful deletion
-          this.properties = this.properties.filter(p => p.id !== propertyId);
-          this.isLoading = false;
-          console.log('Property deleted successfully');
-        },
-        error: (error) => {
-          console.error('Error deleting property:', error);
-          this.error = `Failed to delete property: ${error.message}`;
-          this.isLoading = false;
-        }
-      });
+  // Utility methods
+  getPropertyTypeLabel(type: string): string {
+    const typeLabels: { [key: string]: string } = {
+      'APARTMENT': 'Apartment',
+      'HOUSE': 'House',
+      'COMMERCIAL': 'Commercial',
+      'CONDO': 'Condominium',
+      'TOWNHOUSE': 'Townhouse'
+    };
+    return typeLabels[type] || type;
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'active': return 'primary';
+      case 'inactive': return 'warn';
+      case 'maintenance': return 'accent';
+      default: return 'primary';
     }
   }
 
-  /**
-   * Get occupancy rate for a property
-   */
-  getOccupancyRate(property: any): number {
-    if (property.totalUnits === 0) return 0;
+  getOccupancyRate(property: Property): number {
     return Math.round((property.occupiedUnits / property.totalUnits) * 100);
   }
 
-  /**
-   * Get occupancy status class
-   */
-  getOccupancyClass(property: any): string {
-    const rate = this.getOccupancyRate(property);
-    if (rate >= 90) return 'high';
-    if (rate >= 70) return 'medium';
-    return 'low';
-  }
-
-  /**
-   * Format currency
-   */
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-KE', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'KES',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount);
   }
 
-  /**
-   * Filter properties based on search term and status
-   */
-  get filteredProperties() {
-    return this.properties.filter(property => {
-      const matchesSearch = property.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           property.location.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           property.propertyType.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
-      const matchesStatus = this.filterStatus === 'all' || 
-                           property.status.toLowerCase() === this.filterStatus.toLowerCase();
-      
-      return matchesSearch && matchesStatus;
+  formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   }
 
-  /**
-   * Refresh properties list
-   */
-  refreshProperties(): void {
-    this.loadProperties();
+  // Action methods
+  onDeleteProperty(propertyId: number, event: Event) {
+    event.stopPropagation();
+    if (confirm('Are you sure you want to delete this property?')) {
+      // Implement delete logic
+      console.log('Delete property:', propertyId);
+    }
   }
 
-  /**
-   * Export properties data
-   */
-  exportProperties(): void {
-    console.log('Exporting properties data...');
-    const dataStr = JSON.stringify(this.properties, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = 'properties.json';
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+  onToggleStatus(propertyId: number, event: Event) {
+    event.stopPropagation();
+    // Implement status toggle logic
+    console.log('Toggle status for property:', propertyId);
+  }
+
+  refreshProperties() {
+    this.loading = true;
+    this.loadProperties();
   }
 }
