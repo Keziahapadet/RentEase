@@ -1,0 +1,168 @@
+<div class="login-page">
+  <div class="login-card">
+    <!-- Logo + Title -->
+    <div class="logo-title">
+      <img src="/images/logo.png" alt="RentEase Logo" />
+      <h2>{{ pageTitle }}</h2>
+    </div>
+
+    <!-- Info Text -->
+    <div class="verification-info">
+      <p>{{ infoText }}</p>
+      <p class="subtitle">Enter the code below to continue</p>
+    </div>
+
+    <!-- Email Display Field -->
+    <div class="email-display">
+      <label class="email-label">Verification sent to:</label>
+      <div class="email-field">
+        <span class="email-text">{{ email }}</span>
+      </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="alert-success">{{ successMessage }}</div>
+
+    <!-- OTP Form -->
+    <form (ngSubmit)="onSubmit()" #otpForm="ngForm" novalidate>
+      
+      <!-- OTP Input Fields -->
+      <div class="otp-container">
+        <input
+          #otpInput
+          type="text"
+          class="otp-input"
+          maxlength="1"
+          [(ngModel)]="otpData.digit1"
+          name="digit1"
+          [disabled]="isLoading"
+          (input)="onInput($event, 1)"
+          (keydown)="onKeyDown($event, 1)"
+          (paste)="onPaste($event, 1)"
+          autocomplete="off"
+          inputmode="numeric"
+        />
+        <input
+          #otpInput
+          type="text"
+          class="otp-input"
+          maxlength="1"
+          [(ngModel)]="otpData.digit2"
+          name="digit2"
+          [disabled]="isLoading"
+          (input)="onInput($event, 2)"
+          (keydown)="onKeyDown($event, 2)"
+          (paste)="onPaste($event, 2)"
+          autocomplete="off"
+          inputmode="numeric"
+        />
+        <input
+          #otpInput
+          type="text"
+          class="otp-input"
+          maxlength="1"
+          [(ngModel)]="otpData.digit3"
+          name="digit3"
+          [disabled]="isLoading"
+          (input)="onInput($event, 3)"
+          (keydown)="onKeyDown($event, 3)"
+          (paste)="onPaste($event, 3)"
+          autocomplete="off"
+          inputmode="numeric"
+        />
+        <input
+          #otpInput
+          type="text"
+          class="otp-input"
+          maxlength="1"
+          [(ngModel)]="otpData.digit4"
+          name="digit4"
+          [disabled]="isLoading"
+          (input)="onInput($event, 4)"
+          (keydown)="onKeyDown($event, 4)"
+          (paste)="onPaste($event, 4)"
+          autocomplete="off"
+          inputmode="numeric"
+        />
+        <input
+          #otpInput
+          type="text"
+          class="otp-input"
+          maxlength="1"
+          [(ngModel)]="otpData.digit5"
+          name="digit5"
+          [disabled]="isLoading"
+          (input)="onInput($event, 5)"
+          (keydown)="onKeyDown($event, 5)"
+          (paste)="onPaste($event, 5)"
+          autocomplete="off"
+          inputmode="numeric"
+        />
+        <input
+          #otpInput
+          type="text"
+          class="otp-input"
+          maxlength="1"
+          [(ngModel)]="otpData.digit6"
+          name="digit6"
+          [disabled]="isLoading"
+          (input)="onInput($event, 6)"
+          (keydown)="onKeyDown($event, 6)"
+          (paste)="onPaste($event, 6)"
+          autocomplete="off"
+          inputmode="numeric"
+        />
+      </div>
+
+      <!-- Submit Button -->
+      <button mat-raised-button color="primary" class="full-width submit-btn"
+              [disabled]="isLoading || !isOtpComplete()"
+              type="submit">
+        {{ isLoading ? 'Verifying...' : 'Verify Code' }}
+      </button>
+    </form>
+
+    <!-- Resend Section -->
+    <div class="resend-section">
+      <p class="resend-text">Didn't receive the code?</p>
+      <button 
+        type="button" 
+        class="resend-link" 
+        [disabled]="!canResend || isLoading"
+        (click)="resendOtp()">
+        <span *ngIf="canResend">Resend Code</span>
+        <span *ngIf="!canResend">Resend in {{ resendTimer }}s</span>
+      </button>
+    </div>
+
+    <!-- Additional Actions -->
+    <div class="additional-actions">
+      <button type="button" class="clear-btn" (click)="clearOtp()" [disabled]="isLoading">
+        Clear Code
+      </button>
+    </div>
+
+    <!-- Navigation Links -->
+    <p class="register-link">
+      <span *ngIf="verificationType === 'email_verification'">
+        Already verified? 
+        <a href="#" (click)="navigateToLogin(); $event.preventDefault()" style="cursor: pointer;">
+          Login Here
+        </a>
+      </span>
+      <span *ngIf="verificationType === 'password_reset'">
+        Remember your password? 
+        <a href="#" (click)="navigateToLogin(); $event.preventDefault()" style="cursor: pointer;">
+          Back to Login
+        </a>
+      </span>
+      <span *ngIf="verificationType !== 'email_verification' && verificationType !== 'password_reset'">
+        Need help? 
+        <a href="#" (click)="goBack(); $event.preventDefault()" style="cursor: pointer;">
+          Go Back
+        </a>
+      </span>
+    </p>
+  </div>
+</div>
