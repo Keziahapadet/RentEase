@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -25,7 +25,11 @@ export class PropertyComponent implements OnInit {
   occupiedUnits = 0;
   totalRevenue = 0;
 
-  constructor(private router: Router, private propertyService: PropertyService) {}
+  constructor(
+    private router: Router,
+    private propertyService: PropertyService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit() {
     this.loadProperties();
@@ -55,21 +59,29 @@ export class PropertyComponent implements OnInit {
 
     this.propertyService.getProperties().subscribe({
       next: (response) => {
-        let propertiesData: Property[] = [];
+        try {
+          let propertiesData: Property[] = [];
 
-        if (this.isPropertyArray(response)) propertiesData = response;
-        else if (this.hasData(response)) propertiesData = response.data;
-        else if (this.hasProperties(response)) propertiesData = response.properties;
-        else if (this.hasContent(response)) propertiesData = response.content;
+          if (this.isPropertyArray(response)) propertiesData = response;
+          else if (this.hasData(response)) propertiesData = response.data;
+          else if (this.hasProperties(response)) propertiesData = response.properties;
+          else if (this.hasContent(response)) propertiesData = response.content;
 
-        this.properties = propertiesData;
-        this.calculateStats();
-        this.loading = false;
+          this.properties = propertiesData;
+          this.calculateStats();
+        } catch (err: any) {
+          this.errorMessage = `Parse error: ${err.message || err}`;
+          this.properties = [];
+        } finally {
+          this.loading = false;
+        }
       },
       error: (error) => {
         this.loading = false;
         this.properties = [];
-        this.errorMessage = error.message || 'Failed to load properties';
+        this.errorMessage = typeof error === 'string'
+          ? error
+          : error?.message || JSON.stringify(error);
       }
     });
   }
@@ -96,10 +108,10 @@ export class PropertyComponent implements OnInit {
 
   onDeleteProperty(propertyId: string | number, event: Event) {
     event.stopPropagation();
-    if (confirm('Are you sure you want to delete this property?')) {
+    if (isPlatformBrowser(this.platformId) && confirm('Are you sure you want to delete this property?')) {
       this.propertyService.deleteProperty(propertyId.toString()).subscribe({
         next: () => this.loadProperties(),
-        error: (error) => alert('Failed to delete property: ' + error.message)
+        error: (error) => alert('Failed to delete property: ' + (error?.message || error))
       });
     }
   }
@@ -113,15 +125,18 @@ export class PropertyComponent implements OnInit {
     const typeLabels: { [key: string]: string } = {
       APARTMENT: 'Apartment',
       HOUSE: 'House',
-      bungallow: 'Bungalow',
+      BUNGALOW: 'Bungalow',
       COMMERCIAL: 'Commercial',
       CONDO: 'Condominium',
       TOWNHOUSE: 'Townhouse'
     };
-    return typeLabels[type] || type;
+    return typeLabels[type?.toUpperCase()] || type;
   }
 
   formatCurrency(amount: number): string {
+    if (!isPlatformBrowser(this.platformId)) {
+      return `KES ${amount}`;
+    }
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
       currency: 'KES',
@@ -130,9 +145,12 @@ export class PropertyComponent implements OnInit {
   }
 
   formatDate(dateString: string): string {
-    return dateString
-      ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-      : 'N/A';
+    if (!dateString) return 'N/A';
+    if (!isPlatformBrowser(this.platformId)) return dateString;
+
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
   }
 
   getOccupancyRate(property: Property): number {
@@ -161,6 +179,8 @@ export class PropertyComponent implements OnInit {
 
   onToggleStatus(propertyId: string | number, status: string | undefined, event: Event) {
     event.stopPropagation();
-    alert(`Toggle status for property ${propertyId} from ${status}`);
+    if (isPlatformBrowser(this.platformId)) {
+      alert(`Toggle status for property ${propertyId} from ${status}`);
+    }
   }
 }
