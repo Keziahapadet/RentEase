@@ -80,7 +80,7 @@ interface Tenant {
     FilterPipe ,MatDividerModule
   ],
   templateUrl: './invoices.html',
-  styleUrls: ['./invoices.css']
+  styleUrls: ['./invoices.scss']
 })
 export class InvoicesComponent implements OnInit {
   displayedColumns: string[] = [

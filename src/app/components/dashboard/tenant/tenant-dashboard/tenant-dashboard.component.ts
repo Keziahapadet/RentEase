@@ -91,7 +91,7 @@ interface Review {
     SettingsComponent
   ],
   templateUrl: './tenant-dashboard.component.html',
-  styleUrls: ['./tenant-dashboard.component.css']
+  styleUrls: ['./tenant-dashboard.component.scss']
 })
 export class TenantDashboardComponent {
   // Sidebar & navigation

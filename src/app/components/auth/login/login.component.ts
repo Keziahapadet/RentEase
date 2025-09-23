@@ -1,5 +1,3 @@
-// src/app/components/login/login.component.ts
-
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -10,8 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
-import { AuthService } from '../../../services/auth.service';
-import { LoginRequest, UserRole, User } from '../../../services/auth-interfaces';
+// Fix the import path - adjust based on your actual file structure
+import { AuthService } from '../../../services/auth.service'; // Changed from ../../../
+import { LoginRequest, UserRole } from '../../../services/auth-interfaces'; // Changed from ../../../
 
 @Component({
   selector: 'app-login',
@@ -26,18 +25,14 @@ import { LoginRequest, UserRole, User } from '../../../services/auth-interfaces'
     MatCheckboxModule
   ],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
   private router: Router = inject(Router);
   private route: ActivatedRoute = inject(ActivatedRoute);
   private authService: AuthService = inject(AuthService);
 
-  loginData = { 
-    email: '', 
-    password: '' 
-  };
-  
+  loginData = { email: '', password: '' };
   showPassword = false;
   rememberMe = false;
   isLoading = false;
@@ -47,9 +42,8 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('Login component initialized');
-    
-    this.authService.clearCorruptedStorage();
-    
+
+    // Check if already authenticated
     if (this.authService.isAuthenticated()) {
       console.log('User already authenticated, redirecting...');
       this.redirectToDashboard();
@@ -99,7 +93,11 @@ export class LoginComponent implements OnInit {
 
   onSubmit(): void {
     console.log('LOGIN BUTTON CLICKED!');
-    console.log('Form data:', { email: this.loginData.email, password: '***', rememberMe: this.rememberMe });
+    console.log('Form data:', { 
+      email: this.loginData.email, 
+      password: '***', 
+      rememberMe: this.rememberMe 
+    });
 
     if (!this.validateForm()) {
       console.log('Form validation failed:', this.errorMessage);
@@ -120,17 +118,15 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(loginRequest).subscribe({
       next: (response) => {
-        console.log('HTTP RESPONSE RECEIVED:', response);
+        console.log('LOGIN SUCCESSFUL:', response);
 
-        // AuthService already stored token + user
         const user = this.authService.getCurrentUser();
-        console.log('User saved from service:', user);
+        console.log('User data retrieved:', user);
 
-        this.isLoading = false;
         this.successMessage = 'Login successful! Redirecting...';
-        
+
         setTimeout(() => {
-          if (user) {
+          if (user?.role) {
             this.redirectBasedOnRole(user.role);
           } else {
             this.router.navigate([this.returnUrl]);
@@ -138,31 +134,39 @@ export class LoginComponent implements OnInit {
         }, 1500);
       },
       error: (error) => {
-        console.log('HTTP ERROR RECEIVED:', error);
         console.error('Login failed:', error);
         this.isLoading = false;
         this.errorMessage = error.message || 'Login failed. Please try again.';
-        this.loginData.password = ''; // Clear password
+        this.loginData.password = ''; // Clear password on error
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     });
   }
 
   private redirectBasedOnRole(userRole: string): void {
-    console.log('Redirecting user based on role:', userRole);
     const role = userRole.toUpperCase();
-
     switch (role) {
       case UserRole.BUSINESS:
-        this.router.navigate(['/business-dashboard']).catch(() => this.router.navigate(['/dashboard']));
+        this.router.navigate(['/business-dashboard']).catch(() => 
+          this.router.navigate(['/dashboard'])
+        );
         break;
       case UserRole.TENANT:
-        this.router.navigate(['/tenant-dashboard']).catch(() => this.router.navigate(['/dashboard']));
+        this.router.navigate(['/tenant-dashboard']).catch(() => 
+          this.router.navigate(['/dashboard'])
+        );
         break;
       case UserRole.LANDLORD:
-        this.router.navigate(['/landlord-dashboard']).catch(() => this.router.navigate(['/dashboard']));
+        this.router.navigate(['/landlord-dashboard']).catch(() => 
+          this.router.navigate(['/dashboard'])
+        );
         break;
       case UserRole.CARETAKER:
-        this.router.navigate(['/caretaker-dashboard']).catch(() => this.router.navigate(['/dashboard']));
+        this.router.navigate(['/caretaker-dashboard']).catch(() => 
+          this.router.navigate(['/dashboard'])
+        );
         break;
       default:
         this.router.navigate([this.returnUrl]);
@@ -171,7 +175,7 @@ export class LoginComponent implements OnInit {
 
   private redirectToDashboard(): void {
     const user = this.authService.getCurrentUser();
-    if (user) {
+    if (user?.role) {
       this.redirectBasedOnRole(user.role);
     } else {
       this.router.navigate(['/dashboard']);

@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-alerts',
   imports: [],
   templateUrl: './alerts.html',
-  styleUrl: './alerts.css'
+  styleUrl: './alerts.scss'
 })
 export class Alerts {
 

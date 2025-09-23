@@ -58,7 +58,7 @@ Chart.register(...registerables);
     MatChipsModule
   ],
   templateUrl: './financials.html',
-  styleUrls: ['./financials.css']
+  styleUrls: ['./financials.scss']
 })
 export class FinancialsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('incomeExpenseChart') incomeExpenseChart!: ElementRef<HTMLCanvasElement>;

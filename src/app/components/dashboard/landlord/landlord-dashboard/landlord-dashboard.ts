@@ -20,7 +20,7 @@ import { InvoicesComponent } from './financials/invoices/invoices';
     InvoicesComponent
   ],
   templateUrl: './landlord-dashboard.html',
-  styleUrls: ['./landlord-dashboard.css']
+  styleUrls: ['./landlord-dashboard.scss']
 })
 export class LandlordDashboardComponent implements OnInit {
   isMobileMenuOpen = false;

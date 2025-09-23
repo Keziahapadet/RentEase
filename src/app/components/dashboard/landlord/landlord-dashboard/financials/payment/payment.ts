@@ -51,7 +51,7 @@ interface Payment {
     FormsModule
   ],
   templateUrl: './payment.html',
-  styleUrls: ['./payment.css']
+  styleUrls: ['./payment.scss']
 })
 export class PaymentComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;

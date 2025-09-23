@@ -8,7 +8,7 @@ import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-pricing',
   templateUrl: './pricing.html',
-  styleUrls: ['./pricing.css'],
+  styleUrls: ['./pricing.scss'],
   standalone: true,
   imports: [CommonModule, MatIconModule,RouterModule]
 })

@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-communication',
   imports: [],
   templateUrl: './communication.html',
-  styleUrl: './communication.css'
+  styleUrl: './communication.scss'
 })
 export class Communication {
 

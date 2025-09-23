@@ -1,168 +1,173 @@
-<div class="login-page">
-  <div class="login-card">
-    <!-- Logo + Title -->
-    <div class="logo-title">
-      <img src="/images/logo.png" alt="RentEase Logo" />
-      <h2>{{ pageTitle }}</h2>
+<!-- =======================
+     src/app/components/verify-otp/verify-otp.component.html
+     ======================= -->
+
+<div class="verify-otp-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="back-button" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Back</span>
     </div>
-
-    <!-- Info Text -->
-    <div class="verification-info">
-      <p>{{ infoText }}</p>
-      <p class="subtitle">Enter the code below to continue</p>
+    
+    <div class="logo-section">
+      <img src="assets/logo.png" alt="RentEase" class="logo" />
     </div>
+  </div>
 
-    <!-- Email Display Field -->
-    <div class="email-display">
-      <label class="email-label">Verification sent to:</label>
-      <div class="email-field">
-        <span class="email-text">{{ email }}</span>
-      </div>
-    </div>
-
-    <!-- Alert Messages -->
-    <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
-    <div *ngIf="successMessage" class="alert-success">{{ successMessage }}</div>
-
-    <!-- OTP Form -->
-    <form (ngSubmit)="onSubmit()" #otpForm="ngForm" novalidate>
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="verification-card">
       
-      <!-- OTP Input Fields -->
-      <div class="otp-container">
-        <input
-          #otpInput
-          type="text"
-          class="otp-input"
-          maxlength="1"
-          [(ngModel)]="otpData.digit1"
-          name="digit1"
-          [disabled]="isLoading"
-          (input)="onInput($event, 1)"
-          (keydown)="onKeyDown($event, 1)"
-          (paste)="onPaste($event, 1)"
-          autocomplete="off"
-          inputmode="numeric"
-        />
-        <input
-          #otpInput
-          type="text"
-          class="otp-input"
-          maxlength="1"
-          [(ngModel)]="otpData.digit2"
-          name="digit2"
-          [disabled]="isLoading"
-          (input)="onInput($event, 2)"
-          (keydown)="onKeyDown($event, 2)"
-          (paste)="onPaste($event, 2)"
-          autocomplete="off"
-          inputmode="numeric"
-        />
-        <input
-          #otpInput
-          type="text"
-          class="otp-input"
-          maxlength="1"
-          [(ngModel)]="otpData.digit3"
-          name="digit3"
-          [disabled]="isLoading"
-          (input)="onInput($event, 3)"
-          (keydown)="onKeyDown($event, 3)"
-          (paste)="onPaste($event, 3)"
-          autocomplete="off"
-          inputmode="numeric"
-        />
-        <input
-          #otpInput
-          type="text"
-          class="otp-input"
-          maxlength="1"
-          [(ngModel)]="otpData.digit4"
-          name="digit4"
-          [disabled]="isLoading"
-          (input)="onInput($event, 4)"
-          (keydown)="onKeyDown($event, 4)"
-          (paste)="onPaste($event, 4)"
-          autocomplete="off"
-          inputmode="numeric"
-        />
-        <input
-          #otpInput
-          type="text"
-          class="otp-input"
-          maxlength="1"
-          [(ngModel)]="otpData.digit5"
-          name="digit5"
-          [disabled]="isLoading"
-          (input)="onInput($event, 5)"
-          (keydown)="onKeyDown($event, 5)"
-          (paste)="onPaste($event, 5)"
-          autocomplete="off"
-          inputmode="numeric"
-        />
-        <input
-          #otpInput
-          type="text"
-          class="otp-input"
-          maxlength="1"
-          [(ngModel)]="otpData.digit6"
-          name="digit6"
-          [disabled]="isLoading"
-          (input)="onInput($event, 6)"
-          (keydown)="onKeyDown($event, 6)"
-          (paste)="onPaste($event, 6)"
-          autocomplete="off"
-          inputmode="numeric"
-        />
+      <!-- Title and Info -->
+      <div class="title-section">
+        <h1 class="title">{{ pageTitle }}</h1>
+        <p class="info-text">{{ infoText }}</p>
+        <p class="email-text">
+          Sent to: <strong>{{ getDisplayEmail() }}</strong>
+          <button class="change-email-btn" (click)="changeEmail()">Change</button>
+        </p>
       </div>
 
-      <!-- Submit Button -->
-      <button mat-raised-button color="primary" class="full-width submit-btn"
-              [disabled]="isLoading || !isOtpComplete()"
-              type="submit">
-        {{ isLoading ? 'Verifying...' : 'Verify Code' }}
-      </button>
-    </form>
+      <!-- OTP Input Section -->
+      <div class="otp-section">
+        <div class="otp-inputs" [class.error]="errorMessage">
+          <input
+            #otpInput
+            type="text"
+            class="otp-input"
+            [value]="otpData.digit1"
+            (input)="onDigitInput($event, 1)"
+            (keydown)="onKeyDown($event, 1)"
+            maxlength="1"
+            autocomplete="off"
+            [disabled]="isLoading"
+          />
+          <input
+            #otpInput
+            type="text"
+            class="otp-input"
+            [value]="otpData.digit2"
+            (input)="onDigitInput($event, 2)"
+            (keydown)="onKeyDown($event, 2)"
+            maxlength="1"
+            autocomplete="off"
+            [disabled]="isLoading"
+          />
+          <input
+            #otpInput
+            type="text"
+            class="otp-input"
+            [value]="otpData.digit3"
+            (input)="onDigitInput($event, 3)"
+            (keydown)="onKeyDown($event, 3)"
+            maxlength="1"
+            autocomplete="off"
+            [disabled]="isLoading"
+          />
+          <input
+            #otpInput
+            type="text"
+            class="otp-input"
+            [value]="otpData.digit4"
+            (input)="onDigitInput($event, 4)"
+            (keydown)="onKeyDown($event, 4)"
+            maxlength="1"
+            autocomplete="off"
+            [disabled]="isLoading"
+          />
+          <input
+            #otpInput
+            type="text"
+            class="otp-input"
+            [value]="otpData.digit5"
+            (input)="onDigitInput($event, 5)"
+            (keydown)="onKeyDown($event, 5)"
+            maxlength="1"
+            autocomplete="off"
+            [disabled]="isLoading"
+          />
+          <input
+            #otpInput
+            type="text"
+            class="otp-input"
+            [value]="otpData.digit6"
+            (input)="onDigitInput($event, 6)"
+            (keydown)="onKeyDown($event, 6)"
+            maxlength="1"
+            autocomplete="off"
+            [disabled]="isLoading"
+          />
+          <input
+            #otpInput
+            type="text"
+            class="otp-input"
+            [value]="otpData.digit7"
+            (input)="onDigitInput($event, 7)"
+            (keydown)="onKeyDown($event, 7)"
+            maxlength="1"
+            autocomplete="off"
+            [disabled]="isLoading"
+          />
+        </div>
 
-    <!-- Resend Section -->
-    <div class="resend-section">
-      <p class="resend-text">Didn't receive the code?</p>
-      <button 
-        type="button" 
-        class="resend-link" 
-        [disabled]="!canResend || isLoading"
-        (click)="resendOtp()">
-        <span *ngIf="canResend">Resend Code</span>
-        <span *ngIf="!canResend">Resend in {{ resendTimer }}s</span>
-      </button>
+        <!-- Helper Text -->
+        <p class="helper-text">
+          Enter the 7-character code (letters and numbers)
+        </p>
+      </div>
+
+      <!-- Messages Section -->
+      <div class="messages-section">
+        <!-- Error Message -->
+        <div class="error-message" *ngIf="errorMessage">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Success Message -->
+        <div class="success-message" *ngIf="successMessage">
+          <mat-icon>check_circle</mat-icon>
+          <span>{{ successMessage }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions-section">
+        <!-- Verify Button -->
+        <button
+          mat-raised-button
+          color="primary"
+          class="verify-btn"
+          (click)="verifyOtp()"
+          [disabled]="isLoading || !isOtpComplete()"
+        >
+          <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+          <span *ngIf="!isLoading">Verify Code</span>
+          <span *ngIf="isLoading">Verifying...</span>
+        </button>
+
+        <!-- Resend Section -->
+        <div class="resend-section">
+          <p class="resend-text">Didn't receive the code?</p>
+          <button
+            mat-button
+            class="resend-btn"
+            (click)="resendOtp()"
+            [disabled]="!canResend || isLoading"
+          >
+            {{ getResendText() }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Additional Help -->
+      <div class="help-section">
+        <p class="help-text">
+          <mat-icon>info</mat-icon>
+          Check your spam folder if you don't see the email
+        </p>
+      </div>
     </div>
-
-    <!-- Additional Actions -->
-    <div class="additional-actions">
-      <button type="button" class="clear-btn" (click)="clearOtp()" [disabled]="isLoading">
-        Clear Code
-      </button>
-    </div>
-
-    <!-- Navigation Links -->
-    <p class="register-link">
-      <span *ngIf="verificationType === 'email_verification'">
-        Already verified? 
-        <a href="#" (click)="navigateToLogin(); $event.preventDefault()" style="cursor: pointer;">
-          Login Here
-        </a>
-      </span>
-      <span *ngIf="verificationType === 'password_reset'">
-        Remember your password? 
-        <a href="#" (click)="navigateToLogin(); $event.preventDefault()" style="cursor: pointer;">
-          Back to Login
-        </a>
-      </span>
-      <span *ngIf="verificationType !== 'email_verification' && verificationType !== 'password_reset'">
-        Need help? 
-        <a href="#" (click)="goBack(); $event.preventDefault()" style="cursor: pointer;">
-          Go Back
-        </a>
-      </span>
-    </p>
   </div>
 </div>

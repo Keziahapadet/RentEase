@@ -104,7 +104,7 @@ export interface MaintenanceUpdate {
     MatIconModule
   ],
   templateUrl: './maintenance.component.html',
-  styleUrls: ['./maintenance.component.css']
+  styleUrls: ['./maintenance.component.scss']
 })
 export class MaintenanceComponent implements OnInit, OnDestroy {
   @Input() collapsedSections!: Set<string>;

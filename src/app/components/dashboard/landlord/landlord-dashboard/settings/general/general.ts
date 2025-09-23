@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-general',
   imports: [],
   templateUrl: './general.html',
-  styleUrl: './general.css'
+  styleUrl: './general.scss'
 })
 export class General {
 

@@ -1,16 +1,13 @@
-// src/app/services/auth-interfaces.ts
-
-// ================= USER INTERFACES =================
 
 export interface User {
-  id: string | number;            // backend gives userId: number
+  id: string | number; // backend gives userId: number
   email: string;
   fullName: string;
   phoneNumber?: string;
-  role: UserRole | string;        // typed enum + string fallback
+  role: UserRole | string; // typed enum + string fallback
   avatar?: string;
   emailVerified?: boolean;
-  verified?: boolean;             // matches backend response field
+  verified?: boolean; // matches backend response field
   createdAt?: string;
   updatedAt?: string;
 }
@@ -84,7 +81,7 @@ export interface OtpRequest {
 
 export interface OtpVerifyRequest {
   email: string;
-  otp: string;
+  otpCode: string; // FIXED: Changed from 'otp' to 'otpCode' to match server expectation
   type: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification';
 }
 
@@ -92,6 +89,7 @@ export interface OtpResponse {
   success: boolean;
   message: string;
   token?: string; // Optional token for certain verification types
+  user?: User;    // FIXED: Added user data returned on successful email verification
 }
 
 // ================= PROPERTY INTERFACES =================
@@ -109,7 +107,6 @@ export interface PropertyResponse {
   message: string;
   property?: Property;
 }
-
 export interface Property {
   id: string;
   name: string;
@@ -118,8 +115,9 @@ export interface Property {
   totalUnits: number;
   description?: string;
   ownerId: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string;  // must match everywhere
+  updatedAt: string;  // must match everywhere
+  status?: 'active' | 'inactive' | 'maintenance'; // optional, needed for template
 }
 
 // ================= OTHER INTERFACES =================

@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-terms',
   imports: [],
   templateUrl: './terms.html',
-  styleUrl: './terms.css'
+  styleUrl: './terms.scss'
 })
 export class TermsComponent {
 

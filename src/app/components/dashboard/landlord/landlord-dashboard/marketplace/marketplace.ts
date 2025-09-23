@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-marketplace',
   imports: [],
   templateUrl: './marketplace.html',
-  styleUrl: './marketplace.css'
+  styleUrl: './marketplace.scss'
 })
 export class Marketplace {
 

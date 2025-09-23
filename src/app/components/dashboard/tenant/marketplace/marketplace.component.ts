@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatIconModule
   ],
   templateUrl: './marketplace.component.html',
-  styleUrls: ['./marketplace.component.css']
+  styleUrls: ['./marketplace.component.scss']
 })
 export class MarketplaceComponent {
   @Input() collapsedSections!: Set<string>;

@@ -1,5 +1,4 @@
 // src/app/components/registration/registration.component.ts
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AuthService } from '../../../services/auth.service';
+
 import { 
   RegisterRequest, 
   UserRole, 
@@ -45,7 +45,7 @@ interface MaintenanceRequest {
 @Component({
   selector: 'app-registration',
   templateUrl: './registration.component.html',
-  styleUrls: ['./registration.component.css'],
+  styleUrls: ['./registration.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -104,7 +104,9 @@ export class RegistrationComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    console.log('RegistrationComponent initialized');
     if (this.authService.isAuthenticated()) {
+      console.log('User already authenticated, redirecting to dashboard');
       this.router.navigate(['/dashboard']);
       return;
     }
@@ -124,9 +126,11 @@ export class RegistrationComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
     this.isLoading = false;
+    console.log('Form reset');
   }
 
   onRoleChange(): void {
+    console.log('Role changed to:', this.formData.role);
     if (this.formData.role !== UserRole.BUSINESS) {
       delete this.formData.accessCode;
     }
@@ -147,37 +151,100 @@ export class RegistrationComponent implements OnInit {
 
   validateForm(): boolean {
     this.errorMessage = '';
+    console.log('Validating form data:', {
+      role: this.formData.role,
+      fullName: this.formData.fullName?.length,
+      email: this.formData.email,
+      phoneNumber: this.formData.phoneNumber,
+      passwordLength: this.formData.password?.length,
+      agreedToTerms: this.agreedToTerms
+    });
 
-    if (!this.formData.role) { this.errorMessage = 'Role is required'; return false; }
-    if (!this.formData.fullName.trim()) { this.errorMessage = 'Full name is required'; return false; }
-    if (!this.formData.email.trim()) { this.errorMessage = 'Email is required'; return false; }
+    if (!this.formData.role) { 
+      this.errorMessage = 'Role is required'; 
+      console.error('Validation failed: Role missing');
+      return false; 
+    }
+    
+    if (!this.formData.fullName.trim()) { 
+      this.errorMessage = 'Full name is required'; 
+      console.error('Validation failed: Full name missing');
+      return false; 
+    }
+    
+    if (!this.formData.email.trim()) { 
+      this.errorMessage = 'Email is required'; 
+      console.error('Validation failed: Email missing');
+      return false; 
+    }
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.formData.email)) { this.errorMessage = 'Invalid email address'; return false; }
+    if (!emailRegex.test(this.formData.email)) { 
+      this.errorMessage = 'Invalid email address'; 
+      console.error('Validation failed: Invalid email format');
+      return false; 
+    }
 
-    if (!this.formData.phoneNumber.trim()) { this.errorMessage = 'Phone number is required'; return false; }
+    if (!this.formData.phoneNumber.trim()) { 
+      this.errorMessage = 'Phone number is required'; 
+      console.error('Validation failed: Phone number missing');
+      return false; 
+    }
+    
     const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
     if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
-      this.errorMessage = 'Invalid phone number format'; 
+      this.errorMessage = 'Invalid phone number format (use +254XXXXXXXXX or 07XXXXXXXX)'; 
+      console.error('Validation failed: Invalid phone format');
       return false;
     }
 
-    if (!this.formData.password) { this.errorMessage = 'Password required'; return false; }
-    if (this.formData.password.length < 8) { this.errorMessage = 'Password must be at least 8 characters'; return false; }
-    if (!this.formData.confirmPassword) { this.errorMessage = 'Confirm your password'; return false; }
-    if (!this.passwordsMatch()) { this.errorMessage = 'Passwords do not match'; return false; }
+    if (!this.formData.password) { 
+      this.errorMessage = 'Password required'; 
+      console.error('Validation failed: Password missing');
+      return false; 
+    }
+    
+    if (this.formData.password.length < 8) { 
+      this.errorMessage = 'Password must be at least 8 characters'; 
+      console.error('Validation failed: Password too short');
+      return false; 
+    }
+    
+    if (!this.formData.confirmPassword) { 
+      this.errorMessage = 'Confirm your password'; 
+      console.error('Validation failed: Password confirmation missing');
+      return false; 
+    }
+    
+    if (!this.passwordsMatch()) { 
+      this.errorMessage = 'Passwords do not match'; 
+      console.error('Validation failed: Passwords do not match');
+      return false; 
+    }
 
-    if (!this.agreedToTerms) { this.errorMessage = 'Please agree to Terms and Conditions'; return false; }
+    if (!this.agreedToTerms) { 
+      this.errorMessage = 'Please agree to Terms and Conditions'; 
+      console.error('Validation failed: Terms not agreed');
+      return false; 
+    }
 
     if (this.formData.role === UserRole.BUSINESS && this.formData.accessCode !== 'BUSINESS2024') {
       this.errorMessage = 'Invalid business access code'; 
+      console.error('Validation failed: Invalid business access code');
       return false;
     }
 
+    console.log('Form validation passed');
     return true;
   }
 
   async onSubmit(): Promise<void> {
-    if (!this.validateForm()) return;
+    console.log('Form submission started');
+    
+    if (!this.validateForm()) {
+      console.error('Form validation failed, stopping submission');
+      return;
+    }
     
     this.isLoading = true;
     this.errorMessage = '';
@@ -189,62 +256,105 @@ export class RegistrationComponent implements OnInit {
       phoneNumber: this.formData.phoneNumber.replace(/\s/g, ''),
       password: this.formData.password,
       confirmPassword: this.formData.confirmPassword,
-      role: this.formData.role,
+      role: this.formData.role as UserRole,
       accessCode: this.formData.accessCode
     };
 
-    console.log('Registering user with role:', this.formData.role);
+    console.log('Sending registration request:', {
+      ...registerRequest,
+      password: '[HIDDEN]',
+      confirmPassword: '[HIDDEN]'
+    });
+
+    console.log('API URL being used:', 'https://rentease-nch9.onrender.com/api/auth/signup');
 
     this.authService.register(registerRequest).subscribe({
       next: async (response) => {
+        console.log('Registration response received:', response);
+        
         if (response.success) {
           this.successMessage = response.message || 'Registration successful! Sending verification code...';
+          console.log('Registration successful, attempting to send OTP');
           
           try {
-            const otpResponse: OtpResponse | undefined = await this.authService.sendOtp({
+            const otpRequest: OtpRequest = {
               email: this.formData.email.trim().toLowerCase(),
               type: 'email_verification'
-            } as OtpRequest).toPromise();
-
-            if (otpResponse?.success) {
-              this.successMessage = 'Registration successful! Verification code sent to your email.';
-            }
-
-            setTimeout(() => {
-              this.router.navigate(['/verify-otp'], {
-                queryParams: {
-                  email: this.formData.email.trim().toLowerCase(),
-                  type: 'email_verification'
-                }
-              });
-            }, 1500);
+            };
+            
+            console.log('Sending OTP request:', otpRequest);
+            
+            // Store email in session storage for OTP verification
+            sessionStorage.setItem('pendingVerificationEmail', this.formData.email.trim().toLowerCase());
+            
+            // Navigate to OTP verification immediately
+            console.log('Navigating to OTP verification');
+            this.router.navigate(['/verify-otp'], {
+              queryParams: {
+                email: this.formData.email.trim().toLowerCase(),
+                type: 'email_verification'
+              }
+            });
 
           } catch (otpError: any) {
             console.error('Failed to send OTP:', otpError);
-            this.successMessage = 'Registration successful! Redirecting to verification...';
-            setTimeout(() => {
-              this.router.navigate(['/verify-otp'], {
-                queryParams: {
-                  email: this.formData.email.trim().toLowerCase(),
-                  type: 'email_verification'
-                }
-              });
-            }, 1500);
+            console.error('OTP Error details:', {
+              message: otpError.message,
+              status: otpError.status,
+              error: otpError.error
+            });
+            
+            // Still navigate to OTP page even if sending fails
+            sessionStorage.setItem('pendingVerificationEmail', this.formData.email.trim().toLowerCase());
+            this.router.navigate(['/verify-otp'], {
+              queryParams: {
+                email: this.formData.email.trim().toLowerCase(),
+                type: 'email_verification'
+              }
+            });
           }
+        } else {
+          console.error('Registration failed - success flag is false:', response);
+          this.errorMessage = response.message || 'Registration failed. Please try again.';
+          this.isLoading = false;
         }
       },
       error: (error) => {
-        console.error('Registration error:', error);
+        console.error('Registration error caught:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          statusText: error.statusText,
+          error: error.error,
+          url: error.url
+        });
+        
         this.isLoading = false;
-        this.errorMessage = error.message || 'Registration failed. Please try again.';
+        
+        // Enhanced error message handling
+        if (error.status === 0) {
+          this.errorMessage = 'Cannot connect to server. Please check your internet connection and try again.';
+        } else if (error.status === 400) {
+          this.errorMessage = error.error?.message || 'Invalid registration data. Please check your information.';
+        } else if (error.status === 409) {
+          this.errorMessage = 'Email address is already registered. Please use a different email or try logging in.';
+        } else if (error.status >= 500) {
+          this.errorMessage = 'Server error. Please try again later.';
+        } else {
+          this.errorMessage = error.message || 'Registration failed. Please try again.';
+        }
+        
+        console.error('Final error message:', this.errorMessage);
       },
       complete: () => {
+        console.log('Registration request completed');
         this.isLoading = false;
       }
     });
   }
 
   navigateToLogin(): void {
+    console.log('Navigating to login');
     this.router.navigate(['/login']);
   }
 
@@ -362,5 +472,26 @@ export class RegistrationComponent implements OnInit {
   isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  getDebugInfo(): any {
+    return {
+      formData: {
+        ...this.formData,
+        password: '[HIDDEN]',
+        confirmPassword: '[HIDDEN]'
+      },
+      isLoading: this.isLoading,
+      errorMessage: this.errorMessage,
+      successMessage: this.successMessage,
+      authService: {
+        isAuthenticated: this.authService.isAuthenticated(),
+        hasToken: !!this.authService.getToken()
+      }
+    };
+  }
+
+  logDebugInfo(): void {
+    console.log('Debug Info:', this.getDebugInfo());
   }
 }

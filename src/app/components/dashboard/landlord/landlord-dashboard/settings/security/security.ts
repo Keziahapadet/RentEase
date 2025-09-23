@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-security',
   imports: [],
   templateUrl: './security.html',
-  styleUrl: './security.css'
+  styleUrl: './security.scss'
 })
 export class Security {
 

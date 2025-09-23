@@ -1,0 +1,269 @@
+// =========================
+// VARIABLES
+// =========================
+$bg-light: #f8fafc;
+$primary: #3b82f6;
+$primary-dark: #2563eb;
+$primary-darker: #1d4ed8;
+$primary-deep: #1e40af;
+$text-muted: #64748b;
+$text-dark: #1e293b;
+
+// =========================
+// MIXINS
+// =========================
+@mixin circle-icon($size: 100px, $bg: $primary) {
+  width: $size;
+  height: $size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: $bg;
+  color: white;
+  font-size: calc($size / 2.5);
+  transition: all 0.3s ease;
+  margin: 0 auto 1.2rem;
+  box-shadow: 0 10px 25px rgba($bg, 0.35);
+}
+
+// =========================
+// LOGO
+// =========================
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  .logo-image {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+    background: transparent;
+  }
+
+  &:hover .logo-image {
+    transform: scale(1.1);
+  }
+}
+
+.navbar {
+  .logo {
+    .logo-image {
+      // Keep original colors
+    }
+  }
+
+  &.scrolled {
+    .logo {
+      .logo-image {
+        // Keep original colors when scrolled
+      }
+    }
+  }
+}
+
+.footer {
+  .logo {
+    margin-bottom: 1rem;
+    justify-content: flex-start;
+
+    .logo-image {
+      filter: brightness(0) invert(1);
+    }
+  }
+}
+
+// =========================
+// PAGE HERO
+// =========================
+.page-hero {
+  position: relative;
+  padding: 140px 0 100px;
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    $bg-light 25%,
+    #ffffff 50%,
+    #f1f5f9 75%,
+    #ffffff 100%
+  );
+  background-size: 400% 400%;
+  animation: aboutGradientShift 12s ease infinite;
+  overflow: hidden;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+
+  .hero-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    animation: aboutHeroFadeIn 1.6s ease-out;
+
+    .hero-title {
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1.05;
+      margin-bottom: 1.8rem;
+      color: #000;
+      text-shadow: none;
+      animation: aboutTitleSlide 1.4s ease-out 0.3s both;
+      letter-spacing: -0.03em;
+
+      .gradient-text {
+        background: linear-gradient(
+          45deg,
+          $primary 0%,
+          $primary-dark 20%,
+          $primary-darker 40%,
+          $primary-deep 60%,
+          $primary-darker 80%,
+          $primary 100%
+        );
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: aboutGradientText 5s ease-in-out infinite;
+      }
+    }
+
+    .hero-description {
+      font-size: 1.5rem;
+      color: $text-muted;
+      line-height: 1.8;
+      margin-bottom: 3.5rem;
+      text-shadow: none;
+      animation: aboutDescriptionFade 1.4s ease-out 0.7s both;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      font-weight: 400;
+    }
+  }
+}
+
+// =========================
+// MISSION SECTION
+// =========================
+.mission-section {
+  padding: 100px 0;
+  background: $bg-light;
+
+  .mission-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+
+    .mission-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: missionCardFadeIn 0.8s ease-out forwards;
+
+      &:nth-child(1) { animation-delay: 0.1s; }
+      &:nth-child(2) { animation-delay: 0.3s; }
+      &:nth-child(3) { animation-delay: 0.5s; }
+
+      &:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border-color: $primary;
+      }
+
+      .mission-icon {
+        @include circle-icon();
+
+        mat-icon {
+          color: white !important;
+          font-size: 40px !important;
+          width: 40px !important;
+          height: 40px !important;
+          line-height: 40px !important;
+        }
+      }
+
+      &:hover .mission-icon {
+        transform: scale(1.15) rotate(-5deg);
+        box-shadow: 0 15px 40px rgba($primary, 0.5);
+      }
+
+      h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: $text-dark;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        color: $text-muted;
+        line-height: 1.6;
+      }
+    }
+  }
+}
+
+// =========================
+// MEDIA QUERIES
+// =========================
+@media (max-width: 1024px) {
+  .page-hero {
+    padding: 120px 0 80px;
+    min-height: 60vh;
+
+    .hero-title { font-size: 4.2rem; }
+    .hero-description { font-size: 1.4rem; }
+  }
+
+  .mission-icon, .value-icon {
+    @include circle-icon(80px);
+
+    mat-icon {
+      font-size: 36px !important;
+    }
+  }
+
+  .team-card { flex: 1 1 calc(50% - 2rem); }
+}
+
+// =========================
+// KEYFRAMES
+// =========================
+@keyframes aboutGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes aboutHeroFadeIn {
+  0% { opacity: 0; transform: translateY(70px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes aboutTitleSlide {
+  0% { opacity: 0; transform: translateY(-50px) rotateX(90deg); }
+  100% { opacity: 1; transform: translateY(0) rotateX(0deg); }
+}
+@keyframes aboutGradientText {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes aboutDescriptionFade {
+  0% { opacity: 0; transform: translateY(40px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes missionCardFadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}

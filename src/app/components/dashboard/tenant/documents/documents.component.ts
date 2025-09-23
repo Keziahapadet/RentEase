@@ -68,7 +68,7 @@ export enum DocumentStatus {
     MatIconModule
   ],
   templateUrl: './documents.component.html',
-  styleUrls: ['./documents.component.css']
+  styleUrls: ['./documents.component.scss']
 })
 export class DocumentsComponent implements OnInit, OnDestroy {
   @Input() collapsedSections!: Set<string>;

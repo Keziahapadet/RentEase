@@ -8,7 +8,7 @@ import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-features',
   templateUrl: './feature.html',
-  styleUrls: ['./features.css'],
+  styleUrls: ['./features.scss'],
   standalone: true,
   imports: [CommonModule, MatIconModule,RouterModule]
 })

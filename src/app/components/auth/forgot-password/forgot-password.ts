@@ -24,7 +24,7 @@ import { PasswordResetRequest } from '../../../services/auth-interfaces';
     MatCardModule
   ],
   templateUrl: './forgot-password.html',
-  styleUrls: ['./forgot-password.css']
+  styleUrls: ['./forgot-password.scss']
 })
 export class ForgotPasswordComponent {
   private authService: AuthService = inject(AuthService);

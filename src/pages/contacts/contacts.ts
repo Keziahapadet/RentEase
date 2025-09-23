@@ -9,7 +9,7 @@ import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-contact',
   templateUrl: './contacts.html',
-  styleUrls: ['./contacts.css'],
+  styleUrls: ['./contacts.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule, MatIconModule,RouterModule]
 })

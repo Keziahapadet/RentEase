@@ -40,7 +40,7 @@ export interface DepositBreakdown {
     MatIconModule
   ],
   templateUrl: './deposit.component.html',
-  styleUrls: ['./deposit.component.css']
+  styleUrls: ['./deposit.component.scss']
 })
 export class DepositComponent implements OnInit, OnChanges {
   // Input properties
