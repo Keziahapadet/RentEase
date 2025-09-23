@@ -1,13 +1,17 @@
 {
   "name": "rent-ease",
   "version": "0.0.0",
+  "private": true,
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build --configuration production",
+    "dev": "ng serve",
+    "build:client": "ng build --configuration production",
+    "build:server": "ng run RentEase:server:production",
+    "build": "npm run build:client && npm run build:server",
+    "serve:ssr": "node dist/RentEase/server/main.js",
+    "start": "node dist/RentEase/server/main.js",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:RentEase": "node dist/RentEase/server/server.mjs"
+    "test": "ng test"
   },
   "prettier": {
     "printWidth": 100,
@@ -21,7 +25,6 @@
       }
     ]
   },
-  "private": true,
   "dependencies": {
     "@angular/cdk": "^20.2.3",
     "@angular/common": "^20.2.3",
