@@ -50,6 +50,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   // Route Data
   email = '';
   verificationType: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification' = 'email_verification';
+  userType: 'landlord' | 'tenant' = 'tenant'; // NEW: Added userType property
 
   // UI Text
   pageTitle = 'Verify Your Account';
@@ -91,6 +92,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     this.route.queryParams.subscribe(params => {
       this.email = params['email'] || '';
       this.verificationType = params['type'] || 'email_verification';
+      this.userType = params['userType'] || 'tenant'; // NEW: Get userType from route params
       
       if (!this.email) {
         console.error('No email provided in route parameters');
@@ -102,17 +104,25 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       }
 
       this.updateUIBasedOnType();
-      console.log('Initialized with:', { email: this.email, type: this.verificationType });
+      console.log('Initialized with:', { 
+        email: this.email, 
+        type: this.verificationType,
+        userType: this.userType // NEW: Log userType
+      });
     });
-
-    // REMOVED: error$ subscription since it doesn't exist on AuthService
   }
 
   private updateUIBasedOnType() {
     switch (this.verificationType) {
       case 'email_verification':
-        this.pageTitle = 'Verify Your Email';
-        this.infoText = 'We\'ve sent a 7-character verification code to your email address';
+        // NEW: Update UI text based on user type
+        if (this.userType === 'landlord') {
+          this.pageTitle = 'Verify Your Landlord Account';
+          this.infoText = 'We\'ve sent a 7-character verification code to your email address to complete your landlord registration';
+        } else {
+          this.pageTitle = 'Verify Your Tenant Account';
+          this.infoText = 'We\'ve sent a 7-character verification code to your email address to complete your tenant registration';
+        }
         break;
       case 'password_reset':
         this.pageTitle = 'Reset Password Verification';
@@ -150,6 +160,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       console.log('OTP Length:', otpCode.length);
       console.log('Email:', this.email);
       console.log('Type:', this.verificationType);
+      console.log('User Type:', this.userType); // NEW: Log userType
       console.log('OTP characters:', otpCode.split(''));
 
       // Validate OTP
@@ -160,10 +171,9 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         return;
       }
 
-      // FIXED: Create the request object with the correct field name
       const verifyRequest: OtpVerifyRequest = {
         email: this.email,
-        otpCode: otpCode,  // FIXED: Changed from 'otp' to 'otpCode'
+        otpCode: otpCode,
         type: this.verificationType
       };
 
@@ -215,13 +225,25 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     return null;
   }
 
+  // UPDATED: Modified to handle user type routing
   private async handleSuccessfulVerification() {
     const redirectDelay = 2000; // 2 seconds
 
     switch (this.verificationType) {
       case 'email_verification':
+        // NEW: Route based on user type
         setTimeout(() => {
-          this.router.navigate(['/dashboard']);
+          if (this.userType === 'landlord') {
+            console.log('Redirecting to landlord dashboard');
+            this.router.navigate(['/landlord-dashboard']);
+          } else if (this.userType === 'tenant') {
+            console.log('Redirecting to tenant dashboard');
+            this.router.navigate(['/tenant-dashboard']);
+          } else {
+            // Fallback to generic dashboard
+            console.log('Redirecting to generic dashboard');
+            this.router.navigate(['/dashboard']);
+          }
         }, redirectDelay);
         break;
         
@@ -234,8 +256,15 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         break;
         
       case '2fa':
+        // NEW: For 2FA, also consider user type if needed
         setTimeout(() => {
-          this.router.navigate(['/dashboard']);
+          if (this.userType === 'landlord') {
+            this.router.navigate(['/landlord-dashboard']);
+          } else if (this.userType === 'tenant') {
+            this.router.navigate(['/tenant-dashboard']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         }, redirectDelay);
         break;
         
@@ -247,7 +276,13 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         
       default:
         setTimeout(() => {
-          this.router.navigate(['/dashboard']);
+          if (this.userType === 'landlord') {
+            this.router.navigate(['/landlord-dashboard']);
+          } else if (this.userType === 'tenant') {
+            this.router.navigate(['/tenant-dashboard']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         }, redirectDelay);
     }
   }
@@ -510,7 +545,12 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     return `${maskedLocal}@${domain}`;
   }
 
-  // Debug method
+  // NEW: Get user type display text
+  getUserTypeText(): string {
+    return this.userType === 'landlord' ? 'Landlord' : 'Tenant';
+  }
+
+  // Debug method - UPDATED with userType
   debugOtp() {
     const otpCode = Object.values(this.otpData).join('');
     console.log('=== OTP DEBUG ===');
@@ -519,6 +559,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     console.log('Is Complete:', this.isOtpComplete());
     console.log('Email:', this.email);
     console.log('Type:', this.verificationType);
+    console.log('User Type:', this.userType); // NEW
     console.log('Auth Service Debug:', this.authService.getDebugInfo());
     console.log('================');
   }

@@ -238,6 +238,7 @@ export class RegistrationComponent implements OnInit {
     return true;
   }
 
+  // FIXED: Updated onSubmit method with userType parameter
   async onSubmit(): Promise<void> {
     console.log('Form submission started');
     
@@ -287,12 +288,33 @@ export class RegistrationComponent implements OnInit {
             // Store email in session storage for OTP verification
             sessionStorage.setItem('pendingVerificationEmail', this.formData.email.trim().toLowerCase());
             
-            // Navigate to OTP verification immediately
-            console.log('Navigating to OTP verification');
+            // FIXED: Map the role to userType and include it in navigation
+            let userType: 'landlord' | 'tenant' = 'tenant'; // default
+            
+            if (this.formData.role === UserRole.LANDLORD) {
+              userType = 'landlord';
+            } else if (this.formData.role === UserRole.TENANT) {
+              userType = 'tenant';
+            } else if (this.formData.role === UserRole.CARETAKER) {
+              // You might want caretakers to go to a specific dashboard
+              // For now, treating as tenant - change this if needed
+              userType = 'tenant';
+            } else if (this.formData.role === UserRole.BUSINESS) {
+              // You might want business users to go to a specific dashboard
+              // For now, treating as tenant - change this if needed
+              userType = 'tenant';
+            }
+            
+            console.log('Selected role:', this.formData.role);
+            console.log('Mapped userType:', userType);
+            
+            // Navigate to OTP verification with userType
+            console.log('Navigating to OTP verification with userType:', userType);
             this.router.navigate(['/verify-otp'], {
               queryParams: {
                 email: this.formData.email.trim().toLowerCase(),
-                type: 'email_verification'
+                type: 'email_verification',
+                userType: userType  // FIXED: Added userType parameter
               }
             });
 
@@ -304,12 +326,27 @@ export class RegistrationComponent implements OnInit {
               error: otpError.error
             });
             
+            // FIXED: Still include userType even when there's an error
+            let userType: 'landlord' | 'tenant' = 'tenant';
+            if (this.formData.role === UserRole.LANDLORD) {
+              userType = 'landlord';
+            } else if (this.formData.role === UserRole.TENANT) {
+              userType = 'tenant';
+            } else if (this.formData.role === UserRole.CARETAKER) {
+              userType = 'tenant'; // or create a caretaker dashboard
+            } else if (this.formData.role === UserRole.BUSINESS) {
+              userType = 'tenant'; // or create a business dashboard
+            }
+            
+            console.log('Error case - using userType:', userType);
+            
             // Still navigate to OTP page even if sending fails
             sessionStorage.setItem('pendingVerificationEmail', this.formData.email.trim().toLowerCase());
             this.router.navigate(['/verify-otp'], {
               queryParams: {
                 email: this.formData.email.trim().toLowerCase(),
-                type: 'email_verification'
+                type: 'email_verification',
+                userType: userType  // FIXED: Added userType parameter
               }
             });
           }

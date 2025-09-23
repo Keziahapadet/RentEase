@@ -4,7 +4,6 @@ import { RegistrationComponent } from './components/auth/registration/registrati
 import { LoginComponent } from './components/auth/login/login.component';
 import { TenantDashboardComponent } from './components/dashboard/tenant/tenant-dashboard/tenant-dashboard.component';
 import { LandlordDashboardComponent } from './components/dashboard/landlord/landlord-dashboard/landlord-dashboard'
-import { FeaturesComponent } from '../pages/features/features';
 import { PricingComponent } from '../pages/pricing/pricing';
 import { ContactComponent } from '../pages/contacts/contacts';
 import { TermsComponent } from '../pages/terms/terms';
@@ -105,10 +104,6 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
 
-  {
-    path: 'features',
-    component: FeaturesComponent
-  },
   {
     path: 'pricing',
     component: PricingComponent

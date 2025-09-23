@@ -13,9 +13,6 @@
         </a>
       </li>
       <li>
-        <a routerLink="/features" routerLinkActive="active" (click)="setActiveMenu('features')">Features</a>
-      </li>
-      <li>
         <a routerLink="/pricing" routerLinkActive="active" (click)="setActiveMenu('pricing')">Pricing</a>
       </li>
       <li>
@@ -40,7 +37,7 @@
   </div>
 </nav>
 
-<!-- Hero  -->
+<!-- Hero Carousel -->
 <div class="hero-carousel" 
      (mouseenter)="onCarouselMouseEnter()" 
      (mouseleave)="onCarouselMouseLeave()">
@@ -129,47 +126,101 @@
   </div>
 </section>
 
-<!-- Services Section -->
+<!-- Services Section - 3-Card Visible Carousel -->
 <section id="services" class="services-section">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">
-        Our <span class="gradient-text">Services</span>
-      </h2>
+      <h2 class="section-title">Our Services</h2>
       <p class="section-description">
         Comprehensive digital solutions addressing Kenya's rental challenges with innovative technology
       </p>
     </div>
 
-    <div class="services-grid">
-      <div class="service-card" *ngFor="let service of services">
-        <div class="service-header">
-          <div class="service-icon">
-            <mat-icon>{{ service.icon }}</mat-icon>
+    <div class="services-carousel-container" 
+         (mouseenter)="stopServiceSlideshow()" 
+         (mouseleave)="startServiceSlideshow()">
+      <div class="services-carousel-track" 
+           [style.transform]="'translateX(' + getCarouselPosition() + 'px)'">
+        
+        <!-- Last 3 services (for seamless backward loop) -->
+        <div class="service-card" 
+             *ngFor="let service of getLastThreeServices()" 
+             (click)="onServiceCardClick(service.id)">
+          <div class="service-background" 
+               [style.background-image]="'url(' + service.backgroundImage + ')'"></div>
+          
+          <div class="service-content">
+            <div class="service-header">
+              <div></div>
+              <div class="service-badge" 
+                   *ngIf="service.badge" 
+                   [class.new]="service.badge === 'New'">
+                {{ service.badge }}
+              </div>
+            </div>
+            
+            <h3 class="service-title">{{ service.title }}</h3>
+            <p class="service-description">{{ service.description }}</p>
           </div>
-          <div class="service-badge" *ngIf="service.badge">{{ service.badge }}</div>
         </div>
         
-        <div class="service-content">
-          <h3 class="service-title">{{ service.title }}</h3>
-          <p class="service-description">{{ service.description }}</p>
+        <!-- Original 6 services -->
+        <div class="service-card" 
+             *ngFor="let service of services; let i = index" 
+             (click)="onServiceCardClick(service.id)">
+          <div class="service-background" 
+               [style.background-image]="'url(' + service.backgroundImage + ')'"></div>
           
-          <div class="service-benefits">
-            <h4>Key Benefits:</h4>
-            <ul class="benefit-list">
-              <li *ngFor="let benefit of service.benefits" class="benefit-item">
-                <mat-icon class="benefit-icon">check_circle</mat-icon>
-                <span>{{ benefit }}</span>
-              </li>
-            </ul>
+          <div class="service-content">
+            <div class="service-header">
+              <div></div>
+              <div class="service-badge" 
+                   *ngIf="service.badge" 
+                   [class.new]="service.badge === 'New'">
+                {{ service.badge }}
+              </div>
+            </div>
+            
+            <h3 class="service-title">{{ service.title }}</h3>
+            <p class="service-description">{{ service.description }}</p>
           </div>
         </div>
+        
+        <!-- First 3 services (for seamless forward loop) -->
+        <div class="service-card" 
+             *ngFor="let service of getFirstThreeServices()" 
+             (click)="onServiceCardClick(service.id)">
+          <div class="service-background" 
+               [style.background-image]="'url(' + service.backgroundImage + ')'"></div>
+          
+          <div class="service-content">
+            <div class="service-header">
+              <div></div>
+              <div class="service-badge" 
+                   *ngIf="service.badge" 
+                   [class.new]="service.badge === 'New'">
+                {{ service.badge }}
+              </div>
+            </div>
+            
+            <h3 class="service-title">{{ service.title }}</h3>
+            <p class="service-description">{{ service.description }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-navigation">
+        <button *ngFor="let view of serviceViews; let i = index" 
+                class="nav-dot" 
+                [class.active]="currentServiceView === i" 
+                (click)="goToServiceView(i)">
+        </button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Benefits/Why Choose Us Section -->
+<!-- Benefits Section - Grid Layout -->
 <section class="benefits-section">
   <div class="container">
     <div class="section-header">
@@ -182,52 +233,17 @@
     </div>
 
     <div class="benefits-grid">
-      <div class="benefit-item">
-        <div class="benefit-icon">
-          <mat-icon>shield</mat-icon>
+      <div class="benefit-item" *ngFor="let benefit of benefits">
+        <div class="benefit-icon"
+             [style.--icon-color]="benefit.iconColor"
+             [style.--icon-color-light]="benefit.iconColor + '80'">
+          <mat-icon>{{ benefit.icon }}</mat-icon>
         </div>
-        <h3>Fraud Prevention</h3>
-        <p>Advanced security measures and verification systems to protect against rental fraud and scams.</p>
-      </div>
-
-      <div class="benefit-item">
-        <div class="benefit-icon">
-          <mat-icon>speed</mat-icon>
+        
+        <div class="benefit-content">
+          <h3>{{ benefit.title }}</h3>
+          <p>{{ benefit.description }}</p>
         </div>
-        <h3>Fast Processing</h3>
-        <p>Quick verification, instant notifications, and streamlined processes for faster transactions.</p>
-      </div>
-
-      <div class="benefit-item">
-        <div class="benefit-icon">
-          <mat-icon>support_agent</mat-icon>
-        </div>
-        <h3>24/7 Support</h3>
-        <p>Round-the-clock customer support to help you with any questions or issues.</p>
-      </div>
-
-      <div class="benefit-item">
-        <div class="benefit-icon">
-          <mat-icon>trending_up</mat-icon>
-        </div>
-        <h3>Market Insights</h3>
-        <p>Access real-time market data and analytics to make informed rental decisions.</p>
-      </div>
-
-      <div class="benefit-item">
-        <div class="benefit-icon">
-          <mat-icon>mobile_friendly</mat-icon>
-        </div>
-        <h3>Mobile First</h3>
-        <p>Manage your properties on-the-go with our responsive mobile-friendly platform.</p>
-      </div>
-
-      <div class="benefit-item">
-        <div class="benefit-icon">
-          <mat-icon>account_balance</mat-icon>
-        </div>
-        <h3>Legal Compliance</h3>
-        <p>All processes comply with Kenyan rental laws and regulations for your peace of mind.</p>
       </div>
     </div>
   </div>

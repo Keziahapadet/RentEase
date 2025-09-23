@@ -38,8 +38,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       image: '/images/slide2.jpg'
     },
     {
-      title: 'Modern Properties',
-      description: 'Find your perfect home in our verified listings with transparent pricing and authentic property information.',
+      title: 'All-in-One Rental Management',
+      description: 'Manage properties, tenants, leases, and payments with ease — all in one powerful platform.',
       image: '/images/slide3.jpg'
     }
   ];
@@ -51,53 +51,100 @@ export class HomeComponent implements OnInit, OnDestroy {
   stats = [
     { current: '24/7', suffix: '', label: 'Platform Availability' },
     { current: '100', suffix: '%', label: 'Secure & Encrypted' },
-    { current: '2', suffix: '%', label: 'Transaction Fee Only' },
-    { current: '0', suffix: '', label: 'Hidden Fees' }
   ];
 
-  // Services data (comprehensive rental management solutions)
+  // RentEase Services data for 3-card visible carousel
   services = [
     {
       id: 'secure-deposits',
       icon: 'account_balance_wallet',
       title: 'Secure Deposit Management',
-      description: 'Eliminate deposit fraud with our blockchain-based escrow system that ensures transparency and security for all parties.',
-      badge: 'Most Popular',
-      benefits: [
-        'Blockchain-secured deposit escrow',
-        'Transparent deposit tracking',
-        'Legal protection for all parties',
-        
-      ]
+      description: 'Eliminate deposit fraud with our blockchain-based escrow system that ensures complete transparency and security for all parties involved in rental agreements.',
+      backgroundImage: '/images/deposit-management.jpeg',
+      badge: 'Most Popular'
     },
-   
-  
     {
       id: 'communication-hub',
       icon: 'forum',
-      title: 'Integrated Communication',
-      description: 'Centralized communication platform connecting landlords, tenants, and caretakers with real-time messaging and notifications.',
-      benefits: [
-        'Real-time messaging platform',
-        'Automated notification system',
-        'Multi-party group communications',
-        'Document sharing capabilities',
-        'Communication history tracking'
-      ]
+      title: 'Integrated Communication Hub',
+      description: 'Centralized communication platform connecting landlords, tenants, and caretakers with real-time messaging, notifications, and document sharing capabilities.',
+      backgroundImage: '/images/communication-hub.jpeg'
     },
     {
       id: 'community-marketplace',
       icon: 'store',
       title: 'Community Marketplace',
-      description: 'Local marketplace where tenants can buy, sell, and exchange items within their residential communities.',
-      badge: 'New',
-      benefits: [
-        'Hyperlocal buying and selling',
-        'Community-verified sellers',
-        'In-app secure transactions',
-        'Delivery within residential areas',
-        'Rating and review system'
-      ]
+      description: 'Local marketplace where tenants can buy, sell, and exchange items within their residential communities with secure in-app transactions and local delivery.',
+      backgroundImage: '/images/marketplace.jpeg',
+      badge: 'New'
+    },
+    {
+      id: 'digital-documents',
+      icon: 'description',
+      title: 'Digital Document Management',
+      description: 'Comprehensive digital storage and management system for rental records, receipts, lease documents, and all property-related documentation with secure cloud backup.',
+      backgroundImage: '/images/document-management.jpeg'
+    },
+    {
+      id: 'verified-vacancy',
+      icon: 'verified',
+      title: 'Verified Vacancy System',
+      description: 'Digital move-out notices system visible to both landlords and caretakers to prevent occupancy fraud and ensure transparent vacancy verification processes.',
+      backgroundImage: '/images/vacancy-system.jpeg'
+    },
+    {
+      id: 'rating-review',
+      icon: 'star_rate',
+      title: 'Rating & Review System',
+      description: 'Comprehensive rating and review platform where tenants can rate landlords and caretakers for enhanced accountability, transparency, and service quality improvement.',
+      backgroundImage: '/images/rating-system.jpeg'
+    }
+  ];
+
+  // 3-Card Carousel Variables
+  currentServiceView = 0; // 0 = first 3 cards, 1 = last 3 cards
+  serviceViews = [0, 1]; // Only 2 views for 6 services
+  serviceAutoSlideInterval: any;
+  isServiceTransitioning = false;
+  cardWidth = 382; // 350px + 32px gap
+
+  // Benefits data
+  benefits = [
+    {
+      icon: 'shield',
+      iconColor: '#3b82f6',
+      title: 'Advanced Security & Fraud Prevention',
+      description: 'Bank-level encryption, multi-factor authentication, and advanced verification systems protect against rental fraud and ensure secure transactions for all users.'
+    },
+    {
+      icon: 'speed',
+      iconColor: '#10b981',
+      title: 'Fast Processing & Automation',
+      description: 'Quick verification processes, instant notifications, automated workflows, and streamlined operations reduce administrative overhead and accelerate all transactions.'
+    },
+    {
+      icon: 'support_agent',
+      iconColor: '#f59e0b',
+      title: '24/7 Professional Support',
+      description: 'Round-the-clock dedicated customer success team available to assist with platform navigation, technical issues, and property management guidance.'
+    },
+    {
+      icon: 'analytics',
+      iconColor: '#8b5cf6',
+      title: 'Market Insights & Analytics',
+      description: 'Access comprehensive reporting, real-time market data, performance metrics, and detailed analytics to make informed rental decisions and optimize property management.'
+    },
+    {
+      icon: 'devices',
+      iconColor: '#06b6d4',
+      title: 'Cross-Platform Accessibility',
+      description: 'Responsive web application and mobile apps ensure seamless access across all devices, operating systems, and screen sizes for maximum convenience.'
+    },
+    {
+      icon: 'gavel',
+      iconColor: '#dc2626',
+      title: 'Legal Compliance & Protection',
+      description: 'Full adherence to Kenyan property laws and regulations with built-in compliance monitoring, legal document templates, and regulatory reporting features.'
     }
   ];
 
@@ -124,14 +171,17 @@ export class HomeComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.setupScrollAnimations();
       this.startHeroCarousel();
+      this.startServiceSlideshow();
       this.updateSlideClasses();
     }, 100);
   }
 
   ngOnDestroy(): void {
     this.stopHeroCarousel();
+    this.stopServiceSlideshow();
   }
 
+  // ===== HERO CAROUSEL METHODS =====
   startHeroCarousel(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextSlide();
@@ -184,7 +234,85 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.startHeroCarousel();
   }
 
-  // Method to scroll to a specific section
+  // ===== 3-CARD SERVICES CAROUSEL METHODS =====
+  startServiceSlideshow(): void {
+    this.serviceAutoSlideInterval = setInterval(() => {
+      this.nextServiceView();
+    }, 4000);
+  }
+
+  stopServiceSlideshow(): void {
+    if (this.serviceAutoSlideInterval) {
+      clearInterval(this.serviceAutoSlideInterval);
+    }
+  }
+
+  nextServiceView(): void {
+    if (this.isServiceTransitioning) return;
+    
+    this.isServiceTransitioning = true;
+    
+    if (this.currentServiceView === 0) {
+      // Move from first 3 to last 3
+      this.currentServiceView = 1;
+      setTimeout(() => {
+        this.isServiceTransitioning = false;
+      }, 800);
+    } else {
+      // Move from last 3 back to first 3 with seamless loop
+      this.performSeamlessLoop();
+    }
+  }
+
+  private performSeamlessLoop(): void {
+    // This will be handled by the CSS transform in getCarouselPosition()
+    // First show the duplicate cards at the end
+    this.currentServiceView = 2; // Temporary state for duplicates
+    
+    setTimeout(() => {
+      // Then instantly reset to beginning without animation
+      this.currentServiceView = 0;
+      this.isServiceTransitioning = false;
+    }, 800);
+  }
+
+  goToServiceView(viewIndex: number): void {
+    if (this.isServiceTransitioning) return;
+    
+    this.currentServiceView = viewIndex;
+    this.resetServiceAutoSlide();
+  }
+
+  resetServiceAutoSlide(): void {
+    this.stopServiceSlideshow();
+    this.startServiceSlideshow();
+  }
+
+  getCarouselPosition(): number {
+    // Calculate position based on current view
+    // View 0: cards 3,4,5 (first 3 real services) = -1146px
+    // View 1: cards 6,7,8 (last 3 real services) = -2292px  
+    // View 2: cards 9,10,11 (duplicate cards) = -3438px
+    const positions = [-1146, -2292, -3438];
+    return positions[this.currentServiceView] || -1146;
+  }
+
+  // Helper methods for template
+  getFirstThreeServices() {
+    return this.services.slice(0, 3);
+  }
+
+  getLastThreeServices() {
+    return this.services.slice(-3);
+  }
+
+  onServiceCardClick(serviceId: string): void {
+    console.log('Service clicked:', serviceId);
+    // Navigate to service detail or show modal
+    this.router.navigate(['/services', serviceId]);
+  }
+
+  // ===== NAVIGATION METHODS =====
   scrollToSection(sectionId: string): void {
     if (!this.isBrowser) return;
     const element = document.getElementById(sectionId);
@@ -196,16 +324,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Method to handle service "Learn More" clicks
-  learnMoreAboutService(serviceId: string): void {
-    // Navigate to features page with specific service highlighted
-    this.router.navigate(['/features'], { 
-      queryParams: { service: serviceId },
-      fragment: serviceId 
-    });
-  }
-
-  // Navigation methods
   navigateToFeatures(): void {
     this.scrollToSection('services');
   }
@@ -230,6 +348,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/registration']);
   }
 
+  navigateToLanding() {
+    this.showUninvitedMessage = false;
+    this.router.navigate(['/home']);
+  }
+
+  contactLandlord() {
+    this.router.navigate(['/contact']);
+  }
+
+  // ===== UTILITY METHODS =====
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     if (!this.isBrowser) return;
@@ -261,7 +389,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     );
 
     setTimeout(() => {
-      const animateElements = document.querySelectorAll('.stat-item, .service-card, .benefit-item');
+      const animateElements = document.querySelectorAll('.stat-item, .service-slide, .benefit-item');
       animateElements.forEach(el => {
         const target = el as HTMLElement;
         target.style.opacity = '0';
@@ -279,33 +407,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     else if (event.key === 'Escape' && this.isMobileMenuOpen) this.isMobileMenuOpen = false;
   }
 
+  // ===== INVITATION SYSTEM =====
   onGetStartedClick(role: string, invitationToken?: string) {
     if (role === 'tenant' || role === 'caretaker') {
       if (!invitationToken || !this.isValidInvitation(invitationToken)) {
-        // Show uninvited message
         this.showUninvitedMessage = true;
         return;
       } else {
-        // invited user
         this.router.navigate(['/register'], { queryParams: { token: invitationToken } });
       }
     } else {
-      // Landlord / Business
       this.router.navigate(['/register'], { queryParams: { role } });
     }
   }
 
-  navigateToLanding() {
-    this.showUninvitedMessage = false;
-    this.router.navigate(['/home']);
-  }
-
-  contactLandlord() {
-    this.router.navigate(['/contact']);
-  }
-
   isValidInvitation(token: string): boolean {
-    // TODO: Replace with actual backend check
+    // Implement your invitation validation logic
     return false;
   }
 }
