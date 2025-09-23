@@ -28,7 +28,6 @@ export class AuthService {
   private platformId = inject(PLATFORM_ID);
   private isBrowser: boolean;
 
-  // FIXED: Updated API URL to the working one
   private readonly apiUrl = 'https://rentease-nch9.onrender.com/api/auth';
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
