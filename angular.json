@@ -5,109 +5,72 @@
   "projects": {
     "RentEase": {
       "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        },
-        "@schematics/angular:application": {
-          "strict": true
-        }
-      },
+      "schematics": {},
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular/build:application",
           "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
             "outputPath": "dist/RentEase/browser",
             "index": "src/index.html",
-            "main": "src/main.ts",
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
+              "src/favicon.ico",
               {
                 "glob": "**/*",
                 "input": "public",
                 "output": "/"
-              },
-              {
-                "glob": "favicon.ico",
-                "input": "src",
-                "output": "/"
-              },
-              {
-                "glob": "**/*",
-                "input": "src/assets",
-                "output": "/assets"
               }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/custom-theme.scss",
               "src/global.scss"
             ],
             "scripts": [],
-            "allowedCommonJsDependencies": [
-              "@grpc/grpc-js",
-              "@grpc/proto-loader",
-              "firebase",
-              "@firebase/firestore",
-              "lodash",
-              "moment"
-            ],
-            "stylePreprocessorOptions": {
-              "includePaths": [
-                "src",
-                "src/styles",
-                "src/assets/styles"
-              ]
-            },
-            "optimization": {
-              "fonts": { "inline": false },
-              "scripts": true,
-              "styles": { "minify": true, "inlineCritical": true }
-            },
-            "extractLicenses": false,
-            "sourceMap": false,
-            "namedChunks": false
+            "ssr": false,
+            "prerender": false
           },
           "configurations": {
             "production": {
-              "fileReplacements": [
+              "budgets": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "type": "initial",
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "20kB",
+                  "maximumError": "50kB"
                 }
               ],
-              "optimization": {
-                "fonts": { "inline": false },
-                "scripts": true,
-                "styles": { "minify": true, "inlineCritical": true }
-              },
-              "extractLicenses": true,
-              "sourceMap": false,
-              "namedChunks": false,
               "outputHashing": "all",
-              "budgets": [
-                { "type": "initial", "maximumWarning": "2MB", "maximumError": "5MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "50kB", "maximumError": "100kB" }
-              ]
+              "optimization": true,
+              "sourceMap": false,
+              "ssr": false,
+              "prerender": false
             },
             "development": {
-              "optimization": {
-                "fonts": { "inline": false },
-                "scripts": false,
-                "styles": { "minify": false, "inlineCritical": false }
-              },
+              "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "ssr": false,
+              "prerender": false
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "RentEase:build:production"
@@ -119,52 +82,28 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "RentEase:build"
-          }
+          "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:karma",
           "options": {
-            "main": "src/test.ts",
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
             "assets": [
-              { "glob": "**/*", "input": "public", "output": "/" },
-              { "glob": "favicon.ico", "input": "src", "output": "/" },
-              { "glob": "**/*", "input": "src/assets", "output": "/assets" }
+              {
+                "glob": "**/*",
+                "input": "public",
+                "output": "/"
+              }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/custom-theme.scss",
               "src/global.scss"
-            ],
-            "scripts": [],
-            "stylePreprocessorOptions": {
-              "includePaths": [
-                "src",
-                "src/styles",
-                "src/assets/styles"
-              ]
-            }
+            ]
           }
         }
       }
     }
   },
   "cli": {
-    "analytics": "53e67b0e-f8ad-40ea-8865-44a0b9c7bb97",
-    "schematicCollections": ["@angular-eslint/schematics"],
-    "packageManager": "npm"
-  },
-  "schematics": {
-    "@angular/cli:component": { "style": "scss", "skipTests": false },
-    "@angular/cli:directive": { "skipTests": false },
-    "@angular/cli:guard": { "skipTests": false },
-    "@angular/cli:pipe": { "skipTests": false },
-    "@angular/cli:service": { "skipTests": false },
-    "@angular-eslint/schematics:application": { "setParserOptionsProject": true },
-    "@angular-eslint/schematics:library": { "setParserOptionsProject": true }
+    "analytics": false
   }
 }

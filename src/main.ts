@@ -1,18 +1,26 @@
-import 'zone.js';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { authInterceptor } from './app/interceptors/auth.interceptor';
 
-bootstrapApplication(App, {
+console.log('🚀 Starting Angular bootstrap...');
+
+// Force disable hydration
+const config = {
   ...appConfig,
   providers: [
-    ...(appConfig.providers || []),
-    // FIXED: Use the modern functional interceptor approach
-    provideHttpClient(
-      withInterceptors([authInterceptor])
-    )
+    ...appConfig.providers
+    // Explicitly no hydration providers
   ]
-})
-.catch((err) => console.error(err));
+};
+
+bootstrapApplication(App, config)
+  .then(() => {
+    console.log('✅ Angular bootstrapped successfully!');
+    console.log('🏠 App component should be rendering now...');
+  })
+  .catch((err) => {
+    console.error('❌ Bootstrap FAILED:');
+    console.error('Error details:', err);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+  });

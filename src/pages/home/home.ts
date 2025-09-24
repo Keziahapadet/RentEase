@@ -1,4 +1,3 @@
-// home.component.ts
 import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -102,11 +101,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   ];
 
   // 3-Card Carousel Variables
-  currentServiceView = 0; // 0 = first 3 cards, 1 = last 3 cards
-  serviceViews = [0, 1]; // Only 2 views for 6 services
+  currentServiceView = 0;
+  serviceViews = [0, 1];
   serviceAutoSlideInterval: any;
   isServiceTransitioning = false;
-  cardWidth = 382; // 350px + 32px gap
+  cardWidth = 382;
 
   // Benefits data
   benefits = [
@@ -253,24 +252,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isServiceTransitioning = true;
     
     if (this.currentServiceView === 0) {
-      // Move from first 3 to last 3
       this.currentServiceView = 1;
       setTimeout(() => {
         this.isServiceTransitioning = false;
       }, 800);
     } else {
-      // Move from last 3 back to first 3 with seamless loop
       this.performSeamlessLoop();
     }
   }
 
   private performSeamlessLoop(): void {
-    // This will be handled by the CSS transform in getCarouselPosition()
-    // First show the duplicate cards at the end
-    this.currentServiceView = 2; // Temporary state for duplicates
+    this.currentServiceView = 2;
     
     setTimeout(() => {
-      // Then instantly reset to beginning without animation
       this.currentServiceView = 0;
       this.isServiceTransitioning = false;
     }, 800);
@@ -289,15 +283,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   getCarouselPosition(): number {
-    // Calculate position based on current view
-    // View 0: cards 3,4,5 (first 3 real services) = -1146px
-    // View 1: cards 6,7,8 (last 3 real services) = -2292px  
-    // View 2: cards 9,10,11 (duplicate cards) = -3438px
     const positions = [-1146, -2292, -3438];
     return positions[this.currentServiceView] || -1146;
   }
 
-  // Helper methods for template
   getFirstThreeServices() {
     return this.services.slice(0, 3);
   }
@@ -308,7 +297,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   onServiceCardClick(serviceId: string): void {
     console.log('Service clicked:', serviceId);
-    // Navigate to service detail or show modal
     this.router.navigate(['/services', serviceId]);
   }
 
@@ -425,4 +413,4 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Implement your invitation validation logic
     return false;
   }
-}
+} 

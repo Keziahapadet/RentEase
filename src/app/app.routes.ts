@@ -1,5 +1,4 @@
-// src/app/app.routes.ts
-import { Routes, provideRouter, withInMemoryScrolling } from '@angular/router';
+import { Routes } from '@angular/router';
 
 // Public pages
 import { HomeComponent } from '../pages/home/home';
@@ -81,14 +80,4 @@ export const routes: Routes = [
   { path: 'privacy', component: PrivacyComponent },
 
   { path: '**', redirectTo: '/' }
-];
-
-export const appRouterProviders = [
-  provideRouter(
-    routes,
-    withInMemoryScrolling({
-      scrollPositionRestoration: 'top',
-      anchorScrolling: 'enabled'
-    })
-  )
 ];
