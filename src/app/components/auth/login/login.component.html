@@ -1,49 +1,51 @@
 <div class="login-page">
   <div class="login-card">
-    <!-- Logo + Title -->
     <div class="logo-title">
       <img src="/images/logo.png" alt="RentEase Logo" />
       <h2>Login</h2>
     </div>
 
-   
-    <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
-    <div *ngIf="successMessage" class="alert-success">{{ successMessage }}</div>
-
-    
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
-
-   
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email</mat-label>
-        <input matInput type="email" [(ngModel)]="loginData.email" name="email" [disabled]="isLoading" />
+        <input 
+          matInput 
+          type="email" 
+          [(ngModel)]="loginData.email" 
+          name="email" 
+          required 
+          [disabled]="isLoading" />
       </mat-form-field>
-
-   
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
-        <input matInput [type]="showPassword ? 'text' : 'password'" [(ngModel)]="loginData.password" name="password" [disabled]="isLoading" />
+        <input 
+          matInput 
+          [type]="showPassword ? 'text' : 'password'" 
+          [(ngModel)]="loginData.password" 
+          name="password" 
+          required 
+          [disabled]="isLoading" />
         <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
           <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
       </mat-form-field>
-
-     
-      <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe" [disabled]="isLoading">Remember Me</mat-checkbox>
-
-       <p class="forgot-password-link">         
-        <a href="#" (click)="navigateToForgotPassword(); $event.preventDefault()" style="cursor: pointer;">Forgot Password?</a>       
+      <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe" [disabled]="isLoading">
+        Remember Me
+      </mat-checkbox>
+      <p class="forgot-password-link">
+        <a href="#" (click)="navigateToForgotPassword(); $event.preventDefault()">Forgot Password?</a>
       </p>
-
-     
-      <button mat-raised-button color="primary" class="full-width submit-btn" 
-              [disabled]="isLoading || !loginForm.valid">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        class="full-width submit-btn"
+        [disabled]="isLoading || !isFormValid">
         {{ isLoading ? 'Logging in...' : 'Login' }}
       </button>
     </form>
-
-    <p class="register-link">       
-      Don't have an account? <a href="#" (click)="navigateToRegister(); $event.preventDefault()" style="cursor: pointer;">Register</a>     
-    </p>  
+    <p class="register-link">
+      Don’t have an account?
+      <a href="#" (click)="navigateToRegister(); $event.preventDefault()">Register</a>
+    </p>
   </div>
 </div>

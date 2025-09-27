@@ -29,7 +29,7 @@ export interface ActivityItem {
   styleUrls: ['./dashboard-overview.component.scss']
 })
 export class DashboardOverviewComponent implements OnInit, OnChanges {
-  // Input properties from parent component
+
   @Input() depositAmount!: number;
   @Input() rentAmount!: number;
   @Input() propertyAddress!: string;
@@ -38,12 +38,11 @@ export class DashboardOverviewComponent implements OnInit, OnChanges {
   @Input() collapsedSections!: Set<string>;
   @Input() animatingSections!: Set<string>;
   
-  // Output events to parent component
   @Output() sectionToggle = new EventEmitter<string>();
   @Output() actionClick = new EventEmitter<string>();
   @Output() paymentClick = new EventEmitter<void>();
   
-  // Component state
+ 
   recentActivities: ActivityItem[] = [
     {
       id: '1',
@@ -79,7 +78,7 @@ export class DashboardOverviewComponent implements OnInit, OnChanges {
     }
   ];
 
-  // Quick actions configuration
+  
   quickActions = [
     {
       id: 'payment',
@@ -115,7 +114,9 @@ export class DashboardOverviewComponent implements OnInit, OnChanges {
     }
   ];
 
-  // Computed properties
+
+  
+
   get nextRentDueDate(): string {
     const today = new Date();
     const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 15);
@@ -157,8 +158,6 @@ export class DashboardOverviewComponent implements OnInit, OnChanges {
       this.updateTimelineProgress();
     }
   }
-
-  // Validation methods
   private validateInputs(): void {
     if (!this.depositAmount || this.depositAmount <= 0) {
       console.warn('Invalid deposit amount provided to dashboard overview');
@@ -171,16 +170,14 @@ export class DashboardOverviewComponent implements OnInit, OnChanges {
     }
   }
 
-  // Data loading methods
+
   private loadDashboardData(): void {
-    // Load additional dashboard data if needed
-    // This could include recent activities, notifications, etc.
+  
     this.refreshActivities();
   }
 
   private refreshActivities(): void {
-    // In a real application, this would fetch from a service
-    // For now, we'll update timestamps to be more dynamic
+
     this.recentActivities = this.recentActivities.map(activity => ({
       ...activity,
       time: this.formatRelativeTime(activity.time)
@@ -188,14 +185,15 @@ export class DashboardOverviewComponent implements OnInit, OnChanges {
   }
 
   private updateTimelineProgress(): void {
-    // Update timeline completion status if needed
+   
     if (this.depositTimeline) {
       const completedCount = this.depositTimeline.filter(event => event.completed).length;
       console.log(`Timeline progress: ${completedCount}/${this.depositTimeline.length} completed`);
     }
   }
 
-  // Utility methods
+
+  
   formatNumber(num: number): string {
     if (!num || isNaN(num)) return '0';
     return new Intl.NumberFormat('en-KE').format(num);
@@ -210,7 +208,8 @@ export class DashboardOverviewComponent implements OnInit, OnChanges {
     return 'Secured & Protected';
   }
 trackByActivityId(index: number, activity: any): string {
-  return activity.id; // assuming each activity has a unique 'id'
+  return activity.id; 
+  
 }
 
   getActivityIconClass(type: string): string {
@@ -224,12 +223,12 @@ trackByActivityId(index: number, activity: any): string {
   }
 
   private formatRelativeTime(timeString: string): string {
-    // Simple relative time formatting
-    // In a real app, you might use a library like date-fns or moment.js
+    
     return timeString;
   }
 
-  // Section management methods
+
+  
   isSectionCollapsed(sectionId: string): boolean {
     return this.collapsedSections?.has(sectionId) || false;
   }
@@ -242,13 +241,12 @@ trackByActivityId(index: number, activity: any): string {
     this.sectionToggle.emit(sectionId);
   }
 
-  // Navigation methods
+
   navigateToSection(section: string): void {
     console.log(`Navigating to section: ${section}`);
     this.actionClick.emit(section);
   }
 
-  // Action methods
   makePayment(): void {
     console.log('Initiating payment from dashboard overview');
     this.paymentClick.emit();
@@ -262,7 +260,7 @@ trackByActivityId(index: number, activity: any): string {
     this.navigateToSection('payments');
   }
 
-  // Timeline methods
+ 
   getTimelineCompletionPercentage(): number {
     if (!this.depositTimeline || this.depositTimeline.length === 0) return 0;
     
@@ -279,7 +277,8 @@ trackByActivityId(index: number, activity: any): string {
     return this.depositTimeline?.length || 0;
   }
 
-  // Activity methods
+
+  
   getRecentActivitiesCount(): number {
     return this.recentActivities.length;
   }
@@ -288,7 +287,8 @@ trackByActivityId(index: number, activity: any): string {
     return this.recentActivities.length > 0;
   }
 
-  // Quick action methods
+ 
+  
   executeQuickAction(actionId: string): void {
     const action = this.quickActions.find(a => a.id === actionId);
     if (action && action.action) {
@@ -296,23 +296,28 @@ trackByActivityId(index: number, activity: any): string {
     }
   }
 
-  // Property details methods
+
+  
+
   getPropertySummary(): string {
     return `${this.propertyAddress} • Landlord: ${this.landlordName}`;
   }
 
-  // Error handling
+
+  
   handleError(error: any, context: string): void {
     console.error(`Error in dashboard overview - ${context}:`, error);
   }
 
-  // Accessibility methods
+  
+  
   getAriaLabel(sectionId: string): string {
     const collapsed = this.isSectionCollapsed(sectionId);
     return `${collapsed ? 'Expand' : 'Collapse'} ${sectionId} section`;
   }
 
-  // Animation and UI helpers
+
+  
   getSectionClasses(sectionId: string): string {
     let classes = 'card collapsible-card';
     
@@ -327,14 +332,13 @@ trackByActivityId(index: number, activity: any): string {
     return classes;
   }
 
-  // Data refresh methods
+ 
   refreshData(): void {
     this.loadDashboardData();
     console.log('Dashboard overview data refreshed');
   }
 
-  // Component cleanup
+
   onDestroy(): void {
-    // Cleanup any subscriptions or timers if needed
   }
 }

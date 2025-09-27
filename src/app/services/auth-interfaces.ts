@@ -1,18 +1,47 @@
 
+export enum UserRole {
+  TENANT = 'TENANT',
+  LANDLORD = 'LANDLORD',
+  CARETAKER = 'CARETAKER',
+  BUSINESS = 'BUSINESS',
+  ADMIN = 'ADMIN'
+}
+export interface Unit {
+  id: string | number;
+  unitNumber: string;       
+  unitType: string;         
+  rentAmount: number;        
+  deposit: number;          
+  description?: string; 
+
+  status?: 'occupied' | 'vacant' | 'maintenance' | 'reserved';
+  tenant?: {
+    id?: string;
+    name?: string;
+    email?: string;
+  } | null; 
+  
+ 
+  type?: string;         
+  rent?: number;           
+  bedrooms?: number;      
+  bathrooms?: number;     
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
 export interface User {
-  id: string | number; // backend gives userId: number
+  id: string | number; 
   email: string;
   fullName: string;
   phoneNumber?: string;
-  role: UserRole | string; // typed enum + string fallback
+  role: UserRole | string; 
   avatar?: string;
   emailVerified?: boolean;
-  verified?: boolean; // matches backend response field
+  verified?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
-// ================= AUTH REQUEST INTERFACES =================
 
 export interface LoginRequest {
   email: string;
@@ -27,12 +56,9 @@ export interface RegisterRequest {
   fullName: string;
   phoneNumber: string;
   role: UserRole | string;
-  accessCode?: string; // Only for ADMIN registration
+  accessCode?: string; 
 }
 
-// ================= AUTH RESPONSE INTERFACES =================
-
-// Unified login response (LANDLORD, TENANT, CARETAKER, BUSINESS, ADMIN)
 export interface AuthResponse {
   token: string;
   tokenType: string;
@@ -44,17 +70,17 @@ export interface AuthResponse {
   refreshToken?: string;
   expiresIn?: number;
   message?: string;
+  success?: boolean;
+  user?: User;
 }
 
-// Registration response
 export interface RegisterResponse {
   user?: User;
   message: string;
   success: boolean;
-  token?: string; // only for ADMIN, if returned
+  token?: string; 
 }
 
-// ================= PASSWORD RESET INTERFACES =================
 
 export interface PasswordResetRequest {
   email: string;
@@ -72,7 +98,6 @@ export interface ChangePasswordRequest {
   confirmPassword: string;
 }
 
-// ================= OTP INTERFACES =================
 
 export interface OtpRequest {
   email: string;
@@ -81,18 +106,28 @@ export interface OtpRequest {
 
 export interface OtpVerifyRequest {
   email: string;
-  otpCode: string; // FIXED: Changed from 'otp' to 'otpCode' to match server expectation
+  otpCode: string; 
   type: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification';
 }
 
 export interface OtpResponse {
   success: boolean;
   message: string;
-  token?: string; // Optional token for certain verification types
-  user?: User;    // FIXED: Added user data returned on successful email verification
+  token?: string; 
+  user?: User; 
 }
 
-// ================= PROPERTY INTERFACES =================
+
+
+
+export interface UnitRequest {
+  unitNumber: string;
+  unitType: string;
+  rentAmount: number;
+  deposit: number;
+  unitDescription?: string;
+}
+
 
 export interface PropertyRequest {
   name: string;
@@ -100,13 +135,16 @@ export interface PropertyRequest {
   propertyType: string;
   totalUnits: number;
   description?: string;
+  units?: UnitRequest[]; 
 }
+
 
 export interface PropertyResponse {
   success: boolean;
   message: string;
   property?: Property;
 }
+
 export interface Property {
   id: string;
   name: string;
@@ -115,34 +153,67 @@ export interface Property {
   totalUnits: number;
   description?: string;
   ownerId: string;
-  createdAt: string;  // must match everywhere
-  updatedAt: string;  // must match everywhere
-  status?: 'active' | 'inactive' | 'maintenance'; // optional, needed for template
+  createdAt: string; 
+  updatedAt: string; 
+  status?: 'active' | 'inactive' | 'maintenance'; 
 }
 
-// ================= OTHER INTERFACES =================
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  token?: string;
+  user?: User;
+}
 
 export interface ApiErrorResponse {
   message: string;
   status: number;
   timestamp?: string;
   path?: string;
+  error?: string;
 }
 
-// Enum for user roles
-export enum UserRole {
-  TENANT = 'TENANT',
-  CARETAKER = 'CARETAKER',
-  LANDLORD = 'LANDLORD',
-  BUSINESS = 'BUSINESS',
-  ADMIN = 'ADMIN'
-}
-
-// Auth state interface (used for NgRx or local state)
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
   error: string | null;
+}
+
+
+export type AuthenticationStatus = 'authenticated' | 'unauthenticated' | 'pending';
+
+export type UserRoleType = keyof typeof UserRole;
+
+
+export interface ValidationErrors {
+  [key: string]: string | boolean;
+}
+
+export interface FormFieldError {
+  field: string;
+  message: string;
+}
+
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  message: string;
+  data: T[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  };
+}
+
+export interface SearchResponse<T> extends PaginatedResponse<T> {
+  query: string;
+  filters?: Record<string, any>;
 }

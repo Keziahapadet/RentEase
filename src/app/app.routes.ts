@@ -1,6 +1,4 @@
 import { Routes } from '@angular/router';
-
-// Public pages
 import { HomeComponent } from '../pages/home/home';
 import { RegistrationComponent } from './components/auth/registration/registration.component';
 import { LoginComponent } from './components/auth/login/login.component';
@@ -11,8 +9,6 @@ import { ContactComponent } from '../pages/contacts/contacts';
 import { TermsComponent } from '../pages/terms/terms';
 import { PrivacyComponent } from '../pages/privacy/privacy';
 import { AboutComponent } from '../pages/about/about';
-
-// Tenant dashboard
 import { TenantDashboardComponent } from './components/dashboard/tenant/tenant-dashboard/tenant-dashboard.component';
 import { DepositComponent } from './components/dashboard/tenant/deposit/deposit.component';
 import { PaymentsComponent } from './components/dashboard/tenant/payments/payments.component';
@@ -22,8 +18,6 @@ import { MessagesComponent } from './components/dashboard/tenant/messages/messag
 import { MarketplaceComponent } from './components/dashboard/tenant/marketplace/marketplace.component';
 import { ReviewComponent } from './components/dashboard/tenant/review/review.component';
 import { SettingsComponent } from './components/dashboard/tenant/settings/settings.component';
-
-// Landlord dashboard
 import { LandlordDashboardComponent } from './components/dashboard/landlord/landlord-dashboard/landlord-dashboard';
 import { FinancialsComponent } from './components/dashboard/landlord/landlord-dashboard/financials/financials';
 import { InvoicesComponent } from './components/dashboard/landlord/landlord-dashboard/financials/invoices/invoices';
@@ -37,8 +31,6 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'verify-otp', component: VerifyOtpComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-
-  // Tenant dashboard
   {
     path: 'tenant-dashboard',
     component: TenantDashboardComponent,
@@ -55,8 +47,6 @@ export const routes: Routes = [
       { path: 'settings', component: SettingsComponent }
     ]
   },
-
-  // Landlord dashboard
   {
     path: 'landlord-dashboard',
     component: LandlordDashboardComponent,

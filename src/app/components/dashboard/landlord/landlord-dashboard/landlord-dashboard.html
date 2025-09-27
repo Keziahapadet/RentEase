@@ -1,4 +1,4 @@
-<!-- landlord-dashboard.component.html - OPTION 2: Hybrid Approach (Minimal Changes) -->
+
 <div class="dashboard-container">
   <div class="mobile-menu-overlay" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
   <nav class="sidebar" [class.mobile-open]="isMobileMenuOpen">
@@ -24,13 +24,10 @@
     </div>
 
     <div class="nav-menu">
-      <!-- Dashboard -->
       <div class="nav-item" [class.active]="currentSection === 'dashboard'" (click)="navigateToSection('dashboard')">
         <mat-icon>dashboard</mat-icon>
         <span>Dashboard</span>
       </div>
-
-      <!-- Financials -->
       <div class="nav-section">
         <div class="nav-item expandable" (click)="toggleMenu('financials')">
           <mat-icon>payments</mat-icon>
@@ -58,51 +55,41 @@
           </div>
         </div>
       </div>
-
-      <!-- Tenants -->
       <div class="nav-item" [class.active]="currentSection === 'tenants'" (click)="navigateToTenants()">
         <mat-icon>groups</mat-icon>
         <span>Tenants</span>
       </div>
-
-      <!-- Property -->
       <div class="nav-item" [class.active]="currentSection === 'properties'" (click)="navigateToSection('properties')">
         <mat-icon>apartment</mat-icon>
         <span>Properties</span>
       </div>
-
-      <!-- Communication -->
       <div class="nav-item" [class.active]="currentSection === 'messages'" (click)="navigateToSection('messages')">
         <mat-icon>message</mat-icon>
         <span>Communication</span>
         <span class="notification-dot">3</span>
       </div>
 
-      <!-- Documents -->
       <div class="nav-item" [class.active]="currentSection === 'documents'" (click)="navigateToSection('documents')">
         <mat-icon>description</mat-icon>
         <span>Documents</span>
       </div>
 
-      <!-- Marketplace -->
+      
       <div class="nav-item" [class.active]="currentSection === 'marketplace'" (click)="navigateToSection('marketplace')">
         <mat-icon>storefront</mat-icon>
         <span>Marketplace</span>
       </div>
 
-      <!-- Reviews & Ratings -->
       <div class="nav-item" [class.active]="currentSection === 'reviews'" (click)="navigateToSection('reviews')">
         <mat-icon>star_rate</mat-icon>
         <span>Reviews & Ratings</span>
       </div>
 
-      <!-- Reports -->
       <div class="nav-item" [class.active]="currentSection === 'reports'" (click)="navigateToSection('reports')">
         <mat-icon>analytics</mat-icon>
         <span>Reports</span>
       </div>
 
-      <!-- Settings -->
       <div class="nav-section">
         <div class="nav-item expandable" (click)="toggleMenu('settings')">
           <mat-icon>settings</mat-icon>
@@ -132,7 +119,6 @@
       </div>
     </div>
 
-    <!-- Bottom Actions -->
     <div class="sidebar-footer">
       <div class="nav-item">
         <mat-icon>help</mat-icon>
@@ -145,14 +131,10 @@
     </div>
   </nav>
 
-  <!-- Main Content Area -->
   <main class="main-content">
-    <!-- Mobile Menu Button -->
     <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
       <mat-icon>menu</mat-icon>
     </button>
-
-    <!-- Dashboard Home Content (only shows when currentSection is 'dashboard') -->
     <div *ngIf="currentSection === 'dashboard'" class="dashboard-home">
       <div class="content-header">
         <div class="header-left">
@@ -171,9 +153,8 @@
         </div>
       </div>
 
-      <!-- Dashboard Content -->
+   
       <div class="dashboard-content">
-        <!-- Stats Grid -->
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-header">
@@ -232,9 +213,7 @@
           </div>
         </div>
 
-        <!-- Content Grid -->
         <div class="content-grid">
-          <!-- Recent Activity -->
           <div class="content-card">
             <div class="card-header">
               <h3>Recent Activity</h3>
@@ -255,7 +234,6 @@
             </div>
           </div>
 
-          <!-- Quick Stats -->
           <div class="content-card">
             <div class="card-header">
               <h3>Quick Stats</h3>
@@ -278,11 +256,7 @@
         </div>
       </div>
     </div>
-
-    <!-- Router Outlet for ALL routed components (financials, property, etc.) -->
     <router-outlet></router-outlet>
-
-    <!-- UPDATED: Placeholder for sections that don't have routing yet -->
     <div *ngIf="isPlaceholderSection()" class="section-content">
       <div class="placeholder-content">
         <h2>{{ getSectionTitle(currentSection) }}</h2>

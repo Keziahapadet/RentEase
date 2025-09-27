@@ -1,140 +1,356 @@
 <div class="property-create-container">
-  <!-- Header -->
   <div class="page-header">
-    <div class="header-content">
-      <button class="back-button" (click)="onCancel()" type="button" [disabled]="isSubmitting">
-        <mat-icon>arrow_back</mat-icon>
-        <span>Back to Properties</span>
-      </button>
-      <div class="header-text">
-        <h1>Create New Property</h1>
-        <p>Add a new property to your portfolio</p>
+    <h1>Create New Property</h1>
+    <p>Set up your property details and manage units efficiently</p>
+  </div>
+
+  <div class="stats-section">
+    <h3>Property Summary</h3>
+    <div class="stats-grid">
+      <div class="stat-card" (click)="scrollToUnits()">
+        <div class="stat-value">{{ propertyForm.get('totalUnits')?.value || 0 }}</div>
+        <div class="stat-label">Total Units</div>
+      </div>
+      <div class="stat-card" (click)="scrollToUnits()">
+        <div class="stat-value">{{ units.length }}</div>
+        <div class="stat-label">Created Units</div>
+      </div>
+      <div class="stat-card" (click)="scrollToUnits()">
+        <div class="stat-value">{{ monthlyRevenue | currency:'KES':'symbol':'1.0-0' }}</div>
+        <div class="stat-label">Monthly Revenue</div>
+      </div>
+      <div class="stat-card" (click)="scrollToUnits()">
+        <div class="stat-value">{{ totalDeposit | currency:'KES':'symbol':'1.0-0' }}</div>
+        <div class="stat-label">Total Deposit</div>
       </div>
     </div>
   </div>
 
-  <!-- Debug Info (Remove in production) -->
-  <div class="debug-info" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 13px;">
-    <h4 style="color: #495057; margin: 0 0 12px 0; font-size: 16px;">🐛 Debug Information</h4>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-      <div><strong>User:</strong> {{ authService.getCurrentUser()?.email || 'Not logged in' }}</div>
-      <div><strong>Role:</strong> {{ authService.getCurrentUser()?.role || 'No role' }}</div>
-      <div><strong>User ID:</strong> {{ authService.getCurrentUser()?.id || 'No ID' }}</div>
-      <div><strong>Verified:</strong> {{ authService.getCurrentUser()?.verified ? 'Yes' : 'No' }}</div>
-      <div><strong>Has Token:</strong> {{ !!authService.getToken() ? 'Yes' : 'No' }}</div>
-      <div><strong>Is Authenticated:</strong> {{ authService.isAuthenticated() ? 'Yes' : 'No' }}</div>
-      <div><strong>Can Manage:</strong> {{ propertyService.canManageProperties() ? 'Yes' : 'No' }}</div>
-      <div><strong>Token Length:</strong> {{ authService.getToken()?.length || 0 }}</div>
-    </div>
-    <button type="button" (click)="refreshPermissions()" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 12px;">Refresh Permissions</button>
-  </div>
 
-  <!-- Success Message -->
-  <div *ngIf="successMessage" class="alert alert-success">
-    <mat-icon>check_circle</mat-icon>
-    {{ successMessage }}
-  </div>
+  <form [formGroup]="propertyForm" (ngSubmit)="onSubmit()">
+    <div class="form-container">
 
-  <!-- Error Message -->
-  <div *ngIf="errorMessage" class="alert alert-error">
-    <mat-icon>error</mat-icon>
-    {{ errorMessage }}
-  </div>
+      <div class="property-details">
+        <div class="section-title">
+          <mat-icon>apartment</mat-icon>
+          <span>Property Information</span>
+        </div>
 
-  <!-- Form -->
-  <form [formGroup]="propertyForm" (ngSubmit)="onSubmit()" class="property-form">
-    
-    <!-- Property Name -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Property Name</mat-label>
-      <input matInput 
-             formControlName="name" 
-             placeholder="Enter property name"
-             maxlength="100">
-      <mat-icon matSuffix>business</mat-icon>
-      <mat-error *ngIf="hasFieldError('name')">
-        {{ getErrorMessage('name') }}
-      </mat-error>
-    </mat-form-field>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="propertyName">
+              <mat-icon>badge</mat-icon>
+              Property Name *
+            </label>
+            <input type="text" id="propertyName" placeholder="e.g., The Heights Apartments" 
+                   formControlName="name" required>
+            <div class="error-message" *ngIf="hasFieldError('name')">
+              <mat-icon>error</mat-icon>
+              {{ getErrorMessage('name') }}
+            </div>
+          </div>
 
-    <!-- Location -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Location</mat-label>
-      <input matInput 
-             formControlName="location" 
-             placeholder="Enter property location"
-             maxlength="200">
-      <mat-icon matSuffix>location_on</mat-icon>
-      <mat-error *ngIf="hasFieldError('location')">
-        {{ getErrorMessage('location') }}
-      </mat-error>
-    </mat-form-field>
+          <div class="form-field">
+            <label for="location">
+              <mat-icon>location_on</mat-icon>
+              Location *
+            </label>
+            <input type="text" id="location" placeholder="e.g., Nairobi, Westlands" 
+                   formControlName="location" required>
+            <div class="error-message" *ngIf="hasFieldError('location')">
+              <mat-icon>error</mat-icon>
+              {{ getErrorMessage('location') }}
+            </div>
+          </div>
 
-    <!-- Property Type -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Property Type</mat-label>
-      <mat-select formControlName="propertyType">
-        <mat-option *ngFor="let type of propertyTypes" [value]="type.value">
-          {{ type.label }}
-        </mat-option>
-      </mat-select>
-      <mat-icon matSuffix>home</mat-icon>
-      <mat-error *ngIf="hasFieldError('propertyType')">
-        {{ getErrorMessage('propertyType') }}
-      </mat-error>
-    </mat-form-field>
+          <div class="form-field">
+            <label for="propertyType">
+              <mat-icon>category</mat-icon>
+              Property Type *
+            </label>
+            <select id="propertyType" formControlName="propertyType" required>
+              <option value="">Select property type</option>
+              <option *ngFor="let type of propertyTypes" [value]="type.value">{{ type.label }}</option>
+            </select>
+            <div class="error-message" *ngIf="hasFieldError('propertyType')">
+              <mat-icon>error</mat-icon>
+              {{ getErrorMessage('propertyType') }}
+            </div>
+          </div>
 
-    <!-- Total Units -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Total Units</mat-label>
-      <input matInput 
-             type="number" 
-             formControlName="totalUnits" 
-             placeholder="Enter total units"
-             min="1" 
-             max="10000">
-      <mat-icon matSuffix>apartment</mat-icon>
-      <mat-error *ngIf="hasFieldError('totalUnits')">
-        {{ getErrorMessage('totalUnits') }}
-      </mat-error>
-    </mat-form-field>
+          <div class="form-field">
+            <label for="totalUnits">
+              <mat-icon>layers</mat-icon>
+              Total Units *
+            </label>
+            <input type="number" id="totalUnits" min="1" max="1000" 
+                   formControlName="totalUnits" required>
+            <div class="error-message" *ngIf="hasFieldError('totalUnits')">
+              <mat-icon>error</mat-icon>
+              {{ getErrorMessage('totalUnits') }}
+            </div>
+            <div class="hint">Maximum units allowed for this property</div>
+          </div>
 
-    <!-- Description -->
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Description (Optional)</mat-label>
-      <textarea matInput 
-                formControlName="description" 
-                placeholder="Enter property description"
-                rows="4" 
-                maxlength="1000"></textarea>
-      <mat-icon matSuffix>description</mat-icon>
-      <mat-hint align="end" 
-               [class.text-warning]="isDescriptionNearLimit()">
-        {{ getRemainingCharacters() }} characters remaining
-      </mat-hint>
-      <mat-error *ngIf="hasFieldError('description')">
-        {{ getErrorMessage('description') }}
-      </mat-error>
-    </mat-form-field>
+          <div class="form-field full-width">
+            <label for="description">
+              <mat-icon>description</mat-icon>
+              Description
+            </label>
+            <textarea id="description" placeholder="Describe the property features, amenities, etc."
+                      formControlName="description"></textarea>
+            <div class="char-count" 
+                 [class.warning]="(propertyForm.get('description')?.value?.length || 0) > 800"
+                 [class.error]="(propertyForm.get('description')?.value?.length || 0) > 950">
+              {{ 1000 - (propertyForm.get('description')?.value?.length || 0) }} characters remaining
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- Form Actions -->
-    <div class="form-actions">
-      <button type="button" 
-              mat-stroked-button 
-              (click)="onCancel()"
-              [disabled]="isSubmitting">
-        <mat-icon>cancel</mat-icon>
-        Cancel
-      </button>
-      
-      <button type="submit" 
-              mat-raised-button 
-              color="primary"
-              [disabled]="!isFormValid">
-        <mat-icon *ngIf="!isSubmitting">save</mat-icon>
-        <mat-icon *ngIf="isSubmitting" class="spinning">hourglass_empty</mat-icon>
-        {{ isSubmitting ? 'Creating...' : 'Create Property' }}
-      </button>
+      <div class="units-section" #unitsSection>
+        <div class="section-title">
+          <mat-icon>layers</mat-icon>
+          <span>Unit Configuration</span>
+          <span class="units-count">({{ units.length }}/{{ propertyForm.get('totalUnits')?.value || 0 }} units)</span>
+        </div>
+        <div class="bulk-settings">
+          <h3>
+            <mat-icon>flash_on</mat-icon>
+            Add Multiple Units
+          </h3>
+          <p>Add units in bulk by specifying unit numbers, type and quantity</p>
+
+          <div class="bulk-grid">
+            <div class="form-field">
+              <label for="bulkUnitNumber">
+                <mat-icon>tag</mat-icon>
+                Unit Number Pattern *
+              </label>
+              <input type="text" id="bulkUnitNumber" 
+                     [(ngModel)]="bulkDefaults.unitNumber" 
+                     [ngModelOptions]="{standalone: true}"
+                     placeholder="e.g., 1A, 2B, Room 1" required>
+              <div class="hint">Enter starting unit number (e.g., 1A, 2B)</div>
+            </div>
+
+            <div class="form-field">
+              <label for="bulkUnitType">
+                <mat-icon>meeting_room</mat-icon>
+                Unit Type *
+              </label>
+              <select id="bulkUnitType" 
+                      [(ngModel)]="bulkDefaults.unitType" 
+                      [ngModelOptions]="{standalone: true}" required>
+                <option value="">Select unit type</option>
+                <option *ngFor="let type of unitTypes" [value]="type.value">{{ type.label }}</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="bulkQuantity">
+                <mat-icon>add_circle</mat-icon>
+                Quantity *
+              </label>
+              <input type="number" id="bulkQuantity" 
+                     [(ngModel)]="bulkDefaults.quantity" 
+                     [ngModelOptions]="{standalone: true}" 
+                     min="1" 
+                     [max]="getRemainingUnits()" required>
+              <div class="hint">Max: {{ getRemainingUnits() }} units remaining</div>
+            </div>
+
+            <div class="form-field">
+              <label for="bulkRent">
+                <mat-icon>payments</mat-icon>
+                Rent Amount (KES) *
+              </label>
+              <input type="number" id="bulkRent" 
+                     [(ngModel)]="bulkDefaults.rentAmount" 
+                     [ngModelOptions]="{standalone: true}" 
+                     min="1" required>
+            </div>
+
+            <div class="form-field">
+              <label for="bulkDeposit">
+                <mat-icon>security</mat-icon>
+                Deposit (KES) *
+              </label>
+              <input type="number" id="bulkDeposit" 
+                     [(ngModel)]="bulkDefaults.deposit" 
+                     [ngModelOptions]="{standalone: true}" 
+                     min="0" required>
+            </div>
+          </div>
+
+          <div class="bulk-actions">
+            <button type="button" class="btn btn-primary" 
+                    (click)="addBulkUnits()" 
+                    [disabled]="!bulkDefaults.unitNumber || !bulkDefaults.unitType || !bulkDefaults.quantity || bulkDefaults.quantity < 1">
+              <mat-icon>add</mat-icon> Add {{ bulkDefaults.quantity || 0 }} Unit(s)
+            </button>
+            <button type="button" class="btn btn-outline" (click)="autoGenerateUnits()">
+              <mat-icon>auto_fix_high</mat-icon> Auto-Generate Units
+            </button>
+            <button type="button" class="btn btn-outline" (click)="clearAllUnits()" [disabled]="units.length === 0">
+              <mat-icon>clear</mat-icon> Clear All Units
+            </button>
+          </div>
+
+          <div class="unit-summary" *ngIf="getUnitTypeSummary().length > 0">
+            <h4>
+              <mat-icon>summarize</mat-icon>
+              Unit Type Summary
+            </h4>
+            <div class="summary-chips">
+              <span class="summary-chip" *ngFor="let summary of getUnitTypeSummary()">
+                {{ summary.count }} × {{ summary.type }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="batch-operations">
+          <h3>
+            <mat-icon>build</mat-icon>
+            Batch Operations
+          </h3>
+          <p>Apply changes to multiple units at once</p>
+          <div class="batch-grid">
+            <span>
+              <mat-icon>play_arrow</mat-icon>
+              Apply to:
+            </span>
+            <select [(ngModel)]="batchOperation.target" [ngModelOptions]="{standalone: true}">
+              <option value="all">All Units ({{ units.length }})</option>
+              <option value="selected">Selected Units ({{ getSelectedUnitsCount() }})</option>
+            </select>
+
+            <select [(ngModel)]="batchOperation.field" [ngModelOptions]="{standalone: true}">
+              <option value="rentAmount">Rent Amount</option>
+              <option value="deposit">Deposit</option>
+              <option value="unitDescription">Description</option>
+            </select>
+
+            <ng-container [ngSwitch]="getBatchInputType()">
+              <input *ngSwitchCase="'number'" type="number" [(ngModel)]="batchOperation.value" 
+                     [ngModelOptions]="{standalone: true}" placeholder="Enter value" min="0">
+
+              <input *ngSwitchCase="'text'" type="text" [(ngModel)]="batchOperation.value" 
+                     [ngModelOptions]="{standalone: true}" placeholder="Enter description">
+            </ng-container>
+
+            <button type="button" class="btn btn-primary" 
+                    (click)="applyBatchOperation()" 
+                    [disabled]="units.length === 0 || (batchOperation.target === 'selected' && getSelectedUnitsCount() === 0)">
+              <mat-icon>done</mat-icon> Apply
+            </button>
+          </div>
+        </div>
+        <div class="table-container" *ngIf="units.length > 0">
+          <div class="table-header">
+            <h4>Units List ({{ units.length }}/{{ propertyForm.get('totalUnits')?.value }} units)</h4>
+            <button type="button" class="btn btn-outline btn-sm" (click)="addSingleUnit()" [disabled]="isMaxUnitsReached()">
+              <mat-icon>add</mat-icon> Add Single Unit
+            </button>
+          </div>
+          <table class="units-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">
+                  <input type="checkbox" [checked]="allUnitsSelected" (change)="toggleSelectAll($event)">
+                </th>
+                <th>#</th>
+                <th>
+                  <mat-icon>tag</mat-icon>
+                  Unit Number
+                </th>
+                <th>
+                  <mat-icon>meeting_room</mat-icon>
+                  Unit Type
+                </th>
+                <th>
+                  <mat-icon>payments</mat-icon>
+                  Rent (KES)
+                </th>
+                <th>
+                  <mat-icon>security</mat-icon>
+                  Deposit (KES)
+                </th>
+                <th>
+                  <mat-icon>description</mat-icon>
+                  Description
+                </th>
+                <th style="width: 80px;">
+                  <mat-icon>settings</mat-icon>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody formArrayName="units">
+              <tr *ngFor="let unit of units.controls; let i = index" [formGroupName]="i" 
+                  [class.highlight]="selectedRows[i]" class="unit-row">
+                <td>
+                  <input type="checkbox" [checked]="isUnitSelected(i)" (change)="toggleUnitSelection(i, $event)">
+                </td>
+                <td class="unit-index">{{ i + 1 }}</td>
+                <td>
+                  <input type="text" formControlName="unitNumber" placeholder="e.g., 1A, 2B"
+                         [class.error]="unit.get('unitNumber')?.invalid && unit.get('unitNumber')?.touched">
+                </td>
+                <td class="unit-type-display">
+                  <span class="unit-type-badge" [attr.data-type]="unit.get('unitType')?.value">
+                    {{ getUnitTypeLabel(unit.get('unitType')?.value) || 'Not Set' }}
+                  </span>
+                </td>
+                <td>
+                  <input type="number" formControlName="rentAmount" min="1" placeholder="0"
+                         [class.error]="unit.get('rentAmount')?.invalid && unit.get('rentAmount')?.touched">
+                </td>
+                <td>
+                  <input type="number" formControlName="deposit" min="0" placeholder="0"
+                         [class.error]="unit.get('deposit')?.invalid && unit.get('deposit')?.touched">
+                </td>
+                <td>
+                  <input type="text" formControlName="unitDescription" placeholder="Unit description">
+                </td>
+                <td>
+                  <button type="button" class="btn-danger" (click)="removeUnit(i)" 
+                          matTooltip="Delete unit">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" *ngIf="units.length === 0">
+          <div class="empty-icon">
+            <mat-icon>apartment</mat-icon>
+          </div>
+          <h3>No Units Created Yet</h3>
+          <p>Use the form above to add units to your property</p>
+          <button type="button" class="btn btn-primary" (click)="autoGenerateUnits()">
+            <mat-icon>auto_fix_high</mat-icon> Auto-Generate Units
+          </button>
+        </div>
+
+        <div class="max-units-warning" *ngIf="isMaxUnitsReached()">
+          <mat-icon>warning</mat-icon>
+          <span>Maximum units reached ({{ propertyForm.get('totalUnits')?.value }})</span>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline btn-lg" type="button" (click)="onCancel()" [disabled]="isSubmitting">
+          <mat-icon>close</mat-icon> Cancel
+        </button>
+        <button class="btn btn-success btn-lg" type="submit" [disabled]="propertyForm.invalid || isSubmitting || units.length === 0">
+          <mat-icon>save</mat-icon>
+          <span *ngIf="!isSubmitting">Create Property</span>
+          <span *ngIf="isSubmitting">Creating...</span>
+          <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+        </button>
+      </div>
+
     </div>
   </form>
 </div>

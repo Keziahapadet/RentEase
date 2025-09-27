@@ -1,4 +1,4 @@
-// pricing.component.ts
+
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
@@ -25,7 +25,7 @@ export class PricingComponent implements OnInit {
 
   setActiveMenu(menu: string) {
   this.activeMenu = menu;
-  this.isMobileMenuOpen = false; // close menu after click (optional)
+  this.isMobileMenuOpen = false; 
 }
   pricingPlans = [
     {
@@ -152,7 +152,7 @@ export class PricingComponent implements OnInit {
     }, 100);
   }
 
-  // Navigation methods
+
   navigateToHome(): void {
     this.router.navigate(['/home']);
   }
@@ -195,7 +195,7 @@ export class PricingComponent implements OnInit {
     if (plan.name === 'Pro') {
       this.navigateToContact();
     } else {
-      // Redirect to registration with selected plan
+     
       this.router.navigate(['/registration'], { queryParams: { plan: plan.name.toLowerCase() } });
     }
   }

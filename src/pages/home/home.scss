@@ -1,20 +1,16 @@
-/* =================================== 
-   COMPLETE HOME COMPONENT SCSS
-   =================================== */
 
-/* Base Typography and Colors */
 * {
   box-sizing: border-box;
 }
 
-/* Container */
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
-/* ===== NAVBAR STYLES ===== */
+
 .navbar {
   position: fixed;
   top: 0;
@@ -126,7 +122,7 @@
   }
 }
 
-/* ===== LOGO STYLES ===== */
+
 .logo {
   display: flex;
   align-items: center;
@@ -150,30 +146,29 @@
   background: transparent;
 }
 
-/* Navbar specific logo styling */
 .navbar {
   .logo .logo-image {
-    /* Logo keeps its original colors in navbar */
+
   }
 
   &.scrolled .logo .logo-image {
-    /* Logo keeps its original colors when scrolled */
+    
   }
 }
 
-/* Footer specific logo styling */
+
 .footer {
   .logo {
     margin-bottom: 1rem;
     justify-content: flex-start;
 
     .logo-image {
-      filter: brightness(0) invert(1); /* white logo in footer */
+      filter: brightness(0) invert(1); 
     }
   }
 }
 
-/* ===== HERO CAROUSEL ===== */
+
 .hero-carousel {
   position: relative;
   height: 100vh;
@@ -354,7 +349,7 @@
   }
 }
 
-/* ===== HERO CONTENT SECTION ===== */
+
 .hero-content {
   text-align: center;
   padding: 100px 0;
@@ -464,7 +459,7 @@
   flex-wrap: wrap;
 }
 
-/* ===== STATS SECTION ===== */
+
 .stats-section {
   padding: 80px 0;
   background: #3b82f6;
@@ -492,7 +487,7 @@
   }
 }
 
-/* ===== THREE-CARD VISIBLE HORIZONTAL CAROUSEL ===== */
+
 .services-section {
   padding: 100px 0;
   background: #f8fafc;
@@ -518,7 +513,7 @@
   line-height: 1.6;
 }
 
-/* Three-Card Visible Carousel */
+
 .services-carousel-container {
   position: relative;
   overflow: hidden;
@@ -535,7 +530,6 @@
   gap: 2rem;
   transition: transform 0.8s ease-in-out;
   will-change: transform;
-  /* 6 original + 6 duplicates (3 front + 3 back) = 12 cards total */
   width: calc((350px + 2rem) * 12);
 }
 
@@ -643,7 +637,6 @@
   overflow: hidden;
 }
 
-/* Carousel Navigation Dots - Only 2 dots for 2 views */
 .carousel-navigation {
   position: absolute;
   bottom: -60px;
@@ -675,7 +668,7 @@
   }
 }
 
-/* ===== GRID BENEFITS SECTION ===== */
+
 .benefits-section {
   padding: 100px 0;
   background: #ffffff;
@@ -757,7 +750,7 @@
   }
 }
 
-/* ===== CTA SECTION ===== */
+
 .cta-section {
   padding: 100px 0;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -797,7 +790,7 @@
   font-style: italic;
 }
 
-/* ===== FOOTER ===== */
+
 .footer {
   background: #1f2937;
   color: #e5e7eb;
@@ -912,7 +905,7 @@
   margin: 0;
 }
 
-/* ===== RESPONSIVE STYLES ===== */
+
 @media (max-width: 1024px) {
   .nav-links {
     gap: 1.5rem;
@@ -972,8 +965,6 @@
   .container {
     padding: 0 1rem;
   }
-
-  /* Hero Carousel Mobile */
   .hero-carousel {
     height: 100vh;
     margin-top: 70px;
@@ -1091,7 +1082,7 @@
     }
   }
 
-  /* Services Carousel Mobile */
+ 
   .services-carousel-container {
     height: 320px;
   }
@@ -1302,7 +1293,6 @@
   }
 }
 
-/* Smooth animations */
 @keyframes fadeInOverlay {
   from {
     opacity: 0;

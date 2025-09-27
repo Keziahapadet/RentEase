@@ -1,11 +1,9 @@
-// landlord-dashboard.component.ts - OPTION 2: Hybrid Approach (Minimal Changes)
+
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
-
-// Import the financials component
 import { FinancialsComponent } from './financials/financials';
 import { InvoicesComponent } from './financials/invoices/invoices';
 
@@ -32,13 +30,13 @@ export class LandlordDashboardComponent implements OnInit {
     settings: false
   };
 
-  // Dashboard stats
+ 
   totalProperties = 12;
   activeTenants = 45;
   monthlyRevenue = 'KSh 2.4M';
   vacantUnits = 3;
 
-  // Recent activity data
+
   recentActivities = [
     {
       icon: 'credit_card',
@@ -93,18 +91,14 @@ export class LandlordDashboardComponent implements OnInit {
   constructor(private router: Router) { }
 
   ngOnInit(): void {
-    // Subscribe to router events to update current section based on route
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.updateCurrentSectionFromRoute(event.urlAfterRedirects);
     });
 
-    // Set initial section based on current route
     this.updateCurrentSectionFromRoute(this.router.url);
   }
-
-  // UPDATED: Better route-to-section mapping
   private updateCurrentSectionFromRoute(url: string): void {
     if (url === '/landlord-dashboard' || url === '/landlord-dashboard/') {
       this.currentSection = 'dashboard';
@@ -127,12 +121,10 @@ export class LandlordDashboardComponent implements OnInit {
       this.currentSection = 'financials';
       this.expandedMenus.financials = true;
     } else if (url.includes('/settings/')) {
-      // Extract specific settings section
       const settingsSection = url.split('/settings/')[1];
       this.currentSection = settingsSection;
       this.expandedMenus.settings = true;
     } else {
-      // Extract section from URL
       const urlParts = url.split('/');
       this.currentSection = urlParts[urlParts.length - 1] || 'dashboard';
     }
@@ -145,22 +137,19 @@ export class LandlordDashboardComponent implements OnInit {
   toggleMenu(menuName: keyof typeof this.expandedMenus): void {
     this.expandedMenus[menuName] = !this.expandedMenus[menuName];
   }
-
-  // UPDATED: Navigation to handle property routing correctly
   navigateToSection(section: string): void {
-    // Close mobile menu if open
+
     this.isMobileMenuOpen = false;
     
-    // Update current section
     this.currentSection = section;
     
-    // Use Angular routing for specific sections
+
     switch (section) {
       case 'dashboard':
         this.router.navigate(['/landlord-dashboard']);
         break;
       
-      // Financials routing
+
       case 'financials':
         this.router.navigate(['/landlord-dashboard/financials']);
         this.expandedMenus.financials = true;
@@ -178,13 +167,11 @@ export class LandlordDashboardComponent implements OnInit {
         this.expandedMenus.financials = true;
         break;
       
-      // UPDATED: Property routing (SINGULAR) - matches your folder structure
       case 'properties':
         this.router.navigate(['/landlord-dashboard/property']);
         this.expandedMenus.properties = true;
         break;
       
-      // Settings routing
       case 'general':
         this.router.navigate(['/landlord-dashboard/settings/general']);
         this.expandedMenus.settings = true;
@@ -201,8 +188,7 @@ export class LandlordDashboardComponent implements OnInit {
         this.router.navigate(['/landlord-dashboard/settings/security']);
         this.expandedMenus.settings = true;
         break;
-      
-      // Other sections without routing yet - just update currentSection
+    
       default:
         console.log('Navigated to section:', section);
         break;
@@ -212,8 +198,6 @@ export class LandlordDashboardComponent implements OnInit {
   navigateToTenants(): void {
     this.navigateToSection('tenants');
   }
-
-  // UPDATED: Fixed to use correct property routing
   addNewProperty(): void {
     this.router.navigate(['/landlord-dashboard/property/create']);
   }
@@ -222,14 +206,11 @@ export class LandlordDashboardComponent implements OnInit {
     this.navigateToSection('notifications');
   }
 
-  // UPDATED: Helper method to determine if current section should show placeholder
   isPlaceholderSection(): boolean {
     const routedSections = ['dashboard', 'financials', 'invoices', 'payments', 'expenses', 'properties'];
     return !routedSections.includes(this.currentSection) && 
-           !this.router.url.includes('/property'); // Don't show placeholder for property routes
+           !this.router.url.includes('/property'); 
   }
-
-  // Helper method to get section titles
   getSectionTitle(section: string): string {
     const titles: { [key: string]: string } = {
       'dashboard': 'Dashboard',
@@ -258,7 +239,6 @@ export class LandlordDashboardComponent implements OnInit {
   }
 
   logout(): void {
-    // Implement logout logic
     localStorage.removeItem('authToken');
     this.router.navigate(['/login']);
   }

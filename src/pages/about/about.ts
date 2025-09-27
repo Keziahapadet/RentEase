@@ -1,4 +1,4 @@
-// about.component.ts
+
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
@@ -22,7 +22,7 @@ export class AboutComponent implements OnInit {
 
   setActiveMenu(menu: string) {
   this.activeMenu = menu;
-  this.isMobileMenuOpen = false; // close menu after click (optional)
+  this.isMobileMenuOpen = false; 
 }
   teamMembers = [
     {

@@ -1,246 +1,153 @@
-// Import global SCSS variables
-@import '../../../../../src/global.scss'; // Make sure this path matches your variables file
-
-// Login page container
-.login-page {
+.verify-otp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $gray-100;
-  padding: 20px;
-}
+  padding: 2rem 1rem;
+  background: #ffffff;
 
-// Login card
-.login-card {
-  background: $white;
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-xl;
-  padding: 40px;
-  width: 100%;
-  max-width: 480px;
-  text-align: center;
-}
+  .main-content {
+    width: 100%;
+    max-width: 450px;
 
-// Logo and title section
-.logo-title {
-  margin-bottom: 32px;
+    .verification-card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
-  img {
-    max-width: 120px;
-    height: auto;
-    margin-bottom: 16px;
-  }
+      .logo-title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 24px;
 
-  h2 {
-    color: $text-primary;
-    font-size: 28px;
-    font-weight: 600;
-    margin: 0;
-  }
-}
+        img {
+          max-width: 120px;
+          margin-bottom: 12px;
+        }
 
-// Verification info
-.verification-info {
-  margin-bottom: 32px;
-  text-align: center;
+        h2 {
+          color: #1f2937;
+          font-size: 1.5rem;
+          font-weight: 600;
+          text-align: center;
+        }
+      }
 
-  p {
-    color: $text-muted;
-    font-size: 16px;
-    line-height: 1.5;
-    margin: 0 0 8px 0;
-  }
+      .verification-info {
+        text-align: center;
+        margin-bottom: 24px;
 
-  .subtitle {
-    font-size: 14px;
-    color: $text-light;
-    margin-bottom: 0;
-  }
-}
+        p {
+          color: #374151;
+          font-size: 0.95rem;
+        }
 
-// Email display
-.email-display {
-  margin: 24px 0 32px 0;
-  padding: 20px;
-  @include gradient-bg($gray-50, $gray-100);
-  border: 1px solid $gray-200;
-  border-radius: $border-radius-lg;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
+        .subtitle {
+          margin-top: 8px;
+          font-weight: 500;
+          color: #6b7280;
+        }
+      }
 
-.email-label {
-  display: block;
-  font-size: 14px;
-  color: $text-secondary;
-  margin-bottom: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+      .otp-section {
+        margin-bottom: 24px;
+        text-align: center;
 
-.email-field {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
+        .otp-inputs {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 12px;
 
-.email-text {
-  flex: 1;
-  font-size: 16px;
-  color: $text-primary;
-  font-weight: 600;
-  background: $white;
-  padding: 16px 20px;
-  border: 2px solid $gray-100;
-  border-radius: $border-radius;
-  min-height: 24px;
-  display: flex;
-  align-items: center;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
-  word-break: break-all;
+          .otp-input {
+            width: 40px;
+            height: 48px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
 
-  &::before {
-    content: '📧';
-    margin-right: 12px;
-    font-size: 18px;
-  }
+            &:focus {
+              border-color: #3b82f6;
+              box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            }
+          }
 
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 4px;
-    @include gradient-bg($primary-color, $primary-dark);
-    border-radius: 0 6px 6px 0;
-  }
-}
+          &.shake {
+            animation: shake 0.5s;
+          }
+        }
 
-// OTP container
-.otp-container {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin: 32px 0;
-  flex-wrap: wrap;
-  padding: 20px;
-  @include gradient-bg($gray-50, $white);
-  border-radius: $border-radius-lg;
-  border: 1px solid $gray-100;
+        .helper-text {
+          font-size: 0.8rem;
+          color: #6b7280;
+        }
+      }
 
-  &.simple {
-    background: none;
-    border: none;
-    padding: 0;
-    margin-bottom: 32px;
-    gap: 12px;
-  }
-}
+      .actions-section {
+        text-align: center;
+        margin-bottom: 20px;
 
-// OTP input
-.otp-input {
-  width: 60px;
-  height: 60px;
-  border: 3px solid $gray-100;
-  border-radius: $border-radius-lg;
-  text-align: center;
-  font-size: 28px;
-  font-weight: 700;
-  color: $text-primary;
-  background: $white;
-  transition: $transition-all;
-  outline: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  position: relative;
+        .verify-btn {
+          width: 100%;
+          height: 44px;
+          font-weight: 500;
+        }
 
-  &.simple {
-    width: 56px;
-    height: 56px;
-    border: 2px solid $gray-300;
-    font-size: 24px;
-    font-weight: 600;
-    color: $text-primary;
-  }
+        .resend-section {
+          margin-top: 16px;
 
-  &:focus {
-    border-color: $primary-color;
-    box-shadow: 0 0 0 4px rgba($primary-color, 0.15), 0 4px 12px rgba($primary-color, 0.2);
-    transform: scale(1.05);
-    background: rgba($primary-color, 0.05);
+          .resend-text {
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            color: #6b7280;
+          }
 
-    &.simple {
-      @include focus-ring($primary-color);
-      transform: scale(1.02);
-    }
-  }
+          .resend-btn {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #3b82f6;
+          }
+        }
+      }
 
-  &:valid:not(:placeholder-shown) {
-    border-color: $success-color;
-    @include gradient-bg($success-light-bg, $white);
-    color: $success-dark;
+      .help-section {
+        margin-top: 12px;
+        text-align: center;
 
-    &.simple {
-      border-color: $success-color;
-      background: $success-bg;
-    }
-
-    &::after {
-      content: '✓';
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      width: 20px;
-      height: 20px;
-      background: $success-color;
-      color: $white;
-      border-radius: 50%;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    background: $gray-50;
-    border-color: $gray-200;
-
-    &.simple {
-      background: $gray-100;
-    }
-  }
-
-  &.error {
-    border-color: $error-color;
-    background: $error-bg;
-    animation: shake 0.5s ease-in-out;
-    box-shadow: 0 0 0 4px rgba($error-color, 0.15);
-
-    &.simple {
-      animation: shake 0.3s ease-in-out;
+        .help-text {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.85rem;
+          color: #6b7280;
+        }
+      }
     }
   }
 }
 
-// Keyframes
+
+.success-snackbar {
+  background: #10b981 !important; 
+  color: #fff !important;
+}
+.error-snackbar {
+  background: #ef4444 !important; 
+  color: #fff !important;
+}
+.info-snackbar {
+  background: #3b82f6 !important; 
+  color: #fff !important;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
 }
-
-@keyframes loading-shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
-// Button, alerts, resend section, links, responsive styles
-// ... rest of your SCSS stays the same as you already wrote

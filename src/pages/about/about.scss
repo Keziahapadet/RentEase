@@ -1,8 +1,4 @@
-/* =========================
-   ABOUT PAGE - COMPLETE RESPONSIVE SCSS
-   ========================= */
 
-/* Reset and Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -24,7 +20,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* CSS Variables */
+
 :root {
   --primary-color: #3b82f6;
   --primary-dark: #2563eb;
@@ -37,7 +33,7 @@ body {
   --gray-200: #e2e8f0;
 }
 
-/* Animations */
+
 @keyframes slideInDown {
   0% {
     opacity: 0;
@@ -82,7 +78,7 @@ body {
   }
 }
 
-/* Container */
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -93,7 +89,7 @@ body {
   }
 }
 
-/* Logo Styles */
+
 .logo {
   display: flex;
   align-items: center;
@@ -120,7 +116,7 @@ body {
   }
 }
 
-/* Navbar */
+
 .navbar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -291,7 +287,7 @@ body {
   }
 }
 
-/* Hero Section */
+
 .page-hero {
   padding: 140px 20px 100px;
   background: #f9fafb;
@@ -423,7 +419,7 @@ body {
   }
 }
 
-/* Mission Section */
+
 .mission-section {
   padding: 120px 0;
   background: var(--bg-light);
@@ -561,7 +557,7 @@ body {
   }
 }
 
-/* Story Section */
+
 .story-section {
   padding: 120px 0;
   background: white;
@@ -670,7 +666,6 @@ body {
   }
 }
 
-/* Values Section */
 .values-section {
   padding: 120px 0;
   background: var(--bg-light);
@@ -850,7 +845,6 @@ body {
   }
 }
 
-/* Team Section */
 .team-section {
   padding: 120px 0;
   background: white;
@@ -1108,7 +1102,6 @@ body {
   }
 }
 
-/* CTA Section */
 .cta-section {
   padding: 120px 0;
   background: linear-gradient(135deg, var(--bg-light) 0%, #e2e8f0 100%);
@@ -1263,7 +1256,7 @@ body {
   }
 }
 
-/* Footer */
+
 .footer {
   background: #1e293b;
   color: white;
@@ -1488,7 +1481,6 @@ body {
   }
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

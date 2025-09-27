@@ -1,6 +1,5 @@
 <div class="dashboard-grid">
   
-  <!-- Deposit Status Card -->
   <div class="card card-feature collapsible-card" 
        [class.collapsed]="isSectionCollapsed('deposit')"
        [class.animating]="isAnimating('deposit')">
@@ -78,7 +77,6 @@
     </div>
   </div>
 
-  <!-- Current Rental Card -->
   <div class="card collapsible-card" 
        [class.collapsed]="isSectionCollapsed('rental')"
        [class.animating]="isAnimating('rental')">
@@ -139,7 +137,6 @@
     </div>
   </div>
 
-  <!-- Quick Actions Card -->
   <div class="card collapsible-card" 
        [class.collapsed]="isSectionCollapsed('quickActions')"
        [class.animating]="isAnimating('quickActions')">
@@ -171,7 +168,6 @@
     </div>
   </div>
 
-  <!-- Recent Activity Card -->
   <div class="card card-full-width collapsible-card" 
        [class.collapsed]="isSectionCollapsed('activity')"
        [class.animating]="isAnimating('activity')">

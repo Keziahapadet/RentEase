@@ -26,7 +26,6 @@ export enum UserStatus {
   PENDING = 'pending'
 }
 
-// src/app/models/tenant.model.ts
 export interface Tenant extends User {
   unitId: string;
   unitNumber: string;

@@ -1,4 +1,4 @@
-// contact.component.ts
+
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +22,7 @@ export class ContactComponent implements OnInit {
 
   setActiveMenu(menu: string) {
   this.activeMenu = menu;
-  this.isMobileMenuOpen = false; // close menu after click (optional)
+  this.isMobileMenuOpen = false; 
 }
 
   contactMethods = [
@@ -78,7 +78,7 @@ export class ContactComponent implements OnInit {
     }, 100);
   }
 
-  // Navigation methods
+
   navigateToHome(): void {
     this.router.navigate(['/home']);
   }
@@ -119,7 +119,6 @@ export class ContactComponent implements OnInit {
     
     console.log('Contact form submitted:', data);
     
-    // Show success message
     if (this.isBrowser) {
       alert('Thank you for your message! We will get back to you within 24 hours.');
       form.reset();

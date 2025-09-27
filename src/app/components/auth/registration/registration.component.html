@@ -1,153 +1,177 @@
+
 <div class="register-page">
   <div class="register-card">
-    
     <div class="logo-title">
       <img src="/images/logo.png" alt="RentEase Logo" />
       <h2>Get Started</h2>
     </div>
-
-    <!-- Alert Messages -->
-    <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
-    <div *ngIf="successMessage" class="alert-success">{{ successMessage }}</div>
-
-    <!-- Registration Form -->
     <form (ngSubmit)="onSubmit()" #registrationForm="ngForm" novalidate>
-
-      <!-- Role Selection -->
+      
+     
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Role</mat-label>
-        <mat-select [(ngModel)]="formData.role" name="role" [disabled]="isLoading" required>
-          <mat-option value="TENANT">Tenant</mat-option>
-          <mat-option value="LANDLORD">Landlord</mat-option>
-          <mat-option value="CARETAKER">Caretaker</mat-option>
-          <mat-option value="BUSINESS">Business</mat-option>
-          <mat-option value="ADMIN">Admin</mat-option>
+        <mat-select 
+          [(ngModel)]="formData.role" 
+          name="role" 
+          [disabled]="isLoading" 
+          required 
+          #roleControl="ngModel">
+          <mat-option *ngFor="let role of availableRoles" [value]="role.value">
+            {{ role.label }}
+          </mat-option>
         </mat-select>
-        <mat-error *ngIf="formData.role === ''">Please select a role</mat-error>
-      </mat-form-field>
-
-      <!-- Full Name -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Full Name</mat-label>
-        <input matInput 
-               type="text" 
-               [(ngModel)]="formData.fullName" 
-               name="fullName" 
-               [disabled]="isLoading" 
-               required 
-               minlength="2" />
-        <mat-error *ngIf="formData.fullName === ''">Full name is required</mat-error>
-        <mat-error *ngIf="formData.fullName.length < 2">Name must be at least 2 characters</mat-error>
-      </mat-form-field>
-
-      <!-- Email -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput 
-               type="email" 
-               [(ngModel)]="formData.email" 
-               name="email" 
-               [disabled]="isLoading" 
-               required 
-               email />
-        <mat-error *ngIf="formData.email === ''">Email is required</mat-error>
-        <mat-error *ngIf="formData.email && !isValidEmail(formData.email)">Please enter a valid email</mat-error>
-      </mat-form-field>
-
-      <!-- Phone Number -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Phone Number</mat-label>
-        <input matInput 
-               type="tel" 
-               placeholder="+254 700 000 000" 
-               [(ngModel)]="formData.phoneNumber" 
-               name="phoneNumber" 
-               [disabled]="isLoading"
-               required />
-        <mat-error *ngIf="formData.phoneNumber === ''">Phone number is required</mat-error>
-      </mat-form-field>
-
-      <!-- Password -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Password</mat-label>
-        <input matInput 
-               [type]="showPassword ? 'text' : 'password'" 
-               [(ngModel)]="formData.password" 
-               name="password" 
-               [disabled]="isLoading"
-               required
-               minlength="8" />
-        <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility('password')">
-          <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
-        </button>
-        <mat-error *ngIf="formData.password === ''">Password is required</mat-error>
-        <mat-error *ngIf="formData.password.length < 8">Password must be at least 8 characters</mat-error>
-      </mat-form-field>
-
-      <!-- Confirm Password -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Confirm Password</mat-label>
-        <input matInput 
-               [type]="showConfirmPassword ? 'text' : 'password'" 
-               [(ngModel)]="formData.confirmPassword" 
-               name="confirmPassword" 
-               [disabled]="isLoading" 
-               required />
-        <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility('confirm')">
-          <mat-icon>{{ showConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
-        </button>
-        <mat-error *ngIf="formData.confirmPassword === ''">Please confirm your password</mat-error>
-        <mat-error *ngIf="formData.password !== formData.confirmPassword">Passwords do not match</mat-error>
-      </mat-form-field>
-
-      <!-- Admin Access Code (conditional) -->
-      <mat-form-field *ngIf="formData.role === 'ADMIN'" appearance="outline" class="full-width">
-        <mat-label>Admin Access Code</mat-label>
-        <input matInput 
-               type="password" 
-               [(ngModel)]="formData.accessCode" 
-               name="accessCode"
-               [disabled]="isLoading"
-               required />
-        <mat-error *ngIf="formData.role === 'ADMIN' && formData.accessCode === ''">
-          Admin access code is required
+        <mat-error *ngIf="roleControl.invalid && roleControl.touched">
+          Please select a role
         </mat-error>
       </mat-form-field>
 
-      <!-- Terms and Conditions -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Full Name</mat-label>
+        <input 
+          matInput 
+          type="text" 
+          [(ngModel)]="formData.fullName" 
+          name="fullName" 
+          [disabled]="isLoading" 
+          required 
+          minlength="2"
+          #fullNameControl="ngModel" />
+        <mat-error *ngIf="fullNameControl.invalid && fullNameControl.touched">
+          <span *ngIf="fullNameControl.errors?.['required']">Full name is required</span>
+          <span *ngIf="fullNameControl.errors?.['minlength']">Full name must be at least 2 characters</span>
+        </mat-error>
+      </mat-form-field>
+
+  
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input 
+          matInput 
+          type="email" 
+          [(ngModel)]="formData.email" 
+          name="email" 
+          [disabled]="isLoading" 
+          required 
+          email
+          #emailControl="ngModel" />
+        <mat-error *ngIf="emailControl.invalid && emailControl.touched">
+          <span *ngIf="emailControl.errors?.['required']">Email is required</span>
+          <span *ngIf="emailControl.errors?.['email']">Please enter a valid email address</span>
+        </mat-error>
+      </mat-form-field>
+
+  
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phone Number</mat-label>
+        <input 
+          matInput 
+          type="tel" 
+          placeholder="+254 700 000 000" 
+          [(ngModel)]="formData.phoneNumber" 
+          name="phoneNumber" 
+          [disabled]="isLoading" 
+          required
+          #phoneControl="ngModel" />
+        <mat-error *ngIf="phoneControl.invalid && phoneControl.touched">
+          Phone number is required
+        </mat-error>
+      </mat-form-field>
+
+   
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input 
+          matInput 
+          [type]="showPassword ? 'text' : 'password'" 
+          [(ngModel)]="formData.password" 
+          name="password" 
+          [disabled]="isLoading" 
+          required 
+          minlength="8"
+          #passwordControl="ngModel" />
+        <button 
+          mat-icon-button 
+          matSuffix 
+          type="button" 
+          (click)="togglePasswordVisibility('password')"
+          tabindex="-1">
+          <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="passwordControl.invalid && passwordControl.touched">
+          <span *ngIf="passwordControl.errors?.['required']">Password is required</span>
+          <span *ngIf="passwordControl.errors?.['minlength']">Password must be at least 8 characters</span>
+        </mat-error>
+      </mat-form-field>
+
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Confirm Password</mat-label>
+        <input 
+          matInput 
+          [type]="showConfirmPassword ? 'text' : 'password'" 
+          [(ngModel)]="formData.confirmPassword" 
+          name="confirmPassword" 
+          [disabled]="isLoading" 
+          required
+          #confirmPasswordControl="ngModel" />
+        <button 
+          mat-icon-button 
+          matSuffix 
+          type="button" 
+          (click)="togglePasswordVisibility('confirm')"
+          tabindex="-1">
+          <mat-icon>{{ showConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="confirmPasswordControl.invalid && confirmPasswordControl.touched">
+          <span *ngIf="confirmPasswordControl.errors?.['required']">Please confirm your password</span>
+        </mat-error>
+        <mat-error *ngIf="confirmPasswordControl.valid && !passwordsMatch() && confirmPasswordControl.touched">
+          Passwords do not match
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field *ngIf="showBusinessAccessCode()" appearance="outline" class="full-width">
+        <mat-label>Business Access Code</mat-label>
+        <input 
+          matInput 
+          type="password" 
+          [(ngModel)]="formData.accessCode" 
+          name="accessCode" 
+          [disabled]="isLoading" 
+          required
+          #accessCodeControl="ngModel" />
+        <mat-error *ngIf="accessCodeControl?.invalid && accessCodeControl?.touched">
+          Business access code is required
+        </mat-error>
+      </mat-form-field>
       <div class="terms-container">
-        <mat-checkbox [(ngModel)]="agreedToTerms" name="agreedToTerms" [disabled]="isLoading" required>
+        <mat-checkbox 
+          [(ngModel)]="agreedToTerms" 
+          name="agreedToTerms" 
+          [disabled]="isLoading" 
+          required
+          #termsControl="ngModel">
           I agree to the 
           <span class="clickable-text" (click)="navigateToTerms()">Terms and Conditions</span> and 
           <span class="clickable-text" (click)="navigateToPrivacy()">Privacy Policy</span>.
         </mat-checkbox>
+        <div *ngIf="termsControl.invalid && termsControl.touched" class="terms-error">
+          You must agree to the terms and conditions
+        </div>
       </div>
 
-      <!-- Submit Button -->
-      <button mat-raised-button 
-              color="primary" 
-              class="full-width submit-btn"
-              type="submit"
-              [disabled]="isLoading || !registrationForm.valid || !agreedToTerms">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        class="full-width submit-btn" 
+        type="submit" 
+        [disabled]="isLoading || !registrationForm.valid || !agreedToTerms || !passwordsMatch()">
         <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
         {{ isLoading ? 'Creating Account...' : 'Create Account' }}
       </button>
     </form>
-
-    <!-- Login Link -->
     <p class="login-link">
       Already have an account? 
       <a class="clickable-text" (click)="navigateToLogin()">Login</a>
     </p>
-
-    <!-- Registration Success Message -->
-    <div *ngIf="successMessage" class="registration-success">
-      <mat-icon>check_circle</mat-icon>
-      <h3>Welcome to RentEase!</h3>
-      <p>Your account has been created successfully. Please check your email for verification instructions.</p>
-      <button mat-raised-button color="primary" (click)="navigateToLogin()">
-        Continue to Login
-      </button>
-    </div>
   </div>
 </div>

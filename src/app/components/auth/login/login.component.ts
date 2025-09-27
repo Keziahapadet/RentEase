@@ -7,10 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-
-// Fix the import path - adjust based on your actual file structure
-import { AuthService } from '../../../services/auth.service'; // Changed from ../../../
-import { LoginRequest, UserRole } from '../../../services/auth-interfaces'; // Changed from ../../../
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AuthService } from '../../../services/auth.service';
+import { LoginRequest, UserRole } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +21,8 @@ import { LoginRequest, UserRole } from '../../../services/auth-interfaces'; // C
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatSnackBarModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -31,19 +31,17 @@ export class LoginComponent implements OnInit {
   private router: Router = inject(Router);
   private route: ActivatedRoute = inject(ActivatedRoute);
   private authService: AuthService = inject(AuthService);
+  private snackBar: MatSnackBar = inject(MatSnackBar);
 
   loginData = { email: '', password: '' };
   showPassword = false;
   rememberMe = false;
   isLoading = false;
-  errorMessage: string | null = null;
-  successMessage: string | null = null;
   returnUrl: string = '/dashboard';
 
   ngOnInit(): void {
     console.log('Login component initialized');
 
-    // Check if already authenticated
     if (this.authService.isAuthenticated()) {
       console.log('User already authenticated, redirecting...');
       this.redirectToDashboard();
@@ -55,8 +53,7 @@ export class LoginComponent implements OnInit {
 
     const message = this.route.snapshot.queryParams['message'];
     if (message) {
-      this.successMessage = message;
-      setTimeout(() => (this.successMessage = null), 5000);
+      this.showSnackbar(message, 'success');
     }
   }
 
@@ -65,26 +62,24 @@ export class LoginComponent implements OnInit {
   }
 
   validateForm(): boolean {
-    this.errorMessage = null;
-
     if (!this.loginData.email.trim()) {
-      this.errorMessage = 'Email is required.';
+      this.showSnackbar('Email is required.', 'error');
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.loginData.email)) {
-      this.errorMessage = 'Please enter a valid email address.';
+      this.showSnackbar('Please enter a valid email address.', 'error');
       return false;
     }
 
     if (!this.loginData.password) {
-      this.errorMessage = 'Password is required.';
+      this.showSnackbar('Password is required.', 'error');
       return false;
     }
 
     if (this.loginData.password.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters.';
+      this.showSnackbar('Password must be at least 6 characters.', 'error');
       return false;
     }
 
@@ -100,13 +95,11 @@ export class LoginComponent implements OnInit {
     });
 
     if (!this.validateForm()) {
-      console.log('Form validation failed:', this.errorMessage);
+      console.log('Form validation failed');
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
 
     const loginRequest: LoginRequest = {
       email: this.loginData.email.trim().toLowerCase(),
@@ -123,7 +116,7 @@ export class LoginComponent implements OnInit {
         const user = this.authService.getCurrentUser();
         console.log('User data retrieved:', user);
 
-        this.successMessage = 'Login successful! Redirecting...';
+        this.showSnackbar('Login successful! Redirecting...', 'success');
 
         setTimeout(() => {
           if (user?.role) {
@@ -136,8 +129,8 @@ export class LoginComponent implements OnInit {
       error: (error) => {
         console.error('Login failed:', error);
         this.isLoading = false;
-        this.errorMessage = error.message || 'Login failed. Please try again.';
-        this.loginData.password = ''; // Clear password on error
+        this.showSnackbar(error.message || 'Login failed. Please try again.', 'error');
+        this.loginData.password = '';
       },
       complete: () => {
         this.isLoading = false;
@@ -208,8 +201,14 @@ export class LoginComponent implements OnInit {
   resetForm(): void {
     this.loginData = { email: '', password: '' };
     this.rememberMe = false;
-    this.errorMessage = null;
-    this.successMessage = null;
     this.isLoading = false;
+  }
+  private showSnackbar(message: string, type: 'success' | 'error'): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 4000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+      panelClass: type === 'success' ? ['snackbar-success'] : ['snackbar-error']
+    });
   }
 }

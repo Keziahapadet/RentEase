@@ -4,12 +4,12 @@ import { App } from './app/app';
 
 console.log('🚀 Starting Angular bootstrap...');
 
-// Force disable hydration
+
 const config = {
   ...appConfig,
   providers: [
     ...appConfig.providers
-    // Explicitly no hydration providers
+    
   ]
 };
 

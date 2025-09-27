@@ -1,8 +1,4 @@
-/* =========================
-   CONTACT PAGE - COMPLETE RESPONSIVE SCSS
-   ========================= */
 
-/* Reset and Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -24,7 +20,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* CSS Variables */
+
 :root {
   --primary-color: #3b82f6;
   --primary-dark: #2563eb;
@@ -37,7 +33,7 @@ body {
   --gray-200: #e2e8f0;
 }
 
-/* Animations */
+
 @keyframes pricingSlideInDown {
   0% {
     opacity: 0;
@@ -100,7 +96,7 @@ body {
   }
 }
 
-/* Container */
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -111,7 +107,7 @@ body {
   }
 }
 
-/* Logo Styles */
+
 .logo {
   display: flex;
   align-items: center;
@@ -138,7 +134,7 @@ body {
   }
 }
 
-/* Navbar */
+
 .navbar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -149,7 +145,6 @@ body {
   z-index: 1000;
   transition: all 0.3s ease;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
   &.scrolled {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     background: rgba(248, 250, 252, 0.98);
@@ -475,7 +470,6 @@ body {
   }
 }
 
-/* Contact Methods Section */
 .contact-methods-section {
   padding: 120px 0;
   background: var(--bg-light);
@@ -887,7 +881,7 @@ body {
   }
 }
 
-/* Contact Info Cards */
+
 .contact-info-wrapper {
   display: flex;
   flex-direction: column;
@@ -1439,7 +1433,6 @@ body {
   }
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

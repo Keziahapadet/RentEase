@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/pages/privacy/privacy.scss"],
-  "sourcesContent": ["\r\n.content-container {\r\n  max-width: 800px;\r\n  margin: 30px auto;\r\n  padding: 20px;\r\n  font-family: 'Arial', sans-serif;\r\n  line-height: 1.6;\r\n  color: #333;\r\n  background-color: #fff;\r\n  border-radius: 10px;\r\n  box-shadow: 0 0 15px rgba(0,0,0,0.1);\r\n}\r\n\r\n.content-container h1 {\r\n  font-size: 28px;\r\n  margin-bottom: 15px;\r\n  color:blue;\r\n  font-weight:bold;\r\n}\r\n\r\n.content-container h2 {\r\n  font-size: 20px;\r\n  margin-top: 20px;\r\n  color: blue;\r\n  font-weight: bold;\r\n}\r\n\r\n.content-container ul {\r\n  padding-left: 20px;\r\n}\r\n\r\n.content-container ul li {\r\n  margin-bottom: 8px;\r\n}\r\n.clickable-text {\r\n  font-weight: bold;\r\n  color: #1e88e5;       \r\n  cursor: pointer;       \r\n  text-decoration: underline;\r\n}\r\n\r\n"],
-  "mappings": ";AACA,CAAA;AACE,aAAA;AACA,UAAA,KAAA;AACA,WAAA;AACA,eAAA,OAAA,EAAA;AACA,eAAA;AACA,SAAA;AACA,oBAAA;AACA,iBAAA;AACA,cAAA,EAAA,EAAA,KAAA,KAAA,CAAA,EAAA,CAAA,EAAA,CAAA,EAAA;;AAGF,CAZA,kBAYA;AACE,aAAA;AACA,iBAAA;AACA,SAAA;AACA,eAAA;;AAGF,CAnBA,kBAmBA;AACE,aAAA;AACA,cAAA;AACA,SAAA;AACA,eAAA;;AAGF,CA1BA,kBA0BA;AACE,gBAAA;;AAGF,CA9BA,kBA8BA,GAAA;AACE,iBAAA;;AAEF,CAAA;AACE,eAAA;AACA,SAAA;AACA,UAAA;AACA,mBAAA;;",
-  "names": []
-}

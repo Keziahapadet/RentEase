@@ -52,7 +52,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     { current: '100', suffix: '%', label: 'Secure & Encrypted' },
   ];
 
-  // RentEase Services data for 3-card visible carousel
+ 
   services = [
     {
       id: 'secure-deposits',
@@ -100,14 +100,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // 3-Card Carousel Variables
+ 
   currentServiceView = 0;
   serviceViews = [0, 1];
   serviceAutoSlideInterval: any;
   isServiceTransitioning = false;
   cardWidth = 382;
 
-  // Benefits data
+ 
   benefits = [
     {
       icon: 'shield',
@@ -180,11 +180,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.stopServiceSlideshow();
   }
 
-  // ===== HERO CAROUSEL METHODS =====
+  
   startHeroCarousel(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextSlide();
-    }, 4000);
+    }, 7000);
   }
 
   stopHeroCarousel(): void {
@@ -232,8 +232,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   onCarouselMouseLeave(): void {
     this.startHeroCarousel();
   }
-
-  // ===== 3-CARD SERVICES CAROUSEL METHODS =====
   startServiceSlideshow(): void {
     this.serviceAutoSlideInterval = setInterval(() => {
       this.nextServiceView();
@@ -300,7 +298,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/services', serviceId]);
   }
 
-  // ===== NAVIGATION METHODS =====
+
   scrollToSection(sectionId: string): void {
     if (!this.isBrowser) return;
     const element = document.getElementById(sectionId);
@@ -345,7 +343,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/contact']);
   }
 
-  // ===== UTILITY METHODS =====
+ 
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     if (!this.isBrowser) return;
@@ -395,7 +393,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     else if (event.key === 'Escape' && this.isMobileMenuOpen) this.isMobileMenuOpen = false;
   }
 
-  // ===== INVITATION SYSTEM =====
   onGetStartedClick(role: string, invitationToken?: string) {
     if (role === 'tenant' || role === 'caretaker') {
       if (!invitationToken || !this.isValidInvitation(invitationToken)) {
@@ -410,7 +407,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   isValidInvitation(token: string): boolean {
-    // Implement your invitation validation logic
     return false;
   }
 } 

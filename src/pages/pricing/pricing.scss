@@ -1,8 +1,4 @@
-/* =========================
-   PRICING PAGE - COMPLETE RESPONSIVE SCSS
-   ========================= */
 
-/* Reset and Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -24,7 +20,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* CSS Variables */
+
 :root {
   --primary-color: #3b82f6;
   --primary-dark: #2563eb;
@@ -37,7 +33,6 @@ body {
   --gray-200: #e2e8f0;
 }
 
-/* Animations */
 @keyframes slideInDown {
   0% {
     opacity: 0;
@@ -82,7 +77,7 @@ body {
   }
 }
 
-/* Container */
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -93,7 +88,7 @@ body {
   }
 }
 
-/* Logo Styles */
+
 .logo {
   display: flex;
   align-items: center;
@@ -120,7 +115,7 @@ body {
   }
 }
 
-/* Navbar */
+
 .navbar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -292,7 +287,7 @@ body {
   }
 }
 
-/* Hero Section */
+
 .page-hero {
   padding: 140px 20px 100px;
   background: #f9fafb;
@@ -424,7 +419,7 @@ body {
   }
 }
 
-/* Pricing Section */
+
 .pricing-section {
   padding: 120px 0;
   background: #f8fafc;
@@ -607,7 +602,7 @@ body {
   }
 }
 
-/* CTA Section */
+
 .cta-section {
   padding: 120px 0;
   background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
@@ -707,7 +702,7 @@ body {
   }
 }
 
-/* Button Styles */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -797,7 +792,6 @@ body {
   }
 }
 
-/* Footer */
 .footer {
   background: #1e293b;
   color: white;
@@ -1022,7 +1016,7 @@ body {
   }
 }
 
-/* Reduced motion support */
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
@@ -1359,7 +1353,7 @@ body {
     }
   }
 
-/* FAQ Section */
+
 .faq-section {
   padding: 120px 0;
   background: white;
@@ -1646,7 +1640,6 @@ body {
   }
 }
 
-/* Comparison Section */
 .comparison-section {
   padding: 120px 0;
   background: #f8fafc;

@@ -1,180 +1,212 @@
-<!-- property.component.html - Fixed version -->
-<div class="property-container">
-  
-  <!-- Header Section -->
-  <div class="property-header">
+<div class="units-container">
+  <div class="property-header" *ngIf="property">
     <div class="header-content">
-      <div class="header-text">
-        <h1>Properties</h1>
-        <p>Manage your property portfolio</p>
-      </div>
-      <div class="header-actions">
-        <button class="btn-secondary" (click)="refreshProperties()" [disabled]="loading">
-          <mat-icon [class.spinning]="loading">refresh</mat-icon>
-          Refresh
+      <div class="breadcrumb">
+        <button class="breadcrumb-link" (click)="goBackToProperties()">
+          <mat-icon>home</mat-icon> Properties
         </button>
-        <button type="button" class="btn-primary" (click)="createNewProperty()">
-          <mat-icon>add</mat-icon>
-          Add Property
+        <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+        <button class="breadcrumb-link" (click)="goBackToProperty()">
+          {{ property?.name ?? '-' }}
         </button>
+        <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+        <span class="breadcrumb-current">Units</span>
       </div>
+      
+      <h1>{{ property?.name ?? '-' }} - Units</h1>
+      <p>
+        <mat-icon>location_on</mat-icon>
+        {{ property?.location ?? '-' }}
+      </p>
     </div>
+    
 
-    <!-- Stats Row -->
-    <div class="stats-row" *ngIf="!loading">
-      <div class="stat-item">
-        <div class="stat-value">{{ totalProperties }}</div>
-        <div class="stat-label">Total Properties</div>
-      </div>
-      <div class="stat-item">
+    <div class="stats-row">
+      <div class="stat-item" (click)="navigateToTotalUnits()" matTooltip="Click to show all units">
         <div class="stat-value">{{ totalUnits }}</div>
         <div class="stat-label">Total Units</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" (click)="navigateToOccupiedUnits()" matTooltip="Click to show occupied units">
         <div class="stat-value">{{ occupiedUnits }}</div>
-        <div class="stat-label">Occupied Units</div>
+        <div class="stat-label">Occupied</div>
       </div>
-      <div class="stat-item">
-        <div class="stat-value">{{ formatCurrency(totalRevenue) }}</div>
+      <div class="stat-item" (click)="navigateToOccupancyAnalytics()" matTooltip="Click to view occupancy analytics">
+        <div class="stat-value">{{ occupancyRate }}%</div>
+        <div class="stat-label">Occupancy</div>
+      </div>
+      <div class="stat-item" (click)="navigateToRevenueAnalytics()" matTooltip="Click to view revenue analytics">
+        <div class="stat-value">{{ formatCompactCurrency(monthlyRevenue) }}</div>
         <div class="stat-label">Monthly Revenue</div>
       </div>
     </div>
   </div>
 
-  <!-- Error State -->
-  <div *ngIf="errorMessage && !loading" class="error-container">
+  <div class="controls-section">
+    <div class="section-title">
+      <h2>Enhanced Table View</h2>
+      <div class="title-underline"></div>
+    </div>
+
+    <div class="controls">
+      <div class="search-box">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search units...</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Unit number, type, tenant...">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
+      
+      <div class="filter-buttons">
+        <button class="filter-btn" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">All</button>
+        <button class="filter-btn" [class.active]="activeFilter === 'occupied'" (click)="setFilter('occupied')">Occupied</button>
+        <button class="filter-btn" [class.active]="activeFilter === 'vacant'" (click)="setFilter('vacant')">Vacant</button>
+        <button class="filter-btn" [class.active]="activeFilter === 'maintenance'" (click)="setFilter('maintenance')">Maintenance</button>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-primary" (click)="createNewUnit()">
+          <mat-icon>add</mat-icon> New Unit
+        </button>
+        <button class="btn-secondary" (click)="refreshUnits()">
+          <mat-icon>refresh</mat-icon> Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-content">
+      <mat-icon class="loading-spinner spinning">hourglass_top</mat-icon>
+      <p>Loading units...</p>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && errorMessage" class="error-container">
     <div class="error-content">
-      <mat-icon class="error-icon">error</mat-icon>
-      <h3>Failed to Load Properties</h3>
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <h3>Error Loading Units</h3>
       <p>{{ errorMessage }}</p>
-      <button type="button" class="btn-primary" (click)="refreshProperties()">
-        <mat-icon>refresh</mat-icon>
-        Try Again
+      <button class="btn-primary" (click)="refreshUnits()">
+        <mat-icon>refresh</mat-icon> Try Again
       </button>
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-container">
-    <div class="loading-content">
-      <mat-icon class="loading-spinner spinning">refresh</mat-icon>
-      <p>Loading properties...</p>
+
+  <div *ngIf="!loading && !errorMessage && units.length === 0" class="empty-state">
+    <div class="empty-content">
+      <mat-icon>meeting_room</mat-icon>
+      <h3>No Units Found</h3>
+      <p>This property doesn't have any units yet. Start by adding your first unit.</p>
+      <button class="btn-primary" (click)="createNewUnit()">
+        <mat-icon>add</mat-icon> Add First Unit
+      </button>
     </div>
   </div>
 
-  <!-- Properties Grid -->
-  <div *ngIf="!loading && !errorMessage" class="properties-grid">
-    
-    <!-- Empty State -->
-    <div *ngIf="properties.length === 0" class="empty-state">
-      <div class="empty-content">
-        <mat-icon>apartment</mat-icon>
-        <h3>No Properties Found</h3>
-        <p>Start by adding your first property to the system.</p>
-        <button type="button" class="btn-primary" (click)="createNewProperty()">
-          <mat-icon>add</mat-icon>
-          Add Your First Property
-        </button>
+  <div *ngIf="!loading && !errorMessage && filteredUnits.length > 0" class="table-container">
+    <table class="units-table">
+      <thead>
+        <tr>
+          <th>UNIT</th>
+          <th>TYPE</th>
+          <th>TENANT</th>
+          <th>STATUS</th>
+          <th>RENT</th>
+          <th>DEPOSIT</th>
+          <th>DESCRIPTION</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let unit of filteredUnits" class="unit-row" (click)="viewUnit(unit.id)">
+          
+      
+          <td class="unit-cell">
+            <div class="unit-info">
+              <div class="unit-avatar">{{ unit.unitNumber ?? '-' }}</div>
+              <div class="unit-details">
+                <h4>Unit {{ unit.unitNumber ?? '-' }}</h4>
+                <p>{{ getUnitTypeDisplay(unit) }}</p>
+              </div>
+            </div>
+          </td>
+          
+         
+          
+          <td class="type-cell">
+            <span class="type-text">{{ getUnitTypeDisplay(unit) }}</span>
+          </td>
+          
+          <td class="tenant-cell">
+            <div class="tenant-info">
+              <span class="tenant-name">{{ unit.tenant?.name ?? unit.tenant?.email ?? '-' }}</span>
+              <span class="tenant-email" *ngIf="unit.tenant?.email">{{ unit.tenant?.email }}</span>
+            </div>
+          </td>
+          
+          <td class="status-cell">
+            <span class="status-badge" [class]="getStatusClass(unit.status)">{{ (unit.status ?? 'vacant') | uppercase }}</span>
+          </td>
+          
+      
+          <td class="rent-cell">
+            <div class="amount-info">
+              <span class="currency">KES</span>
+              <span class="amount">{{ (unit.rentAmount ?? 0) | number:'1.0-0' }}</span>
+            </div>
+          </td>
+          
+          <td class="deposit-cell">
+            <div class="amount-info">
+              <span class="currency">KES</span>
+              <span class="amount">{{ (unit.deposit ?? 0) | number:'1.0-0' }}</span>
+            </div>
+          </td>
+          
+          <td class="description-cell">
+            <span class="description-text" [title]="unit.description ?? 'No description'" matTooltip="{{ unit.description ?? 'No description' }}">
+              {{ getUnitDescription(unit) }}
+            </span>
+          </td>
+          
+          <td class="actions-cell" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="btn btn-view" (click)="viewUnit(unit.id)" matTooltip="View Unit Details">VIEW</button>
+              <button class="btn btn-edit" (click)="editUnit(unit.id, $event)" matTooltip="Edit Unit"><mat-icon>edit</mat-icon></button>
+              <button class="btn btn-delete" (click)="onDeleteUnit(unit.id, $event)" matTooltip="Delete Unit"><mat-icon>delete</mat-icon></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && units.length > 0 && filteredUnits.length === 0" class="filtered-empty-state">
+    <div class="empty-content">
+      <mat-icon>search_off</mat-icon>
+      <h3>No Units Match Your Search</h3>
+      <p>Try adjusting your search terms or filters.</p>
+      <button class="btn-secondary" (click)="searchTerm = ''; setFilter('all')">
+        <mat-icon>clear</mat-icon> Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && filteredUnits.length > 0" class="results-summary">
+    <div class="summary-content">
+      <div class="results-info">
+        <span class="results-text">
+          Showing <strong>{{ filteredUnits.length }}</strong> of <strong>{{ totalUnits }}</strong> units
+          <span *ngIf="activeFilter !== 'all'" class="filter-indicator">(filtered by: <strong>{{ activeFilter }}</strong>)</span>
+        </span>
+      </div>
+      <div class="quick-stats">
+        <span class="stat">Occupied: <strong>{{ occupiedUnits }}</strong></span>
+        <span class="stat">Vacant: <strong>{{ totalUnits - occupiedUnits }}</strong></span>
+        <span class="stat">Revenue: <strong>{{ formatCompactCurrency(monthlyRevenue) }}</strong></span>
       </div>
     </div>
-
-    <!-- Property Cards -->
-    <mat-card *ngFor="let property of properties" 
-              class="property-card" 
-              (click)="viewProperty(property.id)">
-      
-      <!-- Card Header -->
-      <mat-card-header class="property-card-header">
-        <div class="property-info">
-          <mat-card-title>{{ property.name || 'Unnamed Property' }}</mat-card-title>
-          <mat-card-subtitle>
-            <mat-icon>location_on</mat-icon>
-            {{ property.location || 'Location not specified' }}
-          </mat-card-subtitle>
-        </div>
-        <div class="property-actions">
-          <button mat-icon-button 
-                  (click)="editProperty(property.id); $event.stopPropagation()"
-                  class="action-button edit">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button 
-                  (click)="onDeleteProperty(property.id, $event)"
-                  class="action-button delete">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-      </mat-card-header>
-
-      <!-- Card Content -->
-      <mat-card-content class="property-card-content">
-        
-        <!-- Property Details -->
-        <div class="property-details">
-          <div class="detail-row">
-            <span class="detail-label">Type:</span>
-            <span class="detail-value">{{ getPropertyTypeLabel(property.propertyType) || 'Not specified' }}</span>
-          </div>
-          
-          <div class="detail-row">
-            <span class="detail-label">Units:</span>
-            <span class="detail-value">{{ getOccupiedUnits(property) || 0 }}/{{ property.totalUnits || 0 }}</span>
-          </div>
-          
-          <div class="detail-row">
-            <span class="detail-label">Occupancy:</span>
-            <span class="detail-value occupancy" 
-                  [class.high]="getOccupancyRate(property) >= 90"
-                  [class.medium]="getOccupancyRate(property) >= 70 && getOccupancyRate(property) < 90"
-                  [class.low]="getOccupancyRate(property) < 70">
-              {{ getOccupancyRate(property) || 0 }}%
-            </span>
-          </div>
-          
-          <div class="detail-row">
-            <span class="detail-label">Monthly Revenue:</span>
-            <span class="detail-value revenue">{{ formatCurrency(getMonthlyRevenue(property) || 0) }}</span>
-          </div>
-        </div>
-
-        <!-- Property Description -->
-        <div class="property-description" *ngIf="property.description">
-          <p>{{ property.description }}</p>
-        </div>
-
-        <!-- Property Status & Date -->
-        <div class="property-footer">
-          <div class="status-section">
-            <span class="status-label">Status:</span>
-            <span class="status-badge" [class.active]="property.status === 'active'"
-                  [class.inactive]="property.status === 'inactive'"
-                  [class.maintenance]="property.status === 'maintenance'">
-              <mat-icon>{{ getStatusIcon(property.status) }}</mat-icon>
-              {{ (property.status || 'inactive') | titlecase }}
-            </span>
-          </div>
-          <div class="date-section">
-            <span class="created-date">Created: {{ formatDate(property.createdAt) }}</span>
-          </div>
-        </div>
-      </mat-card-content>
-
-      <!-- Card Actions -->
-      <mat-card-actions class="property-card-actions">
-        <button mat-button (click)="viewProperty(property.id); $event.stopPropagation()">
-          <mat-icon>visibility</mat-icon>
-          View Details
-        </button>
-        <button mat-button (click)="editProperty(property.id); $event.stopPropagation()">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </button>
-        <button mat-button 
-                (click)="onToggleStatus(property.id, property.status, $event)">
-          <mat-icon>{{ property.status === 'active' ? 'pause' : 'play_arrow' }}</mat-icon>
-          {{ property.status === 'active' ? 'Deactivate' : 'Activate' }}
-        </button>
-      </mat-card-actions>
-    </mat-card>
   </div>
 </div>

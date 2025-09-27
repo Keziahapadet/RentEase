@@ -6,7 +6,6 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   
-  // Skip auth for certain endpoints (login, register, public APIs)
   const skipAuth = [
     '/login',
     '/signup', 
@@ -30,11 +29,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
     return next(cloned).pipe(
       catchError((error: HttpErrorResponse) => {
-        // Handle 401 errors (token expired/invalid)
         if (error.status === 401) {
           console.log('401 on', req.url, '- Not clearing token (expected for OTP/auth flows)');
           
-          // Only logout for non-OTP related 401 errors
           const isOtpEndpoint = req.url.includes('/verify-otp') || 
                                req.url.includes('/send-otp');
           

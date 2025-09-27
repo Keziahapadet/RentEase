@@ -1,4 +1,3 @@
-// src/app/services/auth.service.ts
 
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
@@ -41,7 +40,6 @@ export class AuthService {
     if (this.isBrowser) this.initializeAuthState();
   }
 
-  // ================= STORAGE HELPERS =================
   private getFromStorage(key: string): string | null {
     if (!this.isBrowser) return null;
     try {
@@ -82,7 +80,6 @@ export class AuthService {
     this.isAuthenticatedSubject.next(false);
   }
 
-  // ================= AUTH METHODS =================
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -98,7 +95,7 @@ export class AuthService {
     }).pipe(
       tap(res => {
         if (res.success && res.user) {
-          // Convert RegisterResponse to AuthResponse format for consistency
+    
           const authResponse: AuthResponse = {
             token: res.token || '',
             tokenType: 'Bearer',
@@ -122,8 +119,6 @@ export class AuthService {
     this.isAuthenticatedSubject.next(false);
     this.router.navigate(['/login']);
   }
-
-  // ================= PASSWORD RESET =================
   requestPasswordReset(request: PasswordResetRequest): Observable<{ success: boolean; message: string }> {
     return this.http.post<{ success: boolean; message: string }>(
       `${this.apiUrl}/forgot-password`,
@@ -131,14 +126,12 @@ export class AuthService {
       { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
     ).pipe(catchError(this.handleError));
   }
-
-  // ================= ENHANCED OTP METHODS =================
   sendOtp(request: OtpRequest): Observable<OtpResponse> {
     console.log('=== SEND OTP DEBUG ===');
     console.log('Request:', JSON.stringify(request, null, 2));
     console.log('URL:', `${this.apiUrl}/send-otp`);
 
-    // Clean the request
+
     const cleanRequest = {
       email: request.email.trim().toLowerCase(),
       type: request.type
@@ -169,11 +162,10 @@ export class AuthService {
     console.log('Original request:', JSON.stringify(request, null, 2));
     console.log('URL:', `${this.apiUrl}/verify-otp`);
 
-    // Clean and prepare the request - use otpCode since that's what interface expects
     const cleanedEmail = request.email.trim().toLowerCase();
-    const cleanedOtp = request.otpCode.toString().trim().toUpperCase(); // Changed from request.otp to request.otpCode
+    const cleanedOtp = request.otpCode.toString().trim().toUpperCase();
 
-    // Use otpCode as primary since that's what your server expects
+    
     const requestVariations = [
       {
         email: cleanedEmail,
@@ -198,7 +190,6 @@ export class AuthService {
     console.log('Primary request:', JSON.stringify(requestVariations[0], null, 2));
     console.log('=========================');
 
-    // Try the primary format first
     return this.http.post<OtpResponse>(`${this.apiUrl}/verify-otp`, requestVariations[0], {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
@@ -206,7 +197,8 @@ export class AuthService {
         console.log('=== VERIFY OTP SUCCESS ===');
         console.log('Response:', JSON.stringify(response, null, 2));
         
-        // If verification successful and returns user data, update auth state
+       
+        
         if (response.success && response.user && response.token) {
           console.log('Updating auth state with verified user');
           const authResponse: AuthResponse = {
@@ -230,7 +222,6 @@ export class AuthService {
         console.error('Full error:', error);
         console.error('========================');
 
-        // If the primary format failed with 400/401, try alternative formats
         if ((error.status === 400 || error.status === 401) && requestVariations.length > 1) {
           console.warn('Primary format failed, trying alternative formats...');
           return this.tryAlternativeOtpFormats(requestVariations.slice(1));
@@ -241,7 +232,8 @@ export class AuthService {
     );
   }
 
-  // Helper method to try alternative OTP formats
+ 
+  
   private tryAlternativeOtpFormats(alternatives: any[]): Observable<OtpResponse> {
     if (alternatives.length === 0) {
       return throwError(() => new Error('All OTP format variations failed'));
@@ -290,7 +282,8 @@ export class AuthService {
     return this.sendOtp(request);
   }
 
-  // ================= TOKEN & USER HELPERS =================
+ 
+  
   getToken(): string | null {
     return this.getFromStorage('authToken');
   }
@@ -327,14 +320,15 @@ export class AuthService {
   isLandlord(): boolean { return this.hasRole(UserRole.LANDLORD); }
   isCaretaker(): boolean { return this.hasRole(UserRole.CARETAKER); }
 
-  // ================= PRIVATE HELPERS =================
+
   private handleAuthSuccess(response: AuthResponse | RegisterResponse, rememberMe: boolean = false): void {
     if (!this.isBrowser) return;
 
     let user: User | null = null;
     
     if ('userId' in response) { 
-      // AuthResponse
+   
+      
       this.setInStorage('authToken', response.token, rememberMe);
       user = {
         id: response.userId.toString(),
@@ -345,7 +339,7 @@ export class AuthService {
         emailVerified: response.verified
       };
     } else if ('user' in response && response.user) { 
-      // RegisterResponse
+  
       user = response.user;
       if ('token' in response && response.token) {
         this.setInStorage('authToken', response.token, rememberMe);
@@ -386,8 +380,6 @@ export class AuthService {
     this.isAuthenticatedSubject.next(isAuthenticated);
     console.log('Auth state initialized:', { user: user?.email, isAuthenticated });
   }
-
-  // Enhanced error handling specifically for OTP
   private handleOtpError = (error: HttpErrorResponse): Observable<never> => {
     let message = 'OTP verification failed';
 
@@ -431,7 +423,7 @@ export class AuthService {
     return throwError(() => new Error(message));
   };
 
-  // Debug method for OTP issues
+
   getDebugInfo(): any {
     return {
       apiUrl: this.apiUrl,

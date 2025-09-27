@@ -1,7 +1,5 @@
-// src/app/components/property-create/property-create.component.ts
-
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Inject, PLATFORM_ID } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,10 +8,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PropertyService } from '../../../../../../services/property.service';
 import { AuthService } from '../../../../../../services/auth.service';
 import { PropertyRequest } from '../../../../../../services/auth-interfaces';
 import { Subscription } from 'rxjs';
+
+interface UnitTypeSummary {
+  type: string;
+  count: number;
+}
 
 @Component({
   selector: 'app-property-create',
@@ -21,42 +26,82 @@ import { Subscription } from 'rxjs';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatTooltipModule
   ],
   templateUrl: './property-create.html',
   styleUrls: ['./property-create.scss']
 })
 export class PropertyCreateComponent implements OnInit, OnDestroy {
+  @ViewChild('unitsSection') unitsSection!: ElementRef;
+
   propertyForm!: FormGroup;
   isSubmitting = false;
-  errorMessage = '';
-  successMessage = '';
+  monthlyRevenue = 0;
+  totalDeposit = 0;
   private subscriptions = new Subscription();
+
+  selectedRows: boolean[] = [];
+  allUnitsSelected = false;
+
+  bulkDefaults = {
+    unitNumber: '', 
+    unitType: '',
+    quantity: 1,
+    rentAmount: 25000,
+    deposit: 25000
+  };
+
+  batchOperation: {
+    target: 'all' | 'selected',
+    field: 'rentAmount' | 'deposit' | 'unitDescription', 
+    value: string | number
+  } = {
+    target: 'all',
+    field: 'rentAmount',
+    value: ''
+  };
 
   propertyTypes = [
     { value: 'APARTMENT', label: 'Apartment' },
     { value: 'HOUSE', label: 'House' },
-    { value: 'bungallow', label: 'Bungalow' }, // Match your backend exactly
+    { value: 'BUNGALOW', label: 'Bungalow' },
     { value: 'COMMERCIAL', label: 'Commercial' },
     { value: 'CONDO', label: 'Condominium' },
     { value: 'TOWNHOUSE', label: 'Townhouse' }
+  ];
+
+  unitTypes = [
+    { value: 'SINGLE', label: 'Single Room' },
+    { value: 'BEDSITTER', label: 'Bedsitter' },
+    { value: '1BR', label: '1 Bedroom' },
+    { value: '2BR', label: '2 Bedroom' },
+    { value: '3BR', label: '3 Bedroom' },
+    { value: 'OFFICE', label: 'Office' }
   ];
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     public propertyService: PropertyService,
-    public authService: AuthService
+    public authService: AuthService,
+    private snackBar: MatSnackBar,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
     this.initializeForm();
     this.checkPermissions();
+    this.subscriptions.add(
+      this.propertyForm.get('units')?.valueChanges.subscribe(() => this.calculateStats())!
+    );
   }
 
   ngOnDestroy() {
@@ -67,333 +112,468 @@ export class PropertyCreateComponent implements OnInit, OnDestroy {
     this.propertyForm = this.fb.group({
       name: ['', [Validators.required, this.notBlankValidator]],
       location: ['', [Validators.required, this.notBlankValidator]],
-      propertyType: ['', [Validators.required]],
-      totalUnits: ['', [Validators.required, Validators.min(1), Validators.max(10000)]],
-      description: ['', [Validators.maxLength(1000)]]
+      propertyType: ['', Validators.required],
+      totalUnits: [1, [Validators.required, Validators.min(1), Validators.max(1000)]],
+      description: ['', [Validators.maxLength(1000)]],
+      units: this.fb.array([])
+    });
+  }
+
+  get units(): FormArray {
+    return this.propertyForm.get('units') as FormArray;
+  }
+
+  private createUnit(unitNumber: string, unitType: string, rentAmount: number, deposit: number): FormGroup {
+    return this.fb.group({
+      unitNumber: [unitNumber, [Validators.required, this.notBlankValidator]],
+      unitType: [unitType, Validators.required],
+      rentAmount: [rentAmount, [Validators.required, Validators.min(1)]],
+      deposit: [deposit, [Validators.required, Validators.min(0)]],
+      unitDescription: ['', [Validators.maxLength(500)]]
+    });
+  }
+
+ 
+  getRemainingUnits(): number {
+    const totalUnits = Number(this.propertyForm.get('totalUnits')?.value) || 0;
+    const currentUnits = this.units.length;
+    return Math.max(0, totalUnits - currentUnits);
+  }
+  isMaxUnitsReached(): boolean {
+    return this.getRemainingUnits() === 0;
+  }
+
+ 
+  generateSequentialUnitNumbers(baseUnitNumber: string, quantity: number): string[] {
+    const unitNumbers: string[] = [];
+  
+    const match = baseUnitNumber.match(/^(\d+)([A-Za-z]*)$/);
+    
+    if (match) {
+      const numberPart = match[1];
+      const letterPart = match[2] || '';
+      
+      if (letterPart) {
+
+        let startingCharCode = letterPart.toUpperCase().charCodeAt(0);
+        
+        for (let i = 0; i < quantity; i++) {
+          const currentLetter = String.fromCharCode(startingCharCode + i);
+          unitNumbers.push(`${numberPart}${currentLetter}`);
+        }
+      } else {
+
+        for (let i = 0; i < quantity; i++) {
+          const letter = String.fromCharCode(65 + i); 
+          unitNumbers.push(`${numberPart}${letter}`);
+        }
+      }
+    } else {
+      for (let i = 0; i < quantity; i++) {
+        unitNumbers.push(`${baseUnitNumber}${i + 1}`);
+      }
+    }
+    
+    return unitNumbers;
+  }
+
+  addBulkUnits() {
+    const baseUnitNumber = this.bulkDefaults.unitNumber.trim();
+    const type = this.bulkDefaults.unitType;
+    const quantity = Number(this.bulkDefaults.quantity) || 0;
+    const rent = Number(this.bulkDefaults.rentAmount) || 25000;
+    const deposit = Number(this.bulkDefaults.deposit) || 25000;
+
+    if (!baseUnitNumber) {
+      this.snackBar.open('Please enter a starting unit number', 'Close', { duration: 2000 });
+      return;
+    }
+
+    if (!type) {
+      this.snackBar.open('Please select a unit type', 'Close', { duration: 2000 });
+      return;
+    }
+
+    if (quantity < 1) {
+      this.snackBar.open('Please enter a valid quantity', 'Close', { duration: 2000 });
+      return;
+    }
+
+    const remainingUnits = this.getRemainingUnits();
+    if (quantity > remainingUnits) {
+      this.snackBar.open(`Only ${remainingUnits} units remaining. Cannot add ${quantity} units.`, 'Close', { duration: 3000 });
+      return;
+    }
+    const unitNumbers = this.generateSequentialUnitNumbers(baseUnitNumber, quantity);
+
+    unitNumbers.forEach(unitNumber => {
+      const newUnit = this.createUnit(unitNumber, type, rent, deposit);
+      this.units.push(newUnit);
+      this.selectedRows.push(false);
     });
 
-    // Clear messages when user starts typing
-    this.subscriptions.add(
-      this.propertyForm.valueChanges.subscribe(() => {
-        this.clearMessages();
-      })
+    this.snackBar.open(`Added ${quantity} ${this.getUnitTypeLabel(type)} unit(s) successfully`, 'Close', { duration: 2000 });
+    this.calculateStats();
+    this.scrollToUnits();
+    
+
+    this.bulkDefaults.quantity = 1;
+  }
+
+  addSingleUnit() {
+    if (this.isMaxUnitsReached()) {
+      this.snackBar.open('Maximum units reached', 'Close', { duration: 2000 });
+      return;
+    }
+
+
+    const unitNumber = `Unit ${this.units.length + 1}`;
+    const newUnit = this.createUnit(
+      unitNumber,
+      this.bulkDefaults.unitType || 'SINGLE',
+      this.bulkDefaults.rentAmount,
+      this.bulkDefaults.deposit
     );
+    this.units.push(newUnit);
+    this.selectedRows.push(false);
+    this.calculateStats();
+    this.scrollToUnits();
+    this.snackBar.open('Unit added successfully', 'Close', { duration: 1500 });
   }
 
-  private checkPermissions() {
-    // More thorough permission check
-    const currentUser = this.authService.getCurrentUser();
-    const isAuthenticated = this.authService.isAuthenticated();
-    const canManage = this.propertyService.canManageProperties();
+  autoGenerateUnits() {
+    const totalUnits = Number(this.propertyForm.get('totalUnits')?.value) || 0;
+    if (totalUnits <= 0) {
+      this.snackBar.open('Please set total units first', 'Close', { duration: 2000 });
+      return;
+    }
 
-    console.log('Permission check:', {
-      currentUser,
-      isAuthenticated,
-      canManage,
-      userRole: currentUser?.role
+    this.units.clear();
+    this.selectedRows = [];
+
+    
+    const unitTypes = ['SINGLE', 'BEDSITTER', '1BR', '2BR'];
+    const distribution = [0.4, 0.3, 0.2, 0.1]; 
+
+    let unitsCreated = 0;
+    let unitCounter = 1;
+
+    unitTypes.forEach((type, index) => {
+      const count = Math.floor(totalUnits * distribution[index]);
+      for (let i = 0; i < count && unitsCreated < totalUnits; i++) {
+        const unitNumber = this.generateUnitNumber(unitCounter);
+        const rent = this.getDefaultRentForType(type);
+        const deposit = rent; 
+        const newUnit = this.createUnit(unitNumber, type, rent, deposit);
+        this.units.push(newUnit);
+        this.selectedRows.push(false);
+        unitsCreated++;
+        unitCounter++;
+      }
+    });
+    while (unitsCreated < totalUnits) {
+      const unitNumber = this.generateUnitNumber(unitCounter);
+      const newUnit = this.createUnit(unitNumber, 'SINGLE', 15000, 15000);
+      this.units.push(newUnit);
+      this.selectedRows.push(false);
+      unitsCreated++;
+      unitCounter++;
+    }
+
+    this.snackBar.open(`Auto-generated ${totalUnits} units`, 'Close', { duration: 2000 });
+    this.calculateStats();
+    this.scrollToUnits();
+  }
+
+  private generateUnitNumber(counter: number): string {
+    const propertyType = this.propertyForm.value.propertyType;
+    
+    if (propertyType === 'APARTMENT') {
+      const unitsPerFloor = 4;
+      const floor = Math.floor((counter - 1) / unitsPerFloor) + 1;
+      const onFloor = ((counter - 1) % unitsPerFloor) + 1;
+      return `${floor}${onFloor.toString().padStart(2, '0')}`;
+    } else if (propertyType === 'COMMERCIAL' || propertyType === 'OFFICE') {
+      return `Unit ${String.fromCharCode(64 + counter)}`; 
+    } else {
+      return `Unit ${counter}`;
+    }
+  }
+
+  private getDefaultRentForType(type: string): number {
+    const defaults: { [key: string]: number } = {
+      'SINGLE': 15000,
+      'BEDSITTER': 25000,
+      '1BR': 35000,
+      '2BR': 50000,
+      '3BR': 70000,
+      'OFFICE': 40000
+    };
+    return defaults[type] || 25000;
+  }
+
+  removeUnit(index: number) {
+    this.units.removeAt(index);
+    this.selectedRows.splice(index, 1);
+    this.calculateStats();
+    this.snackBar.open('Unit removed', 'Close', { duration: 1500 });
+  }
+
+  scrollToUnits() {
+    if (this.unitsSection) {
+      this.unitsSection.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  toggleSelectAll(event: any) {
+    this.allUnitsSelected = event.target.checked;
+    this.selectedRows = this.selectedRows.map(() => this.allUnitsSelected);
+  }
+
+  toggleUnitSelection(index: number, event: any) {
+    this.selectedRows[index] = event.target.checked;
+    this.allUnitsSelected = this.selectedRows.every(selected => selected);
+  }
+
+  isUnitSelected(index: number): boolean {
+    return this.selectedRows[index] || false;
+  }
+
+  getSelectedUnitsCount(): number {
+    return this.selectedRows.filter(selected => selected).length;
+  }
+
+
+  getUnitTypeSummary(): UnitTypeSummary[] {
+    const summary: { [key: string]: number } = {};
+    
+    this.units.controls.forEach(unit => {
+      const type = unit.get('unitType')?.value;
+      if (type) {
+        summary[type] = (summary[type] || 0) + 1;
+      }
     });
 
-    if (!isAuthenticated) {
-      this.errorMessage = 'You are not logged in. Please log in first.';
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 2000);
+    return Object.keys(summary).map(type => ({
+      type: this.getUnitTypeLabel(type),
+      count: summary[type]
+    }));
+  }
+
+  getUnitTypeLabel(unitTypeValue: string): string {
+    const unitType = this.unitTypes.find(type => type.value === unitTypeValue);
+    return unitType ? unitType.label : unitTypeValue;
+  }
+
+
+  applyBatchOperation() {
+    const targetUnits = this.batchOperation.target === 'selected'
+      ? this.units.controls.filter((_, i) => this.selectedRows[i])
+      : this.units.controls;
+
+    if (this.batchOperation.target === 'selected' && targetUnits.length === 0) {
+      this.snackBar.open('No units selected for batch operation.', 'Close', { duration: 2000 });
       return;
     }
 
-    if (!canManage) {
-      this.errorMessage = 'You do not have permission to create properties. Only landlords can create properties.';
-      setTimeout(() => {
-        this.router.navigate(['/dashboard']);
-      }, 3000);
+    if (this.batchOperation.value === '' || this.batchOperation.value === null || this.batchOperation.value === undefined) {
+      this.snackBar.open('Please enter a value for the batch operation.', 'Close', { duration: 2000 });
       return;
+    }
+
+    targetUnits.forEach(unit => {
+      let value: string | number = this.batchOperation.value;
+      const field = this.batchOperation.field;
+      
+      if (field === 'rentAmount' || field === 'deposit') {
+        value = Number(value) || 0;
+        if (value < 0) value = 0;
+      }
+      
+      unit.get(field)?.setValue(value);
+    });
+
+    const affectedCount = targetUnits.length;
+    this.snackBar.open(`Batch operation applied to ${affectedCount} units!`, 'Close', { duration: 1500 });
+    this.calculateStats();
+  }
+
+  clearAllUnits() {
+    if (this.units.length === 0) {
+      this.snackBar.open('No units to clear', 'Close', { duration: 1500 });
+      return;
+    }
+
+    if (confirm('Are you sure you want to clear all units? This action cannot be undone.')) {
+      this.units.clear();
+      this.selectedRows = [];
+      this.calculateStats();
+      this.snackBar.open('All units cleared.', 'Close', { duration: 1500 });
     }
   }
 
-  // Custom validator to match @NotBlank behavior
   private notBlankValidator(control: any) {
-    if (control.value && typeof control.value === 'string' && control.value.trim().length === 0) {
+    if (control?.value && typeof control.value === 'string' && control.value.trim() === '') {
       return { notBlank: true };
     }
     return null;
   }
 
-  // Get error message for form field
-  getErrorMessage(fieldName: string): string {
-    const field = this.propertyForm.get(fieldName);
-    
-    if (field?.hasError('required')) {
-      switch (fieldName) {
-        case 'name': return 'Property name is required';
-        case 'location': return 'Location is required';
-        case 'propertyType': return 'Property type is required';
-        case 'totalUnits': return 'Total units is required';
-        default: return 'This field is required';
-      }
-    }
-    
-    if (field?.hasError('notBlank')) {
-      switch (fieldName) {
-        case 'name': return 'Property name cannot be empty';
-        case 'location': return 'Location cannot be empty';
-        default: return 'This field cannot be empty';
-      }
-    }
-    
-    if (field?.hasError('min')) {
-      return 'Total units must be at least 1';
-    }
-
-    if (field?.hasError('max')) {
-      return 'Total units cannot exceed 10,000';
-    }
-
-    if (field?.hasError('maxlength')) {
-      return 'Description cannot exceed 1000 characters';
-    }
-    
-    return '';
+  hasFieldError(field: string): boolean {
+    const control = this.propertyForm.get(field);
+    return !!(control?.invalid && (control?.dirty || control?.touched));
   }
 
-  // Check if field has error and is touched
-  hasFieldError(fieldName: string): boolean {
-    const field = this.propertyForm.get(fieldName);
-    return !!(field?.invalid && (field?.dirty || field?.touched));
+  getErrorMessage(field: string): string {
+    const control = this.propertyForm.get(field);
+    if (!control) return '';
+    
+    if (control.hasError('required')) {
+      return `${this.formatFieldName(field)} is required`;
+    }
+    if (control.hasError('notBlank')) {
+      return `${this.formatFieldName(field)} cannot be empty or contain only spaces`;
+    }
+    if (control.hasError('min')) {
+      const min = control.errors?.['min']?.min;
+      return `${this.formatFieldName(field)} must be at least ${min}`;
+    }
+    if (control.hasError('max')) {
+      const max = control.errors?.['max']?.max;
+      return `${this.formatFieldName(field)} cannot exceed ${max}`;
+    }
+    if (control.hasError('maxlength')) {
+      const requiredLength = control.errors?.['maxlength']?.requiredLength;
+      return `Maximum ${requiredLength} characters allowed`;
+    }
+    return 'Invalid value';
+  }
+
+  private formatFieldName(field: string): string {
+    const fieldNames: { [key: string]: string } = {
+      'name': 'Property name',
+      'location': 'Location',
+      'propertyType': 'Property type',
+      'totalUnits': 'Total units',
+      'description': 'Description'
+    };
+    return fieldNames[field] || field.charAt(0).toUpperCase() + field.slice(1);
+  }
+
+  private calculateStats() {
+    this.monthlyRevenue = this.units.controls.reduce((sum, unit) => {
+      return sum + (Number(unit.get('rentAmount')?.value) || 0);
+    }, 0);
+    this.totalDeposit = this.units.controls.reduce((sum, unit) => {
+      return sum + (Number(unit.get('deposit')?.value) || 0);
+    }, 0);
   }
 
   onSubmit() {
-    this.clearMessages();
+    if (this.propertyForm.invalid) {
+      this.propertyForm.markAllAsTouched();
+      this.snackBar.open('Please fix all errors before submitting', 'Close', { duration: 3000 });
+      return;
+    }
 
-    console.log('Form submission started');
-    console.log('Form valid:', this.propertyForm.valid);
-    console.log('Form values:', this.propertyForm.value);
+    if (this.units.length === 0) {
+      this.snackBar.open('Please add at least one unit before submitting', 'Close', { duration: 3000 });
+      return;
+    }
 
-    if (this.propertyForm.valid) {
-      this.isSubmitting = true;
-      
-      // Trim whitespace from string fields and ensure proper data types
-      const formData = {
-        name: this.propertyForm.value.name?.trim() || '',
-        location: this.propertyForm.value.location?.trim() || '',
-        propertyType: this.propertyForm.value.propertyType,
-        totalUnits: parseInt(this.propertyForm.value.totalUnits, 10), // Ensure integer
-        description: this.propertyForm.value.description?.trim() || ''
-      };
+   
+    
 
-      console.log('Processed form data:', formData);
+    const invalidUnits = this.units.controls.filter(unit => unit.invalid);
+    if (invalidUnits.length > 0) {
+      this.snackBar.open('Please fix errors in unit configurations', 'Close', { duration: 3000 });
+      return;
+    }
 
-      // Validate data using service
-      const validationErrors = this.propertyService.validatePropertyData(formData);
-      if (validationErrors.length > 0) {
-        this.errorMessage = validationErrors.join(', ');
+    this.isSubmitting = true;
+    const formData: PropertyRequest = {
+      name: this.propertyForm.value.name.trim(),
+      location: this.propertyForm.value.location.trim(),
+      propertyType: this.propertyForm.value.propertyType,
+      totalUnits: Number(this.propertyForm.value.totalUnits),
+      description: this.propertyForm.value.description?.trim() || '',
+      units: this.propertyForm.value.units.map((u: any) => ({
+        unitNumber: u.unitNumber.trim(),
+        unitType: u.unitType,
+        rentAmount: Number(u.rentAmount),
+        deposit: Number(u.deposit),
+        unitDescription: u.unitDescription?.trim() || ''
+      }))
+    };
+
+    console.log('Submitting property data:', formData); 
+
+    this.propertyService.createProperty(formData).subscribe({
+      next: (res: any) => {
         this.isSubmitting = false;
-        return;
-      }
-
-      // Additional validation for totalUnits
-      if (isNaN(formData.totalUnits) || formData.totalUnits < 1) {
-        this.errorMessage = 'Please enter a valid number for total units (at least 1)';
+        console.log('Property creation response:', res); 
+        
+        if (res.success) {
+          this.snackBar.open('Property created successfully!', 'Close', { duration: 3000 });
+          setTimeout(() => this.router.navigate(['/landlord-dashboard/property']), 2000);
+        } else {
+          this.snackBar.open(res.message || 'Failed to create property.', 'Close', { duration: 3000 });
+        }
+      },
+      error: (err: any) => {
         this.isSubmitting = false;
-        return;
+        console.error('Property creation error:', err); 
+        this.handlePropertyCreationError(err);
       }
+    });
+  }
 
-      this.createProperty(formData);
+  onCancel() {
+    if (this.propertyForm.dirty) {
+      if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+        this.router.navigate(['/landlord-dashboard/property']);
+      }
     } else {
-      // Mark all fields as touched to show validation errors
-      Object.keys(this.propertyForm.controls).forEach(key => {
-        this.propertyForm.get(key)?.markAsTouched();
-      });
-      this.errorMessage = 'Please fix the errors above before submitting.';
-      
-      // Log form errors for debugging
-      console.log('Form errors:', this.getFormErrors());
+      this.router.navigate(['/landlord-dashboard/property']);
     }
   }
 
-  private createProperty(propertyData: any) {
-    const propertyRequest: PropertyRequest = {
-      name: propertyData.name,
-      location: propertyData.location,
-      propertyType: propertyData.propertyType,
-      totalUnits: propertyData.totalUnits,
-      description: propertyData.description
-    };
-
-    console.log('Creating property with request:', propertyRequest);
-    console.log('Current user:', this.authService.getCurrentUser());
-    console.log('Auth token exists:', !!this.authService.getToken());
-
-    const createSub = this.propertyService.createProperty(propertyRequest).subscribe({
-      next: (response) => {
-        console.log('Property creation response:', response);
-        this.isSubmitting = false;
-        
-        if (response.success) {
-          this.successMessage = response.message || 'Property created successfully!';
-          
-          // Show success message and redirect
-          setTimeout(() => {
-            this.router.navigate(['/landlord-dashboard/property']);
-          }, 2000);
-        } else {
-          this.errorMessage = response.message || 'Failed to create property. Please try again.';
-        }
-      },
-      error: (error) => {
-        this.isSubmitting = false;
-        console.error('Property creation error:', error);
-        this.handlePropertyCreationError(error);
-      }
-    });
-
-    this.subscriptions.add(createSub);
+  private checkPermissions() {
+    if (!this.authService.isAuthenticated()) {
+      this.snackBar.open('You are not logged in. Redirecting...', 'Close', { duration: 2000 });
+      setTimeout(() => this.router.navigate(['/login']), 2000);
+      return;
+    }
   }
 
   private handlePropertyCreationError(error: any) {
-    console.error('Property creation error details:', {
-      error,
-      status: error?.status,
-      message: error?.message,
-      errorObject: error?.error
-    });
-
-    // Handle different types of errors
-    if (error.status === 401 || error.status === 403) {
-      this.errorMessage = 'You are not authorized to perform this action. Please log in again.';
+    console.error('Property creation error details:', error); 
+    
+    if ([401, 403].includes(error.status)) {
+      this.snackBar.open('Not authorized. Logging out...', 'Close', { duration: 2000 });
       setTimeout(() => {
         this.authService.logout();
         this.router.navigate(['/login']);
       }, 2000);
     } else if (error.status === 400) {
-      // Validation errors from backend
-      this.errorMessage = error.error?.message || 'Invalid property data. Please check your inputs.';
+      this.snackBar.open(error.error?.message || 'Invalid property data.', 'Close', { duration: 3000 });
     } else if (error.status === 409) {
-      // Conflict - property might already exist
-      this.errorMessage = 'A property with this name already exists at this location.';
+      this.snackBar.open('A property with this name already exists at this location.', 'Close', { duration: 3000 });
     } else if (error.status === 500) {
-      this.errorMessage = 'Server error occurred. Please try again later.';
+      this.snackBar.open('Server error. Please try again later.', 'Close', { duration: 3000 });
     } else if (error.status === 0) {
-      // Network error
-      this.errorMessage = 'Network error. Please check your internet connection.';
-    } else if (error.message) {
-      this.errorMessage = error.message;
-    } else if (error.error?.message) {
-      this.errorMessage = error.error.message;
+      this.snackBar.open('Network error. Please check your connection.', 'Close', { duration: 3000 });
     } else {
-      this.errorMessage = 'Failed to create property. Please try again later.';
-    }
-
-    // Log error for debugging (remove in production)
-    console.error('Failed to create property:', error);
-  }
-
-  onCancel() {
-    if (this.propertyForm.dirty) {
-      const confirmLeave = confirm('You have unsaved changes. Are you sure you want to leave?');
-      if (!confirmLeave) {
-        return;
-      }
-    }
-    this.router.navigate(['/landlord-dashboard/property']);
-  }
-
-  private clearMessages() {
-    this.errorMessage = '';
-    this.successMessage = '';
-  }
-
-  // Helper method to check if form is ready to submit
-  get isFormValid(): boolean {
-    return this.propertyForm.valid && !this.isSubmitting;
-  }
-
-  // Helper method to get remaining characters for description
-  getRemainingCharacters(): number {
-    const description = this.propertyForm.get('description')?.value || '';
-    return 1000 - description.length;
-  }
-
-  // Helper method to check if description is getting close to limit
-  isDescriptionNearLimit(): boolean {
-    return this.getRemainingCharacters() < 100;
-  }
-
-  // Debug helper to get all form errors
-  private getFormErrors(): any {
-    const errors: any = {};
-    Object.keys(this.propertyForm.controls).forEach(key => {
-      const controlErrors = this.propertyForm.get(key)?.errors;
-      if (controlErrors) {
-        errors[key] = controlErrors;
-      }
-    });
-    return errors;
-  }
-
-  // Method to refresh permissions if needed
-  refreshPermissions(): void {
-    this.checkPermissions();
-  }
-
-  // Getter methods for template access
-  get currentUser() {
-    return this.authService.getCurrentUser();
-  }
-
-  get hasToken(): boolean {
-    return !!this.authService.getToken();
-  }
-
-  get isUserAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
-  }
-
-  get canManageProps(): boolean {
-    return this.propertyService.canManageProperties();
-  }
-
-  get tokenLength(): number {
-    return this.authService.getToken()?.length || 0;
-  }
-
-  // Method to reset form
-  resetForm(): void {
-    this.propertyForm.reset();
-    this.clearMessages();
-    
-    // Reset form state
-    Object.keys(this.propertyForm.controls).forEach(key => {
-      this.propertyForm.get(key)?.setErrors(null);
-      this.propertyForm.get(key)?.markAsUntouched();
-    });
-  }
-
-  // Method to check if user can submit based on current state
-  canSubmit(): boolean {
-    return this.isFormValid && 
-           this.isUserAuthenticated && 
-           this.canManageProps && 
-           !this.errorMessage;
-  }
-
-  // Method to handle form field focus for better UX
-  onFieldFocus(fieldName: string): void {
-    // Clear field-specific error when user focuses on it
-    const field = this.propertyForm.get(fieldName);
-    if (field?.errors) {
-      // Optionally clear the general error message too
-      if (this.errorMessage.includes(fieldName)) {
-        this.errorMessage = '';
-      }
+      this.snackBar.open(error.message || 'Failed to create property.', 'Close', { duration: 3000 });
     }
   }
 
-  // Method to validate individual field
-  validateField(fieldName: string): void {
-    const field = this.propertyForm.get(fieldName);
-    if (field) {
-      field.markAsTouched();
-      field.updateValueAndValidity();
+  getBatchInputType(): 'number' | 'text' {
+    switch (this.batchOperation.field) {
+      case 'rentAmount':
+      case 'deposit': return 'number';
+      case 'unitDescription': return 'text';
+      default: return 'text';
     }
   }
 }
