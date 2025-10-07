@@ -1,4 +1,3 @@
-
 import { Component, OnInit, inject, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +10,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
-
 import { RegisterRequest, UserRole } from '../../../services/auth-interfaces';
 
 interface FormData {
@@ -136,13 +134,26 @@ export class RegistrationComponent implements OnInit {
       accessCode: this.formData.accessCode
     };
 
+    console.log('Registering user with role:', registerRequest.role);
+
     this.authService.register(registerRequest).subscribe({
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
+
           sessionStorage.setItem('pendingVerificationEmail', registerRequest.email);
-          this.showSuccess(response.message || 'Registration successful! Sending verification code...');
-          this.router.navigate(['/verify-otp'], { queryParams: { email: registerRequest.email, type: 'email_verification' } });
+          
+          this.showSuccess(response.message || 'Registration successful! Please check your email for verification code');
+        
+          setTimeout(() => {
+            this.router.navigate(['/verify-otp'], { 
+              queryParams: { 
+                email: registerRequest.email,
+                userType: registerRequest.role.toLowerCase(), // FIX: Pass the role to OTP component
+                message: 'Registration successful! Please check your email for verification code.'
+              }
+            });
+          }, 2000);
         } else {
           this.showError(response.message || 'Registration failed. Please try again.');
         }
@@ -155,14 +166,32 @@ export class RegistrationComponent implements OnInit {
   }
 
   private showSuccess(message: string): void {
-    this.snackBar.open(message, 'Close', { duration: 4000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-success'] });
+    this.snackBar.open(message, 'Close', { 
+      duration: 5000, 
+      horizontalPosition: 'right', 
+      verticalPosition: 'top', 
+      panelClass: ['snackbar-success'] 
+    });
   }
 
   private showError(message: string): void {
-    this.snackBar.open(message, 'Close', { duration: 4000, horizontalPosition: 'right', verticalPosition: 'top', panelClass: ['snackbar-error'] });
+    this.snackBar.open(message, 'Close', { 
+      duration: 5000, 
+      horizontalPosition: 'right', 
+      verticalPosition: 'top', 
+      panelClass: ['snackbar-error'] 
+    });
   }
 
-  navigateToLogin(): void { this.router.navigate(['/login']); }
-  navigateToTerms(): void { window.open('/terms', '_blank'); }
-  navigateToPrivacy(): void { window.open('/privacy', '_blank'); }
+  navigateToLogin(): void { 
+    this.router.navigate(['/login']); 
+  }
+  
+  navigateToTerms(): void { 
+    window.open('/terms', '_blank'); 
+  }
+  
+  navigateToPrivacy(): void { 
+    window.open('/privacy', '_blank'); 
+  }
 }

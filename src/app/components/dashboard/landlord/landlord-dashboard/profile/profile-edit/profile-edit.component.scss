@@ -1,0 +1,785 @@
+.profile-edit-container {
+  padding: 0;
+  background: #f8fafc;
+  min-height: 100vh;
+
+  .content-header {
+    background: #ffffff;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-left {
+      h1 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+      }
+
+      p {
+        color: #64748b;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+    }
+  }
+
+  .profile-content {
+    padding: 2rem;
+
+    .profile-card {
+      max-width: 800px;
+      margin: 0 auto;
+
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 1rem 0;
+
+        .profile-image-section {
+          position: relative;
+          display: inline-block;
+
+          .image-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+          }
+
+          .profile-image-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #e5e7eb;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s ease;
+
+            &.loading {
+              opacity: 0.6;
+            }
+          }
+
+          .profile-image-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            display: flex;
+            gap: 0.5rem;
+
+            .change-photo-btn {
+              background: #3b82f6;
+              color: white;
+
+              &:hover:not([disabled]) {
+                background: #2563eb;
+                transform: scale(1.1);
+              }
+
+              &[disabled] {
+                background: #9ca3af;
+                cursor: not-allowed;
+              }
+            }
+
+            .camera-btn {
+              background: #10b981;
+              color: white;
+
+              &:hover:not([disabled]) {
+                background: #059669;
+                transform: scale(1.1);
+              }
+
+              &[disabled] {
+                background: #9ca3af;
+                cursor: not-allowed;
+              }
+            }
+          }
+        }
+
+        .profile-basic-info {
+          h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 0.5rem 0;
+          }
+
+          .instruction {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin: 0 0 0.5rem 0;
+          }
+
+          .upload-info {
+            color: #3b82f6;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0;
+          }
+        }
+      }
+
+      .profile-form {
+        padding: 1rem 0;
+
+        .form-section {
+          margin-bottom: 2rem;
+
+          h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+
+          .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+          }
+
+          .full-width {
+            width: 100%;
+          }
+        }
+
+        .form-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 1rem;
+          padding-top: 1rem;
+
+          button {
+            min-width: 120px;
+          }
+        }
+      }
+    }
+  }
+
+  .camera-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .camera-container {
+      background: #1f2937;
+      border-radius: 16px;
+      overflow: hidden;
+      max-width: 90vw;
+      max-height: 90vh;
+      position: relative;
+
+      .camera-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #374151;
+
+        h3 {
+          color: white;
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 600;
+        }
+
+        .close-camera {
+          color: white;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+        }
+      }
+
+      video {
+        width: 100%;
+        height: auto;
+        max-height: 70vh;
+        display: block;
+      }
+
+      .camera-controls {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: center;
+        background: #374151;
+
+        .capture-btn {
+          background: #ef4444;
+          color: white;
+          padding: 0.75rem 2rem;
+          border-radius: 50px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          &:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+          }
+
+          mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+          }
+        }
+      }
+    }
+  }
+}
+
+mat-form-field {
+  width: 100%;
+
+  .mat-form-field-outline {
+    border-radius: 8px;
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-edit-container {
+    .content-header {
+      padding: 1rem 1.5rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .profile-content {
+      padding: 1rem;
+
+      .profile-card {
+        .profile-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 1rem;
+
+          .profile-basic-info {
+            text-align: center;
+          }
+
+          .profile-image-overlay {
+            position: static;
+            justify-content: center;
+            margin-top: 1rem;
+          }
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr !important;
+        }
+
+        .form-actions {
+          flex-direction: column-reverse;
+          gap: 0.5rem;
+
+          button {
+            width: 100%;
+          }
+        }
+      }.profile-edit-container {
+  padding: 0;
+  background: #f8fafc;
+  min-height: 100vh;
+
+  .content-header {
+    background: #ffffff;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-left {
+      h1 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+      }
+
+      p {
+        color: #64748b;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+    }
+  }
+
+  .profile-content {
+    padding: 2rem;
+
+    .profile-card {
+      max-width: 800px;
+      margin: 0 auto;
+
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 1rem 0;
+
+        .profile-image-section {
+          position: relative;
+          display: inline-block;
+
+          .image-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+          }
+
+          .profile-image-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #e5e7eb;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s ease;
+
+            &.loading {
+              opacity: 0.6;
+            }
+          }
+
+          .profile-image-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            display: flex;
+            gap: 0.5rem;
+
+            .change-photo-btn {
+              background: #3b82f6;
+              color: white;
+
+              &:hover:not([disabled]) {
+                background: #2563eb;
+                transform: scale(1.1);
+              }
+
+              &[disabled] {
+                background: #9ca3af;
+                cursor: not-allowed;
+              }
+            }
+
+            .camera-btn {
+              background: #10b981;
+              color: white;
+
+              &:hover:not([disabled]) {
+                background: #059669;
+                transform: scale(1.1);
+              }
+
+              &[disabled] {
+                background: #9ca3af;
+                cursor: not-allowed;
+              }
+            }
+
+            .delete-photo-btn {
+              background: #ef4444;
+              color: white;
+
+              &:hover:not([disabled]) {
+                background: #dc2626;
+                transform: scale(1.1);
+              }
+
+              &[disabled] {
+                background: #9ca3af;
+                cursor: not-allowed;
+              }
+            }
+          }
+        }
+
+        .profile-basic-info {
+          h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 0.5rem 0;
+          }
+
+          .instruction {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin: 0 0 0.25rem 0;
+          }
+
+          .upload-info {
+            color: #3b82f6;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.5rem 0 0 0;
+          }
+
+          .delete-info {
+            color: #ef4444;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.5rem 0 0 0;
+          }
+        }
+      }
+
+      .profile-form {
+        padding: 1rem 0;
+
+        .form-section {
+          margin-bottom: 2rem;
+
+          h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+
+          .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+          }
+
+          .full-width {
+            width: 100%;
+          }
+        }
+
+        .form-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 1rem;
+          padding-top: 1rem;
+
+          button {
+            min-width: 120px;
+          }
+        }
+      }
+    }
+  }
+
+  .camera-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .camera-container {
+      background: #1f2937;
+      border-radius: 16px;
+      overflow: hidden;
+      max-width: 90vw;
+      max-height: 90vh;
+      position: relative;
+
+      .camera-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #374151;
+
+        h3 {
+          color: white;
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 600;
+        }
+
+        .close-camera {
+          color: white;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+        }
+      }
+
+      video {
+        width: 100%;
+        height: auto;
+        max-height: 70vh;
+        display: block;
+      }
+
+      .camera-controls {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: center;
+        background: #374151;
+
+        .capture-btn {
+          background: #ef4444;
+          color: white;
+          padding: 0.75rem 2rem;
+          border-radius: 50px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          &:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+          }
+
+          mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+          }
+        }
+      }
+    }
+  }
+}
+
+mat-form-field {
+  width: 100%;
+
+  .mat-form-field-outline {
+    border-radius: 8px;
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+@media (max-width: 768px) {
+  .profile-edit-container {
+    .content-header {
+      padding: 1rem 1.5rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .profile-content {
+      padding: 1rem;
+
+      .profile-card {
+        .profile-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 1rem;
+
+          .profile-basic-info {
+            text-align: center;
+          }
+
+          .profile-image-overlay {
+            position: static;
+            justify-content: center;
+            margin-top: 1rem;
+          }
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr !important;
+        }
+
+        .form-actions {
+          flex-direction: column-reverse;
+          gap: 0.5rem;
+
+          button {
+            width: 100%;
+          }
+        }
+      }
+    }
+
+    .camera-overlay {
+      .camera-container {
+        border-radius: 0;
+        max-width: 100vw;
+        max-height: 100vh;
+        width: 100%;
+        height: 100%;
+
+        .camera-header {
+          padding: 1rem;
+        }
+
+        video {
+          max-height: calc(100vh - 140px);
+        }
+
+        .camera-controls {
+          padding: 1rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-edit-container {
+    .profile-content {
+      .profile-card {
+        .profile-header {
+          .profile-image-section {
+            .profile-image-large {
+              width: 100px;
+              height: 100px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    }
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+    .camera-overlay {
+      .camera-container {
+        border-radius: 0;
+        max-width: 100vw;
+        max-height: 100vh;
+        width: 100%;
+        height: 100%;
+
+        .camera-header {
+          padding: 1rem;
+        }
+
+        video {
+          max-height: calc(100vh - 140px);
+        }
+
+        .camera-controls {
+          padding: 1rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-edit-container {
+    .profile-content {
+      .profile-card {
+        .profile-header {
+          .profile-image-section {
+            .profile-image-large {
+              width: 100px;
+              height: 100px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

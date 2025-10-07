@@ -1,16 +1,16 @@
-
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterModule } from '@angular/router';
+import { NavbarComponent } from '../../../src/app/shared/navbar/navbar.component';
+import { FooterComponent } from '../../../src/app/shared/footer/footer.component';
 
 @Component({
   selector: 'app-about',
   templateUrl: './about.html',
   styleUrls: ['./about.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule,RouterModule]
+  imports: [CommonModule, MatIconModule, RouterModule, NavbarComponent, FooterComponent] 
 })
 export class AboutComponent implements OnInit {
   private isBrowser: boolean;
@@ -19,11 +19,11 @@ export class AboutComponent implements OnInit {
   currentYear: number = new Date().getFullYear();
   activeMenu: string = 'about';
 
-
   setActiveMenu(menu: string) {
-  this.activeMenu = menu;
-  this.isMobileMenuOpen = false; 
-}
+    this.activeMenu = menu;
+    this.isMobileMenuOpen = false;
+  }
+
   teamMembers = [
     {
       name: 'Keziah Apadet',
@@ -48,7 +48,7 @@ export class AboutComponent implements OnInit {
       description: 'Every transaction and interaction is secured with enterprise-grade encryption and fraud detection.'
     },
     {
-      icon: 'transparency',
+      icon: 'visibility',
       title: 'Transparency',
       description: 'Open communication, clear pricing, and honest dealings with all stakeholders.'
     },
@@ -58,7 +58,7 @@ export class AboutComponent implements OnInit {
       description: 'Building stronger rental communities through trust, accountability, and mutual respect.'
     },
     {
-      icon: 'innovation',
+      icon: 'lightbulb',
       title: 'Innovation',
       description: 'Continuously improving our platform with cutting-edge technology and user feedback.'
     }
@@ -66,7 +66,7 @@ export class AboutComponent implements OnInit {
 
   ourStory = {
     title: 'Our Story',
-    description: `RentEase was founded after Keziah and Hassan  personally experienced rental fraud. 
+    description: `RentEase was founded after Keziah and Hassan personally experienced rental fraud. 
     Instead of giving up, the challenge inspired the creation of a platform that protects tenants, landlords, and caretakers from similar experiences.`
   };
 
@@ -84,7 +84,6 @@ export class AboutComponent implements OnInit {
     }, 100);
   }
 
-  
   navigateToHome(): void { this.router.navigate(['/home']); }
   navigateToFeatures(): void { this.router.navigate(['/features']); }
   navigateToPricing(): void { this.router.navigate(['/pricing']); }

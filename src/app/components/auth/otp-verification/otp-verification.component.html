@@ -1,0 +1,67 @@
+<div class="otp-page">
+  <div class="otp-card">
+    <div class="logo-title">
+      <img src="/images/logo.png" alt="RentEase Logo" />
+      <h2><mat-icon>verified</mat-icon> OTP Verification</h2>
+    </div>
+
+    <p class="subtitle">
+      Enter the 7-digit OTP sent to your email <span *ngIf="email">({{ email }})</span>.
+    </p>
+
+    <form [formGroup]="otpForm" (ngSubmit)="onSubmit()">
+      <!-- 7 OTP Input Boxes -->
+      <div class="otp-container">
+        <div class="otp-inputs" formGroupName="otpFields">
+          <mat-form-field appearance="outline" *ngFor="let field of otpFields; let i = index">
+            <input
+              matInput
+              type="text"
+              [formControlName]="field"
+              [maxlength]="1"
+              (input)="onOtpInput($event, i)"
+              (keydown)="onOtpKeyDown($event, i)"
+              (paste)="onOtpPaste($event)"
+              class="otp-input"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <mat-error *ngIf="showOtpError" class="otp-error">
+        {{ otpErrorMessage }}
+      </mat-error>
+
+      <button
+        mat-raised-button
+        color="primary"
+        class="full-width verify-btn"
+        [disabled]="isLoading || !isOtpComplete()"
+      >
+        {{ isLoading ? 'Verifying...' : 'Verify OTP' }}
+      </button>
+    </form>
+
+    <div class="resend-section">
+      <button
+        mat-stroked-button
+        color="accent"
+        (click)="resendOtp()"
+        [disabled]="!canResend || isResending"
+      >
+        {{
+          isResending
+            ? 'Resending...'
+            : canResend
+              ? 'Resend OTP'
+              : 'Resend in ' + resendTimer + 's'
+        }}
+      </button>
+    </div>
+
+    <p class="back-links">
+      <a (click)="navigateToForgotPassword()">Back to Forgot Password</a> |
+      <a (click)="navigateToLogin()">Back to Login</a>
+    </p>
+  </div>
+</div>

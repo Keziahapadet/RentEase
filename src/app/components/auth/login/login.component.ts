@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
-import { LoginRequest, UserRole } from '../../../services/auth-interfaces';
+import { LoginRequest, UserRole, AuthResponse } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-login',
@@ -40,17 +40,11 @@ export class LoginComponent implements OnInit {
   returnUrl: string = '/dashboard';
 
   ngOnInit(): void {
-    console.log('Login component initialized');
-
     if (this.authService.isAuthenticated()) {
-      console.log('User already authenticated, redirecting...');
       this.redirectToDashboard();
       return;
     }
-
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-    console.log('Return URL set to:', this.returnUrl);
-
     const message = this.route.snapshot.queryParams['message'];
     if (message) {
       this.showSnackbar(message, 'success');
@@ -66,108 +60,106 @@ export class LoginComponent implements OnInit {
       this.showSnackbar('Email is required.', 'error');
       return false;
     }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.loginData.email)) {
       this.showSnackbar('Please enter a valid email address.', 'error');
       return false;
     }
-
     if (!this.loginData.password) {
       this.showSnackbar('Password is required.', 'error');
       return false;
     }
-
     if (this.loginData.password.length < 6) {
       this.showSnackbar('Password must be at least 6 characters.', 'error');
       return false;
     }
-
     return true;
   }
 
   onSubmit(): void {
-    console.log('LOGIN BUTTON CLICKED!');
-    console.log('Form data:', { 
-      email: this.loginData.email, 
-      password: '***', 
-      rememberMe: this.rememberMe 
-    });
-
-    if (!this.validateForm()) {
-      console.log('Form validation failed');
-      return;
-    }
-
+    if (!this.validateForm()) return;
     this.isLoading = true;
-
     const loginRequest: LoginRequest = {
       email: this.loginData.email.trim().toLowerCase(),
       password: this.loginData.password,
       rememberMe: this.rememberMe
     };
-
-    console.log('Sending login request to backend...');
-
+    
     this.authService.login(loginRequest).subscribe({
-      next: (response) => {
-        console.log('LOGIN SUCCESSFUL:', response);
-
-        const user = this.authService.getCurrentUser();
-        console.log('User data retrieved:', user);
-
-        this.showSnackbar('Login successful! Redirecting...', 'success');
-
+      next: (response: AuthResponse) => {
+        console.log('Login response:', response);
+        
+        // Wait a bit to ensure user data is stored
         setTimeout(() => {
-          if (user?.role) {
-            this.redirectBasedOnRole(user.role);
-          } else {
-            this.router.navigate([this.returnUrl]);
+          const user = this.authService.getCurrentUser();
+          console.log('Current user after login:', user);
+          
+          let userRole: string | undefined;
+          
+          // Get role from multiple possible sources
+          if (user && user.role) {
+            userRole = user.role;
+          } else if (response.role) {
+            userRole = response.role;
+          } else if (response.user?.role) {
+            userRole = response.user.role;
           }
-        }, 1500);
+          
+          console.log('Determined user role:', userRole);
+          
+          if (userRole) {
+            this.showSnackbar('Login successful!', 'success');
+            this.redirectBasedOnRole(userRole);
+          } else {
+            this.showSnackbar('Login successful! Redirecting to dashboard...', 'success');
+            this.router.navigate(['/dashboard']);
+          }
+        }, 100);
       },
       error: (error) => {
-        console.error('Login failed:', error);
         this.isLoading = false;
+        console.error('Login error:', error);
         this.showSnackbar(error.message || 'Login failed. Please try again.', 'error');
         this.loginData.password = '';
-      },
-      complete: () => {
-        this.isLoading = false;
       }
     });
   }
 
   private redirectBasedOnRole(userRole: string): void {
-    const role = userRole.toUpperCase();
-    switch (role) {
-      case UserRole.BUSINESS:
-        this.router.navigate(['/business-dashboard']).catch(() => 
-          this.router.navigate(['/dashboard'])
-        );
-        break;
-      case UserRole.TENANT:
-        this.router.navigate(['/tenant-dashboard']).catch(() => 
-          this.router.navigate(['/dashboard'])
-        );
-        break;
-      case UserRole.LANDLORD:
-        this.router.navigate(['/landlord-dashboard']).catch(() => 
-          this.router.navigate(['/dashboard'])
-        );
-        break;
-      case UserRole.CARETAKER:
-        this.router.navigate(['/caretaker-dashboard']).catch(() => 
-          this.router.navigate(['/dashboard'])
-        );
-        break;
-      default:
-        this.router.navigate([this.returnUrl]);
+    console.log('Redirecting based on role:', userRole);
+    
+    // Normalize the role string for comparison
+    const normalizedRole = userRole.toUpperCase().trim();
+    
+    // Map roles to their respective dashboards
+    const roleMap: { [key: string]: string } = {
+      'LANDLORD': '/landlord-dashboard/home',
+      'TENANT': '/tenant-dashboard/home', 
+      'BUSINESS': '/business-dashboard',
+      'CARETAKER': '/caretaker-dashboard',
+      'ADMIN': '/admin-dashboard'
+    };
+
+    // Check if role exists in our map
+    if (roleMap[normalizedRole]) {
+      const dashboardRoute = roleMap[normalizedRole];
+      console.log(`Redirecting to: ${dashboardRoute}`);
+      this.router.navigate([dashboardRoute]).then(success => {
+        if (!success) {
+          console.warn(`Failed to navigate to ${dashboardRoute}, falling back to /dashboard`);
+          this.router.navigate(['/dashboard']);
+        }
+      });
+    } else {
+      console.warn(`Unknown role: ${userRole}, redirecting to default dashboard`);
+      this.router.navigate(['/dashboard']);
     }
   }
 
   private redirectToDashboard(): void {
     const user = this.authService.getCurrentUser();
+    console.log('User from auth service:', user);
+    
     if (user?.role) {
       this.redirectBasedOnRole(user.role);
     } else {
@@ -192,10 +184,12 @@ export class LoginComponent implements OnInit {
   }
 
   get isFormValid(): boolean {
-    return this.loginData.email.trim() !== '' && 
-           this.loginData.password !== '' && 
-           this.loginData.password.length >= 6 &&
-           /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.loginData.email);
+    return (
+      this.loginData.email.trim() !== '' &&
+      this.loginData.password !== '' &&
+      this.loginData.password.length >= 6 &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.loginData.email)
+    );
   }
 
   resetForm(): void {
@@ -203,12 +197,18 @@ export class LoginComponent implements OnInit {
     this.rememberMe = false;
     this.isLoading = false;
   }
-  private showSnackbar(message: string, type: 'success' | 'error'): void {
+
+  private showSnackbar(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
     this.snackBar.open(message, 'Close', {
       duration: 4000,
       horizontalPosition: 'center',
       verticalPosition: 'bottom',
-      panelClass: type === 'success' ? ['snackbar-success'] : ['snackbar-error']
+      panelClass:
+        type === 'success'
+          ? ['snackbar-success']
+          : type === 'error'
+          ? ['snackbar-error']
+          : ['snackbar-info']
     });
   }
 }

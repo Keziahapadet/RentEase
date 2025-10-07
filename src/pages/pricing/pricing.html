@@ -1,48 +1,12 @@
-<nav class="navbar" [class.scrolled]="isNavScrolled">
-  <div class="nav-container">
-    <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
-      <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
-    </a>
+<!-- Navbar Component -->
+<app-navbar></app-navbar>
 
-  <ul class="nav-links" [class.active]="isMobileMenuOpen">
-  <li>
-     <a routerLink="/" 
-       routerLinkActive="active" 
-       [routerLinkActiveOptions]="{ exact: true }">
-       Home
-    </a>
-  </li>
-  
-  <li>
-    <a routerLink="/pricing" routerLinkActive="active" (click)="setActiveMenu('pricing')">Pricing</a>
-  </li>
-  <li>
-    <a routerLink="/contact" routerLinkActive="active" (click)="setActiveMenu('contact')">Contact</a>
-  </li>
-  <li>
-    <a routerLink="/about" routerLinkActive="active" (click)="setActiveMenu('about')">About</a>
-  </li>
-</ul>
-
-    <div class="nav-actions">
-      <button class="nav-cta" (click)="navigateToLogin()">
-        Login
-      </button>
-
-      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-  </div>
-</nav>
-
+<!-- Page Hero Section -->
 <section class="page-hero">
   <div class="container">
     <div class="hero-content">
       <h1 class="hero-title">
-       RentEase
+        RentEase
         <span class="gradient-text">Subscription Plans</span>
       </h1>
       <p class="hero-description">
@@ -52,6 +16,7 @@
   </div>
 </section>
 
+<!-- Pricing Section -->
 <section class="pricing-section">
   <div class="container">
     <div class="pricing-grid">
@@ -96,6 +61,7 @@
   </div>
 </section>
 
+<!-- FAQ Section -->
 <section class="faq-section">
   <div class="container">
     <div class="section-header">
@@ -137,6 +103,7 @@
   </div>
 </section>
 
+<!-- Comparison Section -->
 <section class="comparison-section">
   <div class="container">
     <div class="section-header">
@@ -213,7 +180,7 @@
   </div>
 </section>
 
-
+<!-- CTA Section -->
 <section class="cta-section">
   <div class="container">
     <div class="cta-content">
@@ -236,88 +203,5 @@
   </div>
 </section>
 
-
-<footer class="footer">
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-brand">
-        <div class="logo" (click)="scrollToTop()">
-          <mat-icon>home</mat-icon>
-          <span>RentEase Kenya</span>
-        </div>
-        <p class="footer-description">
-          Kenya's leading digital property management platform.
-          Secure deposits, transparent communication, and fraud prevention for the modern rental market.
-        </p>
-        <div class="footer-contact">
-          <p><strong><mat-icon>call</mat-icon> +254 700 000 000</strong></p>
-          <p><mat-icon>email</mat-icon> info@rentease.co.ke</p>
-        </div>
-      </div>
-
-      <div class="footer-links">
-        <div class="footer-column">
-          <h4>For Tenants</h4>
-          <ul>
-            <li><a (click)="navigateToFeatures()">Secure Deposits</a></li>
-            <li><a (click)="navigateToFeatures()">Digital Documents</a></li>
-            <li><a (click)="navigateToFeatures()">Community Marketplace</a></li>
-            <li><a (click)="navigateToContact()">Find Properties</a></li>
-            <li><a (click)="navigateToFeatures()">Rating System</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-column">
-          <h4>For Landlords</h4>
-          <ul>
-            <li><a (click)="navigateToFeatures()">Fraud Prevention</a></li>
-            <li><a (click)="navigateToFeatures()">Digital Management</a></li>
-            <li><a routerLink="/pricing">Pricing Plans</a></li>
-            <li><a (click)="navigateToFeatures()">Verified Tenants</a></li>
-            <li><a (click)="navigateToContact()">Get Started</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-column">
-          <h4>Platform</h4>
-          <ul>
-            <li><a (click)="navigateToFeatures()">How It Works</a></li>
-            <li><a (click)="navigateToContact()">Success Stories</a></li>
-            <li><a (click)="navigateToContact()">Contact Support</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Privacy Policy</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Terms of Service</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-column">
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="#" (click)="$event.preventDefault()">Rental Guide Kenya</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Legal Templates</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Market Reports</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Help Center</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">API Documentation</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <div class="social-links">
-        <a href="#" (click)="$event.preventDefault()" title="Facebook">
-          <mat-icon>facebook</mat-icon>
-        </a>
-        <a href="#" (click)="$event.preventDefault()" title="Twitter">
-          <mat-icon>twitter</mat-icon>
-        </a>
-        <a href="#" (click)="$event.preventDefault()" title="Instagram">
-          <mat-icon>instagram</mat-icon>
-        </a>
-      </div>
-
-      <p class="copyright">
-        © {{ currentYear }} RentEase Kenya. All rights reserved.
-      </p>
-    </div>
-  </div>
-</footer>
+<!-- Footer Component -->
+<app-footer></app-footer>

@@ -1,4 +1,3 @@
-
 export enum UserRole {
   TENANT = 'TENANT',
   LANDLORD = 'LANDLORD',
@@ -6,42 +5,25 @@ export enum UserRole {
   BUSINESS = 'BUSINESS',
   ADMIN = 'ADMIN'
 }
-export interface Unit {
-  id: string | number;
-  unitNumber: string;       
-  unitType: string;         
-  rentAmount: number;        
-  deposit: number;          
-  description?: string; 
 
-  status?: 'occupied' | 'vacant' | 'maintenance' | 'reserved';
-  tenant?: {
-    id?: string;
-    name?: string;
-    email?: string;
-  } | null; 
-  
- 
-  type?: string;         
-  rent?: number;           
-  bedrooms?: number;      
-  bathrooms?: number;     
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
+export type UserRoleType = keyof typeof UserRole;
+
 export interface User {
-  id: string | number; 
+  id: string | number;
   email: string;
   fullName: string;
   phoneNumber?: string;
-  role: UserRole | string; 
+  role: UserRole | string;
   avatar?: string;
-  emailVerified?: boolean;
+  emailVerified?: boolean; 
   verified?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
+export interface ExtendedUser extends User {
+  bio?: string;
+}
 
 export interface LoginRequest {
   email: string;
@@ -56,7 +38,7 @@ export interface RegisterRequest {
   fullName: string;
   phoneNumber: string;
   role: UserRole | string;
-  accessCode?: string; 
+  accessCode?: string;
 }
 
 export interface AuthResponse {
@@ -78,26 +60,30 @@ export interface RegisterResponse {
   user?: User;
   message: string;
   success: boolean;
-  token?: string; 
+  token?: string;
 }
 
-
-export interface PasswordResetRequest {
+export interface ForgotPasswordRequest {
   email: string;
 }
 
-export interface PasswordResetConfirm {
-  token: string;
+export interface OtpVerificationRequest {
+  email: string;
+  otpCode: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otpCode: string;
   newPassword: string;
-  confirmPassword: string;
+  confirmNewPassword: string;
 }
 
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
-  confirmPassword: string;
+  confirmNewPassword: string;
 }
-
 
 export interface OtpRequest {
   email: string;
@@ -106,58 +92,29 @@ export interface OtpRequest {
 
 export interface OtpVerifyRequest {
   email: string;
-  otpCode: string; 
+  otpCode: string;
   type: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification';
 }
 
 export interface OtpResponse {
   success: boolean;
   message: string;
-  token?: string; 
-  user?: User; 
+  token?: string;
+  user?: User;
 }
 
-
-
-
-export interface UnitRequest {
-  unitNumber: string;
-  unitType: string;
-  rentAmount: number;
-  deposit: number;
-  unitDescription?: string;
+export interface VerifyPasswordResetOtpRequest {
+  email: string;
+  otpCode: string;
 }
 
-
-export interface PropertyRequest {
-  name: string;
-  location: string;
-  propertyType: string;
-  totalUnits: number;
-  description?: string;
-  units?: UnitRequest[]; 
+export interface UpdatePhoneRequest {
+  newPhoneNumber: string;
 }
 
-
-export interface PropertyResponse {
-  success: boolean;
-  message: string;
-  property?: Property;
+export interface UpdatePhoneResponse extends ApiResponse {
+  updatedPhoneNumber?: string;
 }
-
-export interface Property {
-  id: string;
-  name: string;
-  location: string;
-  propertyType: string;
-  totalUnits: number;
-  description?: string;
-  ownerId: string;
-  createdAt: string; 
-  updatedAt: string; 
-  status?: 'active' | 'inactive' | 'maintenance'; 
-}
-
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -183,37 +140,4 @@ export interface AuthState {
   error: string | null;
 }
 
-
 export type AuthenticationStatus = 'authenticated' | 'unauthenticated' | 'pending';
-
-export type UserRoleType = keyof typeof UserRole;
-
-
-export interface ValidationErrors {
-  [key: string]: string | boolean;
-}
-
-export interface FormFieldError {
-  field: string;
-  message: string;
-}
-
-
-export interface PaginatedResponse<T> {
-  success: boolean;
-  message: string;
-  data: T[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    hasNext: boolean;
-    hasPrevious: boolean;
-  };
-}
-
-export interface SearchResponse<T> extends PaginatedResponse<T> {
-  query: string;
-  filters?: Record<string, any>;
-}

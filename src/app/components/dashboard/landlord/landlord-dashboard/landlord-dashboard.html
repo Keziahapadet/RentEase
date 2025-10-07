@@ -1,118 +1,179 @@
-
 <div class="dashboard-container">
-  <div class="mobile-menu-overlay" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
+  <div class="mobile-menu-overlay" [class.active]="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
+  
   <nav class="sidebar" [class.mobile-open]="isMobileMenuOpen">
     <div class="sidebar-header">
-      <div class="logo">
-        <div class="logo-icon">
-          <mat-icon>apartment</mat-icon>
-        </div>
-        <span class="logo-text">RentEase</span>
+      <div class="logo" (click)="navigateToSection('dashboard')">
+        <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
       </div>
     </div>
 
     <div class="user-section">
-      <div class="user-info">
+      <div class="user-info" (click)="viewProfile()">
         <div class="user-avatar">
-          <mat-icon>account_circle</mat-icon>
+          <img *ngIf="profileImage" [src]="profileImage" alt="Profile" class="avatar-image">
+          <div *ngIf="!profileImage" class="avatar-placeholder">
+            <mat-icon>account_circle</mat-icon>
+          </div>
         </div>
         <div class="user-details">
-          <span class="user-name">John Landlord</span>
-          <span class="user-role">Property Owner</span>
+          <span class="user-name">{{ userDisplayName }}</span>
+          <span class="user-role">{{ userRole }}</span>
+        </div>
+      </div>
+
+      <div class="profile-dropdown-trigger" (click)="toggleProfileMenu(); $event.stopPropagation()">
+        <mat-icon class="dropdown-chevron" [class.rotated]="isProfileMenuOpen">
+          expand_more
+        </mat-icon>
+      </div>
+
+      <div class="profile-dropdown-menu" *ngIf="isProfileMenuOpen">
+        <div class="profile-menu-actions">
+          <button class="profile-action-btn" (click)="editProfile(); $event.stopPropagation()">
+            <mat-icon>edit</mat-icon>
+            <span>Edit Profile</span>
+          </button>
+
+          <div class="menu-divider"></div>
+
+          <button class="profile-action-btn logout-btn" (click)="logout(); $event.stopPropagation()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </button>
         </div>
       </div>
     </div>
 
     <div class="nav-menu">
-      <div class="nav-item" [class.active]="currentSection === 'dashboard'" (click)="navigateToSection('dashboard')">
-        <mat-icon>dashboard</mat-icon>
+      <div class="nav-item" 
+           [class.active]="isNavActive('dashboard')" 
+           (click)="navigateToSection('dashboard')">
+        <mat-icon class="nav-icon">dashboard</mat-icon>
         <span>Dashboard</span>
       </div>
+
       <div class="nav-section">
-        <div class="nav-item expandable" (click)="toggleMenu('financials')">
-          <mat-icon>payments</mat-icon>
+        <div class="nav-item expandable" 
+             [class.active]="isParentActive('financials')"
+             (click)="toggleMenu('financials')">
+          <mat-icon class="nav-icon">payments</mat-icon>
           <span>Financials</span>
-          <span class="chevron" [class.expanded]="expandedMenus.financials">
-            <mat-icon>chevron_right</mat-icon>
-          </span>
+          <mat-icon class="chevron" [class.expanded]="expandedMenus.financials">
+            chevron_right
+          </mat-icon>
         </div>
         <div *ngIf="expandedMenus.financials" class="sub-menu">
-          <div class="sub-item" [class.active]="currentSection === 'financials'" (click)="navigateToSection('financials')">
-            <mat-icon>dashboard</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('financials')" 
+               (click)="navigateToSection('financials')">
+            <mat-icon class="sub-icon">dashboard</mat-icon>
             <span>Overview</span>
           </div>
-          <div class="sub-item" [class.active]="currentSection === 'invoices'" (click)="navigateToSection('invoices')">
-            <mat-icon>receipt</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('invoices')" 
+               (click)="navigateToSection('invoices')">
+            <mat-icon class="sub-icon">receipt</mat-icon>
             <span>Invoices</span>
           </div>
-          <div class="sub-item" [class.active]="currentSection === 'payments'" (click)="navigateToSection('payments')">
-            <mat-icon>credit_card</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('payments')" 
+               (click)="navigateToSection('payments')">
+            <mat-icon class="sub-icon">credit_card</mat-icon>
             <span>Payments</span>
           </div>
-          <div class="sub-item" [class.active]="currentSection === 'expenses'" (click)="navigateToSection('expenses')">
-            <mat-icon>trending_down</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('expenses')" 
+               (click)="navigateToSection('expenses')">
+            <mat-icon class="sub-icon">trending_down</mat-icon>
             <span>Expenses</span>
           </div>
         </div>
       </div>
-      <div class="nav-item" [class.active]="currentSection === 'tenants'" (click)="navigateToTenants()">
-        <mat-icon>groups</mat-icon>
+
+      <div class="nav-item" 
+           [class.active]="isNavActive('tenants')" 
+           (click)="navigateToTenants()">
+        <mat-icon class="nav-icon">groups</mat-icon>
         <span>Tenants</span>
       </div>
-      <div class="nav-item" [class.active]="currentSection === 'properties'" (click)="navigateToSection('properties')">
-        <mat-icon>apartment</mat-icon>
+
+      <div class="nav-item" 
+           [class.active]="isNavActive('properties')" 
+           (click)="navigateToSection('properties')">
+        <mat-icon class="nav-icon">apartment</mat-icon>
         <span>Properties</span>
       </div>
-      <div class="nav-item" [class.active]="currentSection === 'messages'" (click)="navigateToSection('messages')">
-        <mat-icon>message</mat-icon>
+
+      <div class="nav-item" 
+           [class.active]="isNavActive('messages')" 
+           (click)="navigateToSection('messages')">
+        <mat-icon class="nav-icon">message</mat-icon>
         <span>Communication</span>
         <span class="notification-dot">3</span>
       </div>
 
-      <div class="nav-item" [class.active]="currentSection === 'documents'" (click)="navigateToSection('documents')">
-        <mat-icon>description</mat-icon>
+      <div class="nav-item" 
+           [class.active]="isNavActive('documents')" 
+           (click)="navigateToSection('documents')">
+        <mat-icon class="nav-icon">description</mat-icon>
         <span>Documents</span>
       </div>
 
-      
-      <div class="nav-item" [class.active]="currentSection === 'marketplace'" (click)="navigateToSection('marketplace')">
-        <mat-icon>storefront</mat-icon>
+      <div class="nav-item" 
+           [class.active]="isNavActive('marketplace')" 
+           (click)="navigateToSection('marketplace')">
+        <mat-icon class="nav-icon">storefront</mat-icon>
         <span>Marketplace</span>
       </div>
 
-      <div class="nav-item" [class.active]="currentSection === 'reviews'" (click)="navigateToSection('reviews')">
-        <mat-icon>star_rate</mat-icon>
+      <div class="nav-item" 
+           [class.active]="isNavActive('reviews')" 
+           (click)="navigateToSection('reviews')">
+        <mat-icon class="nav-icon">star_rate</mat-icon>
         <span>Reviews & Ratings</span>
       </div>
 
-      <div class="nav-item" [class.active]="currentSection === 'reports'" (click)="navigateToSection('reports')">
-        <mat-icon>analytics</mat-icon>
+      <div class="nav-item" 
+           [class.active]="isNavActive('reports')" 
+           (click)="navigateToSection('reports')">
+        <mat-icon class="nav-icon">analytics</mat-icon>
         <span>Reports</span>
       </div>
 
       <div class="nav-section">
-        <div class="nav-item expandable" (click)="toggleMenu('settings')">
-          <mat-icon>settings</mat-icon>
+        <div class="nav-item expandable" 
+             [class.active]="isParentActive('settings')"
+             (click)="toggleMenu('settings')">
+          <mat-icon class="nav-icon">settings</mat-icon>
           <span>Settings</span>
-          <span class="chevron" [class.expanded]="expandedMenus.settings">
-            <mat-icon>chevron_right</mat-icon>
-          </span>
+          <mat-icon class="chevron" [class.expanded]="expandedMenus.settings">
+            chevron_right
+          </mat-icon>
         </div>
         <div *ngIf="expandedMenus.settings" class="sub-menu">
-          <div class="sub-item" [class.active]="currentSection === 'general'" (click)="navigateToSection('general')">
-            <mat-icon>tune</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('general')" 
+               (click)="navigateToSection('general')">
+            <mat-icon class="sub-icon">tune</mat-icon>
             <span>General</span>
           </div>
-          <div class="sub-item" [class.active]="currentSection === 'account'" (click)="navigateToSection('account')">
-            <mat-icon>person</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('account')" 
+               (click)="navigateToSection('account')">
+            <mat-icon class="sub-icon">person</mat-icon>
             <span>Account Info</span>
           </div>
-          <div class="sub-item" [class.active]="currentSection === 'alerts'" (click)="navigateToSection('alerts')">
-            <mat-icon>notifications</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('alerts')" 
+               (click)="navigateToSection('alerts')">
+            <mat-icon class="sub-icon">notifications</mat-icon>
             <span>Alerts</span>
           </div>
-          <div class="sub-item" [class.active]="currentSection === 'security'" (click)="navigateToSection('security')">
-            <mat-icon>lock</mat-icon>
+          <div class="sub-item" 
+               [class.active]="isSubItemActive('security')" 
+               (click)="navigateToSection('security')">
+            <mat-icon class="sub-icon">lock</mat-icon>
             <span>Security</span>
           </div>
         </div>
@@ -124,10 +185,6 @@
         <mat-icon>help</mat-icon>
         <span>Help & Support</span>
       </div>
-      <div class="nav-item logout" (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        <span>Logout</span>
-      </div>
     </div>
   </nav>
 
@@ -135,10 +192,11 @@
     <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
       <mat-icon>menu</mat-icon>
     </button>
+
     <div *ngIf="currentSection === 'dashboard'" class="dashboard-home">
       <div class="content-header">
         <div class="header-left">
-          <h1>Landlord Dashboard</h1>
+          <h1>Welcome back, {{ userDisplayName }}!</h1>
           <p>Manage your properties and track performance</p>
         </div>
         <div class="header-actions">
@@ -153,7 +211,6 @@
         </div>
       </div>
 
-   
       <div class="dashboard-content">
         <div class="stats-grid">
           <div class="stat-card">
@@ -256,13 +313,7 @@
         </div>
       </div>
     </div>
+
     <router-outlet></router-outlet>
-    <div *ngIf="isPlaceholderSection()" class="section-content">
-      <div class="placeholder-content">
-        <h2>{{ getSectionTitle(currentSection) }}</h2>
-        <p>This section is under development.</p>
-        <p>Current section: <strong>{{ currentSection }}</strong></p>
-      </div>
-    </div>
   </main>
 </div>

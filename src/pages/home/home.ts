@@ -1,29 +1,44 @@
 import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
-import { RouterModule } from '@angular/router';
+import { NavbarComponent } from '../../../src/app/shared/navbar/navbar.component'; 
+import { FooterComponent } from '../../../src/app/shared/footer/footer.component'; 
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, RouterModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatIconModule,
+    RouterModule,
+    NavbarComponent,
+    FooterComponent
+  ]
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private isBrowser: boolean;
+
   isNavScrolled: boolean = false;
   isMobileMenuOpen: boolean = false;
   showUninvitedMessage: boolean = false;
   activeMenu: string = 'home';
 
-  setActiveMenu(menu: string) {
-    this.activeMenu = menu;
-    this.isMobileMenuOpen = false; 
-  }
+  currentSlide = 0;
+  totalSlides = 0;
+  autoSlideInterval: any;
+
+  // Service carousel properties for seamless infinite loop
+  currentServiceSlide = 0;
+  serviceAutoSlideInterval: any;
+  isServiceTransitioning = false;
+
+  currentYear: number = new Date().getFullYear();
 
   slides = [
     {
@@ -42,17 +57,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       image: '/images/slide3.jpg'
     }
   ];
-  
-  currentSlide = 0;
-  totalSlides = this.slides.length;
-  autoSlideInterval: any;
 
   stats = [
     { current: '24/7', suffix: '', label: 'Platform Availability' },
-    { current: '100', suffix: '%', label: 'Secure & Encrypted' },
+    { current: '100', suffix: '%', label: 'Secure & Encrypted' }
   ];
 
- 
   services = [
     {
       id: 'secure-deposits',
@@ -100,14 +110,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   ];
 
- 
-  currentServiceView = 0;
-  serviceViews = [0, 1];
-  serviceAutoSlideInterval: any;
-  isServiceTransitioning = false;
-  cardWidth = 382;
-
- 
   benefits = [
     {
       icon: 'shield',
@@ -147,8 +149,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   ];
 
-  currentYear: number = new Date().getFullYear();
-
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
@@ -162,6 +162,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.matIconRegistry.addSvgIcon('twitter', this.sanitizer.bypassSecurityTrustResourceUrl('icons/twitter.svg'));
       this.matIconRegistry.addSvgIcon('instagram', this.sanitizer.bypassSecurityTrustResourceUrl('icons/instagram.svg'));
     }
+
+    this.totalSlides = this.slides.length;
   }
 
   ngOnInit(): void {
@@ -170,21 +172,26 @@ export class HomeComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.setupScrollAnimations();
       this.startHeroCarousel();
-      this.startServiceSlideshow();
+      this.startServiceCarousel();
       this.updateSlideClasses();
     }, 100);
   }
 
   ngOnDestroy(): void {
     this.stopHeroCarousel();
-    this.stopServiceSlideshow();
+    this.stopServiceCarousel();
+  }
+
+  setActiveMenu(menu: string) {
+    this.activeMenu = menu;
+    this.isMobileMenuOpen = false;
   }
 
   
   startHeroCarousel(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextSlide();
-    }, 7000);
+    }, 6000);
   }
 
   stopHeroCarousel(): void {
@@ -215,7 +222,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       slides.forEach((slide, index) => {
         const slideElement = slide as HTMLElement;
         slideElement.classList.remove('active', 'prev');
-        
+
         if (index === this.currentSlide) {
           slideElement.classList.add('active');
         } else if (index < this.currentSlide) {
@@ -232,82 +239,113 @@ export class HomeComponent implements OnInit, OnDestroy {
   onCarouselMouseLeave(): void {
     this.startHeroCarousel();
   }
-  startServiceSlideshow(): void {
+
+  // Service Carousel Methods - Seamless Infinite Loop
+  startServiceCarousel(): void {
     this.serviceAutoSlideInterval = setInterval(() => {
-      this.nextServiceView();
-    }, 4000);
+      this.nextServiceSlide();
+    }, 5000);
   }
 
-  stopServiceSlideshow(): void {
+  stopServiceCarousel(): void {
     if (this.serviceAutoSlideInterval) {
       clearInterval(this.serviceAutoSlideInterval);
     }
   }
 
-  nextServiceView(): void {
+  nextServiceSlide(): void {
     if (this.isServiceTransitioning) return;
     
     this.isServiceTransitioning = true;
     
-    if (this.currentServiceView === 0) {
-      this.currentServiceView = 1;
-      setTimeout(() => {
-        this.isServiceTransitioning = false;
-      }, 800);
-    } else {
-      this.performSeamlessLoop();
-    }
-  }
+    // Move to next slide with transition
+    this.currentServiceSlide = 1;
 
-  private performSeamlessLoop(): void {
-    this.currentServiceView = 2;
-    
+    // After transition completes, reset to position 0 instantly
     setTimeout(() => {
-      this.currentServiceView = 0;
+      this.currentServiceSlide = 0;
       this.isServiceTransitioning = false;
-    }, 800);
+    }, 850);
   }
 
-  goToServiceView(viewIndex: number): void {
+  prevServiceSlide(): void {
     if (this.isServiceTransitioning) return;
     
-    this.currentServiceView = viewIndex;
+    this.isServiceTransitioning = true;
+    
+    // Jump to position 2 instantly, then animate to position 1
+    this.currentServiceSlide = 2;
+    
+    setTimeout(() => {
+      this.currentServiceSlide = 1;
+      setTimeout(() => {
+        this.isServiceTransitioning = false;
+      }, 850);
+    }, 50);
+  }
+
+  goToServiceSlide(slideIndex: number): void {
+    if (this.isServiceTransitioning) return;
+    
+    this.isServiceTransitioning = true;
+    this.currentServiceSlide = slideIndex;
+    
+    setTimeout(() => {
+      this.isServiceTransitioning = false;
+    }, 850);
+    
     this.resetServiceAutoSlide();
   }
 
   resetServiceAutoSlide(): void {
-    this.stopServiceSlideshow();
-    this.startServiceSlideshow();
+    this.stopServiceCarousel();
+    this.startServiceCarousel();
   }
 
-  getCarouselPosition(): number {
-    const positions = [-1146, -2292, -3438];
-    return positions[this.currentServiceView] || -1146;
+  getServiceCarouselTransform(): string {
+    // The container width is 100% of viewport (max 1200px)
+    // Each slide should show exactly 3 cards
+    // Card width = (container width / 3) - gap adjustment
+    const offset = this.currentServiceSlide * 100;
+    return `translateX(-${offset}%)`;
   }
 
+  getServiceCarouselClass(): string {
+    // Only add transition class when actually transitioning between positions
+    if (this.isServiceTransitioning && 
+        ((this.currentServiceSlide === 1) || 
+         (this.currentServiceSlide === 2 && this.isServiceTransitioning))) {
+      return 'transitioning';
+    }
+    return '';
+  }
+
+  // Get services for the carousel
   getFirstThreeServices() {
     return this.services.slice(0, 3);
   }
 
   getLastThreeServices() {
-    return this.services.slice(-3);
+    return this.services.slice(3, 6);
   }
 
   onServiceCardClick(serviceId: string): void {
-    console.log('Service clicked:', serviceId);
     this.router.navigate(['/services', serviceId]);
   }
 
+  onServiceCarouselMouseEnter(): void {
+    this.stopServiceCarousel();
+  }
 
+  onServiceCarouselMouseLeave(): void {
+    this.startServiceCarousel();
+  }
+
+  // Navigation Methods
   scrollToSection(sectionId: string): void {
     if (!this.isBrowser) return;
     const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
-    }
+    if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   navigateToFeatures(): void {
@@ -343,7 +381,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/contact']);
   }
 
- 
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     if (!this.isBrowser) return;
@@ -375,7 +412,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     );
 
     setTimeout(() => {
-      const animateElements = document.querySelectorAll('.stat-item, .service-slide, .benefit-item');
+      const animateElements = document.querySelectorAll('.stat-item, .service-card, .benefit-item');
       animateElements.forEach(el => {
         const target = el as HTMLElement;
         target.style.opacity = '0';
@@ -409,4 +446,4 @@ export class HomeComponent implements OnInit, OnDestroy {
   isValidInvitation(token: string): boolean {
     return false;
   }
-} 
+}

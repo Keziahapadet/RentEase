@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,67 +8,79 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../services/auth.service';
-import { PasswordResetRequest } from '../../../services/auth-interfaces';
+import { ForgotPasswordRequest, ApiResponse } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './forgot-password.html',
   styleUrls: ['./forgot-password.scss']
 })
-export class ForgotPasswordComponent {
+export class ForgotPasswordComponent implements OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
+  private fb = inject(FormBuilder);
 
-  email = '';
+  forgotPasswordForm: FormGroup;
   isLoading = false;
   emailSent = false;
+  countdown = 0;
+  private countdownInterval: any;
 
-  validateEmail(): boolean {
-    if (!this.email.trim()) {
-      this.showSnackBar('Please enter your email address.', 'error');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.email)) {
-      this.showSnackBar('Please enter a valid email address.', 'error');
-      return false;
-    }
-
-    return true;
+  constructor() {
+    this.forgotPasswordForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
+    });
   }
+
+  get email() {
+    return this.forgotPasswordForm.get('email');
+  }
+
   onSubmit(): void {
-    if (!this.validateEmail()) return;
+    if (this.forgotPasswordForm.invalid) {
+      this.markFormGroupTouched();
+      return;
+    }
 
     this.isLoading = true;
 
-    const request: PasswordResetRequest = {
-      email: this.email.trim().toLowerCase()
+    const request: ForgotPasswordRequest = {
+      email: this.email?.value.trim().toLowerCase()
     };
 
     this.authService.requestPasswordReset(request).subscribe({
-      next: (response: { success: boolean; message: string }) => {
+      next: (response: ApiResponse) => {
         this.isLoading = false;
         if (response.success) {
           this.emailSent = true;
+          this.startCountdown(60);
           this.showSnackBar(
-            response.message ||
-              'Password reset instructions have been sent to your email 📧',
+            response.message || 'Password reset OTP has been sent to your email 📧',
             'success'
           );
+
+          // ✅ Navigate to OTP verification after 2 seconds
+          setTimeout(() => {
+            this.router.navigate(['/otp-verification'], {
+              queryParams: { email: this.email?.value.trim().toLowerCase() }
+            });
+          }, 2000);
+
         } else {
           this.showSnackBar(
             response.message || 'Failed to send password reset email ❌',
@@ -81,8 +93,8 @@ export class ForgotPasswordComponent {
         console.error('Password reset error:', error);
         this.showSnackBar(
           error.error?.message ||
-            error.message ||
-            'We could not process your request. Please try again later ❌',
+          error.message ||
+          'We could not process your request. Please try again later ❌',
           'error'
         );
       }
@@ -90,21 +102,45 @@ export class ForgotPasswordComponent {
   }
 
   resendEmail(): void {
-    this.emailSent = false;
+    if (this.countdown > 0) return;
     this.onSubmit();
   }
+
+  startCountdown(seconds: number): void {
+    this.countdown = seconds;
+    this.countdownInterval = setInterval(() => {
+      this.countdown--;
+      if (this.countdown <= 0) {
+        clearInterval(this.countdownInterval);
+      }
+    }, 1000);
+  }
+
+  private markFormGroupTouched() {
+    Object.keys(this.forgotPasswordForm.controls).forEach(key => {
+      const control = this.forgotPasswordForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
   private showSnackBar(message: string, type: 'success' | 'error') {
     this.snackBar.open(message, 'Close', {
-      duration: 4000,
+      duration: 5000,
       panelClass: type === 'success' ? ['snackbar-success'] : ['snackbar-error']
     });
   }
 
   navigateToLogin(): void {
-    this.router.navigate(['/login']).catch(err => console.error('Navigation error:', err));
+    this.router.navigate(['/auth/login']).catch(err => console.error('Navigation error:', err));
   }
 
   navigateToHome(): void {
     this.router.navigate(['/']).catch(err => console.error('Navigation error:', err));
+  }
+
+  ngOnDestroy() {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
   }
 }

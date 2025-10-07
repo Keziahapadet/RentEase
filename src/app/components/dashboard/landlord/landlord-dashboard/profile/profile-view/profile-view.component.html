@@ -1,0 +1,89 @@
+<div class="profile-view-container">
+  <div class="content-header">
+    <div class="header-left">
+      <h1>Profile Details</h1>
+      <p>View and manage your account information</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="editProfile()">
+        <mat-icon>edit</mat-icon>
+        Edit Profile
+      </button>
+      <button mat-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <div class="profile-content">
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <div class="profile-header">
+          <div class="profile-image-section">
+            <img [src]="profileImage" alt="Profile" class="profile-image-large">
+          </div>
+          <div class="profile-basic-info">
+            <h2>{{ getUserFullName() }}</h2>
+            <p class="user-email">{{ getUserEmail() }}</p>
+            <p class="user-role">{{ formattedRole }}</p>
+          </div>
+        </div>
+      </mat-card-header>
+
+      <mat-divider></mat-divider>
+
+      <mat-card-content>
+        <div class="profile-details">
+          <div class="detail-section">
+            <h3>Personal Information</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Full Name</label>
+                <p>{{ getUserFullName() }}</p>
+              </div>
+              <div class="detail-item">
+                <label>Email Address</label>
+                <p>{{ getUserEmail() }}</p>
+              </div>
+              <div class="detail-item">
+                <label>Phone Number</label>
+                <p>{{ getUserPhone() }}</p>
+              </div>
+              <div class="detail-item">
+                <label>Account Type</label>
+                <p>{{ formattedRole }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>Account Status</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Email Verification</label>
+                <p>
+                  <span class="status-badge" [class.verified]="user?.emailVerified" [class.unverified]="!user?.emailVerified">
+                    {{ getEmailVerificationStatus() }}
+                  </span>
+                </p>
+              </div>
+              <div class="detail-item">
+                <label>Account Status</label>
+                <p>
+                  <span class="status-badge" [class.verified]="user?.verified" [class.unverified]="!user?.verified">
+                    {{ getAccountStatus() }}
+                  </span>
+                </p>
+              </div>
+              <div class="detail-item">
+                <label>Member Since</label>
+                <p>{{ getMemberSince() }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

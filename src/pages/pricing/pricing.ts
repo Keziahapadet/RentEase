@@ -1,32 +1,38 @@
-
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterModule } from '@angular/router';
+
+// ✅ bring in Navbar & Footer
+import { NavbarComponent } from '../../../src/app/shared/navbar/navbar.component';
+import { FooterComponent } from '../../../src/app/shared/footer/footer.component';
 
 @Component({
   selector: 'app-pricing',
   templateUrl: './pricing.html',
   styleUrls: ['./pricing.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule,RouterModule]
+  // ✅ register them here
+  imports: [
+    CommonModule,
+    MatIconModule,
+    RouterModule,
+    NavbarComponent,
+    FooterComponent
+  ]
 })
 export class PricingComponent implements OnInit {
   private isBrowser: boolean;
   isNavScrolled: boolean = false;
   isMobileMenuOpen: boolean = false;
   currentYear: number = new Date().getFullYear();
-  activeMenu: string = 'pricing'; 
-
-
-
-
+  activeMenu: string = 'pricing';
 
   setActiveMenu(menu: string) {
-  this.activeMenu = menu;
-  this.isMobileMenuOpen = false; 
-}
+    this.activeMenu = menu;
+    this.isMobileMenuOpen = false;
+  }
+
   pricingPlans = [
     {
       name: 'Basic',
@@ -146,12 +152,10 @@ export class PricingComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.isBrowser) return;
-    
     setTimeout(() => {
       this.setupScrollAnimations();
     }, 100);
   }
-
 
   navigateToHome(): void {
     this.router.navigate(['/home']);
@@ -168,7 +172,6 @@ export class PricingComponent implements OnInit {
   navigateToAbout(): void {
     this.router.navigate(['/about']);
   }
-
 
   navigateToPricing(): void {
     this.router.navigate(['/pricing']);
@@ -195,14 +198,12 @@ export class PricingComponent implements OnInit {
     if (plan.name === 'Pro') {
       this.navigateToContact();
     } else {
-     
       this.router.navigate(['/registration'], { queryParams: { plan: plan.name.toLowerCase() } });
     }
   }
 
   private setupScrollAnimations(): void {
     if (!this.isBrowser) return;
-    
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {

@@ -1,42 +1,6 @@
 
-<nav class="navbar" [class.scrolled]="isNavScrolled">
-  <div class="nav-container">
-    <a href="#" class="logo" (click)="scrollToTop(); $event.preventDefault()">
-      <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
-    </a>
-    <ul class="nav-links" [class.active]="isMobileMenuOpen">
-      <li>
-         <a routerLink="/" 
-           routerLinkActive="active" 
-           [routerLinkActiveOptions]="{ exact: true }">
-           Home
-        </a>
-      </li>
-      <li>
-        <a routerLink="/pricing" routerLinkActive="active" (click)="setActiveMenu('pricing')">Pricing</a>
-      </li>
-      <li>
-        <a routerLink="/contact" routerLinkActive="active" (click)="setActiveMenu('contact')">Contact</a>
-      </li>
-      <li>
-        <a routerLink="/about" routerLinkActive="active" (click)="setActiveMenu('about')">About</a>
-      </li>
-    </ul>
-
-    <div class="nav-actions">
-      <button class="nav-cta" (click)="navigateToLogin()">
-        Login
-      </button>
-
-      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-  </div>
-</nav>
-
+<app-navbar></app-navbar>
+-
 <div class="hero-carousel" 
      (mouseenter)="onCarouselMouseEnter()" 
      (mouseleave)="onCarouselMouseLeave()">
@@ -75,30 +39,6 @@
 </div>
 
 
-<div class="container">
-  <div class="hero-content">
-    <h1 class="hero-title">
-      Secure & Transparent
-      <span class="gradient-text">Rental Management</span>
-    </h1>
-
-    <p class="hero-description">
-      Eliminate deposit fraud, occupancy fraud, and rental disputes with Kenya's most trusted digital property management platform. Connect landlords, tenants, and caretakers securely.
-    </p>
-
-    <div class="hero-actions">
-      <button class="btn btn-primary" (click)="navigateToContact()">
-        Get Started
-        <mat-icon>arrow_forward</mat-icon>
-      </button>
-      <button class="btn btn-secondary" (click)="scrollToSection('services')">
-        View Our Services
-        <mat-icon>visibility</mat-icon>
-      </button>
-    </div>
-  </div>
-</div>
-
 <div *ngIf="showUninvitedMessage" class="uninvited-message-container">
   <p class="uninvited-text">
     Tenant/Caretaker registration is by invitation only. Please contact your landlord to register.
@@ -112,6 +52,7 @@
     </button>
   </div>
 </div>
+
 
 <section id="stats" class="stats-section">
   <div class="container">
@@ -128,92 +69,111 @@
 <section id="services" class="services-section">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">Our Services</h2>
+      <h2 class="section-title">Our <span class="gradient-text">Services</span></h2>
       <p class="section-description">
         Comprehensive digital solutions addressing Kenya's rental challenges with innovative technology
       </p>
     </div>
 
-    <div class="services-carousel-container" 
-         (mouseenter)="stopServiceSlideshow()" 
-         (mouseleave)="startServiceSlideshow()">
-      <div class="services-carousel-track" 
-           [style.transform]="'translateX(' + getCarouselPosition() + 'px)'">
+    <div class="services-carousel-wrapper" 
+         (mouseenter)="onServiceCarouselMouseEnter()" 
+         (mouseleave)="onServiceCarouselMouseLeave()">
+      <div class="services-carousel-container">
+        <div class="services-carousel-track" 
+             [ngClass]="getServiceCarouselClass()"
+             [style.transform]="getServiceCarouselTransform()">
+          
+         
+          <div *ngFor="let service of getFirstThreeServices()" 
+               class="service-card"
+               (click)="onServiceCardClick(service.id)">
+            <div class="service-background" 
+                 [style.background-image]="'url(' + service.backgroundImage + ')'">
+            </div>
+            <div class="service-content">
+              <div class="service-header">
+                <mat-icon>{{ service.icon }}</mat-icon>
+                <span *ngIf="service.badge" 
+                      class="service-badge"
+                      [ngClass]="service.badge === 'New' ? 'new' : 'popular'">
+                  {{ service.badge }}
+                </span>
+              </div>
+              <h3 class="service-title">{{ service.title }}</h3>
+              <p class="service-description">{{ service.description }}</p>
+            </div>
+          </div>
 
-        <div class="service-card" 
-             *ngFor="let service of getLastThreeServices()" 
-             (click)="onServiceCardClick(service.id)">
-          <div class="service-background" 
-               [style.background-image]="'url(' + service.backgroundImage + ')'"></div>
-          
-          <div class="service-content">
-            <div class="service-header">
-              <div></div>
-              <div class="service-badge" 
-                   *ngIf="service.badge" 
-                   [class.new]="service.badge === 'New'">
-                {{ service.badge }}
-              </div>
+   
+          <div *ngFor="let service of getLastThreeServices()" 
+               class="service-card"
+               (click)="onServiceCardClick(service.id)">
+            <div class="service-background" 
+                 [style.background-image]="'url(' + service.backgroundImage + ')'">
             </div>
-            
-            <h3 class="service-title">{{ service.title }}</h3>
-            <p class="service-description">{{ service.description }}</p>
-          </div>
-        </div>
-        
-        <div class="service-card" 
-             *ngFor="let service of services; let i = index" 
-             (click)="onServiceCardClick(service.id)">
-          <div class="service-background" 
-               [style.background-image]="'url(' + service.backgroundImage + ')'"></div>
-          
-          <div class="service-content">
-            <div class="service-header">
-              <div></div>
-              <div class="service-badge" 
-                   *ngIf="service.badge" 
-                   [class.new]="service.badge === 'New'">
-                {{ service.badge }}
+            <div class="service-content">
+              <div class="service-header">
+                <mat-icon>{{ service.icon }}</mat-icon>
+                <span *ngIf="service.badge" 
+                      class="service-badge"
+                      [ngClass]="service.badge === 'New' ? 'new' : 'popular'">
+                  {{ service.badge }}
+                </span>
               </div>
+              <h3 class="service-title">{{ service.title }}</h3>
+              <p class="service-description">{{ service.description }}</p>
             </div>
-            
-            <h3 class="service-title">{{ service.title }}</h3>
-            <p class="service-description">{{ service.description }}</p>
           </div>
-        </div>
-        
-        <div class="service-card" 
-             *ngFor="let service of getFirstThreeServices()" 
-             (click)="onServiceCardClick(service.id)">
-          <div class="service-background" 
-               [style.background-image]="'url(' + service.backgroundImage + ')'"></div>
-          
-          <div class="service-content">
-            <div class="service-header">
-              <div></div>
-              <div class="service-badge" 
-                   *ngIf="service.badge" 
-                   [class.new]="service.badge === 'New'">
-                {{ service.badge }}
+
+
+          <div *ngFor="let service of getFirstThreeServices()" 
+               class="service-card"
+               (click)="onServiceCardClick(service.id)">
+            <div class="service-background" 
+                 [style.background-image]="'url(' + service.backgroundImage + ')'">
+            </div>
+            <div class="service-content">
+              <div class="service-header">
+                <mat-icon>{{ service.icon }}</mat-icon>
+                <span *ngIf="service.badge" 
+                      class="service-badge"
+                      [ngClass]="service.badge === 'New' ? 'new' : 'popular'">
+                  {{ service.badge }}
+                </span>
               </div>
+              <h3 class="service-title">{{ service.title }}</h3>
+              <p class="service-description">{{ service.description }}</p>
             </div>
-            
-            <h3 class="service-title">{{ service.title }}</h3>
-            <p class="service-description">{{ service.description }}</p>
           </div>
+
         </div>
       </div>
 
+     
       <div class="carousel-navigation">
-        <button *ngFor="let view of serviceViews; let i = index" 
-                class="nav-dot" 
-                [class.active]="currentServiceView === i" 
-                (click)="goToServiceView(i)">
+        <button class="carousel-nav-btn" (click)="prevServiceSlide()" aria-label="Previous services">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <div class="carousel-dots-container">
+          <button class="nav-dot" 
+                  [class.active]="currentServiceSlide === 0"
+                  (click)="goToServiceSlide(0)"
+                  aria-label="Go to first service group"></button>
+          <button class="nav-dot" 
+                  [class.active]="currentServiceSlide === 1"
+                  (click)="goToServiceSlide(1)"
+                  aria-label="Go to second service group"></button>
+        </div>
+
+        <button class="carousel-nav-btn" (click)="nextServiceSlide()" aria-label="Next services">
+          <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
     </div>
   </div>
 </section>
+
 
 <section class="benefits-section">
   <div class="container">
@@ -243,6 +203,7 @@
   </div>
 </section>
 
+
 <section class="cta-section">
   <div class="container">
     <div class="cta-content">
@@ -261,86 +222,5 @@
   </div>
 </section>
 
-<footer class="footer">
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-brand">
-        <div class="logo" (click)="scrollToTop()">
-          <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
-        </div>
-        <p class="footer-description">
-          Kenya's leading digital property management platform.
-          Secure deposits, transparent communication, and fraud prevention for the modern rental market.
-        </p>
-        <div class="footer-contact">
-          <p><strong><mat-icon>call</mat-icon> +254 700 000 000</strong></p>
-          <p><mat-icon>email</mat-icon> info@rentease.co.ke</p>
-        </div>
-      </div>
 
-      <div class="footer-links">
-        <div class="footer-column">
-          <h4>For Tenants</h4>
-          <ul>
-            <li><a (click)="scrollToSection('services')">Secure Deposits</a></li>
-            <li><a (click)="scrollToSection('services')">Digital Documents</a></li>
-            <li><a (click)="scrollToSection('services')">Community Marketplace</a></li>
-            <li><a (click)="navigateToContact()">Find Properties</a></li>
-            <li><a (click)="scrollToSection('services')">Rating System</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-column">
-          <h4>For Landlords</h4>
-          <ul>
-            <li><a (click)="scrollToSection('services')">Fraud Prevention</a></li>
-            <li><a (click)="scrollToSection('services')">Digital Management</a></li>
-            <li><a (click)="navigateToPricing()">Pricing Plans</a></li>
-            <li><a (click)="scrollToSection('services')">Verified Tenants</a></li>
-            <li><a (click)="navigateToContact()">Get Started</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-column">
-          <h4>Platform</h4>
-          <ul>
-            <li><a (click)="scrollToSection('services')">Our Services</a></li>
-            <li><a (click)="navigateToContact()">Success Stories</a></li>
-            <li><a (click)="navigateToContact()">Contact Support</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Privacy Policy</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Terms of Service</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-column">
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="#" (click)="$event.preventDefault()">Rental Guide Kenya</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Legal Templates</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Market Reports</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">Help Center</a></li>
-            <li><a href="#" (click)="$event.preventDefault()">API Documentation</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <div class="social-links">
-        <a href="#" (click)="$event.preventDefault()" title="Facebook">
-          <mat-icon>facebook</mat-icon>
-        </a>
-        <a href="#" (click)="$event.preventDefault()" title="Twitter">
-          <mat-icon>twitter</mat-icon>
-        </a>
-        <a href="#" (click)="$event.preventDefault()" title="Instagram">
-          <mat-icon>instagram</mat-icon>
-        </a>
-      </div>
-
-      <p class="copyright">
-        © {{ currentYear }} RentEase Kenya. All rights reserved.
-      </p>
-    </div>
-  </div>
-</footer>
+<app-footer></app-footer>

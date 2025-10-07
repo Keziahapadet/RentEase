@@ -1,0 +1,246 @@
+<div class="property-units-container">
+  <div class="header-section">
+    <div class="header-content">
+      <button mat-icon-button class="back-button" (click)="goBackToProperties()" matTooltip="Back to properties">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="header-text">
+        <h1>{{ property?.name }} - Units</h1>
+        <p class="subtitle">{{ property?.location }} • {{ getPropertyTypeDisplay() }}</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="createNewUnit()">
+        <mat-icon>add</mat-icon>
+        Add Unit
+      </button>
+      
+      <button mat-raised-button color="accent" (click)="inviteTenantToProperty()">
+        <mat-icon>person_add</mat-icon>
+        Invite Tenant
+      </button>
+      
+      <button mat-icon-button (click)="refreshUnits()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-section">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading units...</p>
+  </div>
+
+  <div *ngIf="!loading && errorMessage" class="error-section">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon color="warn">error_outline</mat-icon>
+          <h3>Unable to load units</h3>
+          <p>{{ errorMessage }}</p>
+          <button mat-raised-button color="primary" (click)="loadPropertyAndUnits()">
+            <mat-icon>refresh</mat-icon>
+            Try Again
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div *ngIf="!loading && !errorMessage" class="content-section">
+    <div class="stats-overview" *ngIf="units.length > 0">
+      <mat-card class="stat-card clickable" (click)="navigateToTotalUnits()" matTooltip="Click to view all units">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon total">
+              <mat-icon>meeting_room</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ totalUnits }}</h3>
+              <p>Total Units</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card clickable" (click)="navigateToOccupiedUnits()" matTooltip="Occupied units">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon occupied">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ occupiedUnits }}</h3>
+              <p>Occupied Units</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card clickable" (click)="navigateToVacantUnits()" matTooltip="Vacant units">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon vacant">
+              <mat-icon>event_available</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ vacantUnits }}</h3>
+              <p>Vacant Units</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card clickable" (click)="navigateToMaintenanceUnits()" matTooltip="Maintenance units">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon maintenance">
+              <mat-icon>build</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ maintenanceUnits }}</h3>
+              <p>Maintenance Units</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card clickable" (click)="navigateToOccupancyAnalytics()" matTooltip="Occupancy analytics">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon analytics">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ occupancyRate }}%</h3>
+              <p>Occupancy Rate</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card clickable" (click)="navigateToRevenueAnalytics()" matTooltip="Revenue analytics">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon revenue">
+              <mat-icon>attach_money</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ formatCompactCurrency(monthlyRevenue) }}</h3>
+              <p>Monthly Revenue</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="units-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>apartment</mat-icon>
+          Units ({{ getFilteredCount() }})
+        </mat-card-title>
+        <mat-card-subtitle>Manage all units in this property</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="filters-section">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search Units</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Search by unit number, type, tenant...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <div class="filter-chips">
+            <button mat-stroked-button [class.active]="activeFilter === 'all'" (click)="setFilter('all')">All</button>
+            <button mat-stroked-button [class.active]="activeFilter === 'occupied'" (click)="setFilter('occupied')">Occupied</button>
+            <button mat-stroked-button [class.active]="activeFilter === 'vacant'" (click)="setFilter('vacant')">Vacant</button>
+            <button mat-stroked-button [class.active]="activeFilter === 'maintenance'" (click)="setFilter('maintenance')">Maintenance</button>
+          </div>
+
+          <button mat-stroked-button (click)="clearFilters()" *ngIf="hasActiveFilters()">
+            <mat-icon>clear</mat-icon>
+            Clear Filters
+          </button>
+        </div>
+
+        <div *ngIf="filteredUnits.length === 0" class="empty-state">
+          <mat-icon>meeting_room</mat-icon>
+          <h3>No units found</h3>
+          <p *ngIf="hasActiveFilters()">Try adjusting your filters or search terms</p>
+          <p *ngIf="!hasActiveFilters()">No units have been added to this property yet</p>
+          <button mat-raised-button color="primary" (click)="createNewUnit()">
+            <mat-icon>add</mat-icon>
+            Add First Unit
+          </button>
+        </div>
+
+        <div class="table-container" *ngIf="filteredUnits.length > 0">
+          <table mat-table [dataSource]="filteredUnits" class="units-table">
+            <ng-container matColumnDef="unitNumber">
+              <th mat-header-cell *matHeaderCellDef>Unit Number</th>
+              <td mat-cell *matCellDef="let unit">
+                <div class="unit-number-cell">
+                  <mat-icon>apartment</mat-icon>
+                  {{ unit.unitNumber }}
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let unit">{{ getUnitTypeDisplay(unit) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="rent">
+              <th mat-header-cell *matHeaderCellDef>Rent</th>
+              <td mat-cell *matCellDef="let unit">{{ formatCurrency(unit.rentAmount) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let unit">
+                <div class="status-chip" [class]="getStatusClass(unit.status)">
+                  <mat-icon>{{ getStatusIcon(unit.status) }}</mat-icon>
+                  {{ unit.status || 'unknown' }}
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="tenant">
+              <th mat-header-cell *matHeaderCellDef>Tenant</th>
+              <td mat-cell *matCellDef="let unit">{{ getTenantDisplay(unit) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let unit">
+                <div class="action-buttons">
+                  <button mat-icon-button color="primary" 
+                          *ngIf="unit.status !== 'occupied'"
+                          (click)="inviteTenantToUnit(unit, $event)" 
+                          matTooltip="Invite Tenant to this unit">
+                    <mat-icon>person_add</mat-icon>
+                  </button>
+                  
+                  <button mat-icon-button color="primary" (click)="viewUnit(unit.id)" matTooltip="View Unit">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button mat-icon-button color="accent" (click)="editUnit(unit.id)" matTooltip="Edit Unit">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="onDeleteUnit(unit.id, $event)" matTooltip="Delete Unit">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="unit-row"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

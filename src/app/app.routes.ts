@@ -22,15 +22,31 @@ import { LandlordDashboardComponent } from './components/dashboard/landlord/land
 import { FinancialsComponent } from './components/dashboard/landlord/landlord-dashboard/financials/financials';
 import { InvoicesComponent } from './components/dashboard/landlord/landlord-dashboard/financials/invoices/invoices';
 import { PaymentComponent } from './components/dashboard/landlord/landlord-dashboard/financials/payment/payment';
-import { PropertyComponent } from './components/dashboard/landlord/landlord-dashboard/property/property.component';
 import { PropertyCreateComponent } from './components/dashboard/landlord/landlord-dashboard/property/property-create/property-create';
+import { PropertyListComponent } from './components/dashboard/landlord/landlord-dashboard/property/property-list/property-list.component';
+import { PropertyUnitsComponent } from './components/dashboard/landlord/landlord-dashboard/property/property-units/property-units.component';
+import { LandlordDashboardHomeComponent } from './components/dashboard/landlord/landlord-dashboard/home/landlord-dashboard-home.component';
+import { ProfileViewComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-view/profile-view.component';
+import { ProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
+import { OtpVerificationComponent } from './components/auth/otp-verification/otp-verification.component';
+import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 
 export const routes: Routes = [
+ 
   { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: 'registration', component: RegistrationComponent },
   { path: 'login', component: LoginComponent },
   { path: 'verify-otp', component: VerifyOtpComponent },
+  {path: 'otp-verification',component :OtpVerificationComponent},
   { path: 'forgot-password', component: ForgotPasswordComponent },
+  {path : 'reset-password',component:ResetPasswordComponent},
+  { path: 'pricing', component: PricingComponent },
+  { path: 'contact', component: ContactComponent },
+  { path: 'about', component: AboutComponent },
+  { path: 'terms', component: TermsComponent },
+  { path: 'privacy', component: PrivacyComponent },
+
+
   {
     path: 'tenant-dashboard',
     component: TenantDashboardComponent,
@@ -47,27 +63,40 @@ export const routes: Routes = [
       { path: 'settings', component: SettingsComponent }
     ]
   },
+
+
   {
     path: 'landlord-dashboard',
     component: LandlordDashboardComponent,
     children: [
-      { path: '', pathMatch: 'full', redirectTo: '' },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: LandlordDashboardHomeComponent },
+
+      { path: 'profile', redirectTo: 'profile/view', pathMatch: 'full' },
+      { path: 'profile/view', component: ProfileViewComponent },
+      { path: 'profile/edit', component: ProfileEditComponent },
+      
+   
+      { path: 'property', redirectTo: 'property/list', pathMatch: 'full' },
+      { path: 'property/create', component: PropertyCreateComponent },
+      { path: 'property/list', component: PropertyListComponent },
+      { path: 'property/:id', redirectTo: 'property/:id/units' },
+      { path: 'property/:id/units', component: PropertyUnitsComponent },
+      { path: 'property/:propertyId/unit/create', component: PropertyUnitsComponent },
+      
+     
       { path: 'financials', component: FinancialsComponent },
       { path: 'financials/invoices', component: InvoicesComponent },
       { path: 'financials/payments', component: PaymentComponent },
-      { path: 'property', component: PropertyComponent },
-      { path: 'property/create', component: PropertyCreateComponent }
+      
+
+      { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' }
     ]
   },
 
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
+  { path: 'tenant', redirectTo: '/tenant-dashboard' },
   { path: 'dashboard', redirectTo: '/tenant-dashboard', pathMatch: 'full' },
 
-  { path: 'pricing', component: PricingComponent },
-  { path: 'contact', component: ContactComponent },
-  { path: 'about', component: AboutComponent },
-  { path: 'terms', component: TermsComponent },
-  { path: 'privacy', component: PrivacyComponent },
-
-  { path: '**', redirectTo: '/' }
+  { path: '**', redirectTo: '' }
 ];

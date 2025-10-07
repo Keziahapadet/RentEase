@@ -1,0 +1,404 @@
+<div class="admin-dashboard">
+  <!-- Sidebar -->
+  <div class="sidebar" [class.collapsed]="isSidebarCollapsed">
+    <div class="sidebar-header">
+      <h3>{{isSidebarCollapsed ? 'A' : 'Admin Panel'}}</h3>
+      <button mat-icon-button (click)="toggleSidebar()" class="toggle-btn">
+        <mat-icon>{{isSidebarCollapsed ? 'chevron_right' : 'chevron_left'}}</mat-icon>
+      </button>
+    </div>
+    
+    <mat-nav-list>
+      <!-- Dashboard -->
+      <mat-list-item 
+        routerLink="/admin/dashboard" 
+        routerLinkActive="active"
+        class="menu-item">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle *ngIf="!isSidebarCollapsed">Dashboard</span>
+      </mat-list-item>
+
+      <!-- User Management -->
+      <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
+        <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
+          <mat-panel-title>
+            <mat-icon>people</mat-icon>
+            <span *ngIf="!isSidebarCollapsed">User Management</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/admin/users" class="submenu-item">
+            <span>All Users</span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/landlords" class="submenu-item">
+            <span>Landlords</span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/tenants" class="submenu-item">
+            <span>Tenants</span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/caretakers" class="submenu-item">
+            <span>Caretakers</span>
+          </mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Business Management -->
+      <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
+        <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
+          <mat-panel-title>
+            <mat-icon>business</mat-icon>
+            <span *ngIf="!isSidebarCollapsed">Business Management</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/admin/businesses" class="submenu-item">
+            <span>All Businesses</span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/approvals" class="submenu-item">
+            <span>Pending Approvals</span>
+            <span class="badge" *ngIf="stats.pendingBusinessApprovals > 0 && !isSidebarCollapsed">
+              {{stats.pendingBusinessApprovals}}
+            </span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/categories" class="submenu-item">
+            <span>Service Categories</span>
+          </mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Financial Management -->
+      <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
+        <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
+          <mat-panel-title>
+            <mat-icon>payments</mat-icon>
+            <span *ngIf="!isSidebarCollapsed">Financial</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/admin/escrow" class="submenu-item">
+            <span>Escrow Management</span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/transactions" class="submenu-item">
+            <span>Transactions</span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/revenue" class="submenu-item">
+            <span>Revenue Reports</span>
+          </mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Support & Disputes -->
+      <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
+        <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
+          <mat-panel-title>
+            <mat-icon>support_agent</mat-icon>
+            <span *ngIf="!isSidebarCollapsed">Support</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/admin/disputes" class="submenu-item">
+            <span>Disputes</span>
+            <span class="badge" *ngIf="stats.activeDisputes > 0 && !isSidebarCollapsed">
+              {{stats.activeDisputes}}
+            </span>
+          </mat-list-item>
+          <mat-list-item routerLink="/admin/reports" class="submenu-item">
+            <span>Reports & Issues</span>
+          </mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <!-- Analytics -->
+      <mat-list-item 
+        routerLink="/admin/analytics" 
+        routerLinkActive="active"
+        class="menu-item">
+        <mat-icon matListItemIcon>analytics</mat-icon>
+        <span matListItemTitle *ngIf="!isSidebarCollapsed">Analytics</span>
+      </mat-list-item>
+
+      <!-- Settings -->
+      <mat-list-item 
+        routerLink="/admin/settings" 
+        routerLinkActive="active"
+        class="menu-item">
+        <mat-icon matListItemIcon>settings</mat-icon>
+        <span matListItemTitle *ngIf="!isSidebarCollapsed">Settings</span>
+      </mat-list-item>
+    </mat-nav-list>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <h1>Admin Dashboard</h1>
+        <p class="subtitle">Platform Overview & Management</p>
+      </div>
+      <div class="header-actions">
+        <button mat-icon-button (click)="refreshDashboard()" matTooltip="Refresh">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-raised-button color="primary" (click)="viewReports()">
+          <mat-icon>analytics</mat-icon>
+          View Reports
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="exportData()">
+            <mat-icon>download</mat-icon>
+            Export Data
+          </button>
+          <button mat-menu-item (click)="settings()">
+            <mat-icon>settings</mat-icon>
+            Platform Settings
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading dashboard data...</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!isLoading" class="dashboard-content">
+      
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <!-- User Stats -->
+        <mat-card class="stat-card primary" (click)="manageUsers()">
+          <div class="stat-icon">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Total Users</h3>
+            <p class="stat-value">{{stats.totalUsers}}</p>
+            <span class="stat-label">Registered users</span>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card success" (click)="manageBusinesses()">
+          <div class="stat-icon">
+            <mat-icon>business</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Businesses</h3>
+            <p class="stat-value">{{stats.activeBusinesses}}</p>
+            <span class="stat-label">Active service providers</span>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card warning" (click)="viewPendingApprovals()">
+          <div class="stat-icon">
+            <mat-icon [matBadge]="stats.pendingVerifications + stats.pendingBusinessApprovals" matBadgeColor="warn">
+              pending_actions
+            </mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Pending Approvals</h3>
+            <p class="stat-value">{{stats.pendingVerifications + stats.pendingBusinessApprovals}}</p>
+            <span class="stat-label">Requires action</span>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card danger" (click)="viewDisputes()">
+          <div class="stat-icon">
+            <mat-icon [matBadge]="stats.activeDisputes" matBadgeColor="warn">gavel</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Active Disputes</h3>
+            <p class="stat-value">{{stats.activeDisputes}}</p>
+            <span class="stat-label">Needs resolution</span>
+          </div>
+        </mat-card>
+
+        <!-- Financial Stats -->
+        <mat-card class="stat-card info" (click)="manageEscrow()">
+          <div class="stat-icon">
+            <mat-icon>account_balance</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Escrow Balance</h3>
+            <p class="stat-value">KSh {{formatCurrency(stats.escrowBalance)}}</p>
+            <span class="stat-label">In escrow accounts</span>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card success">
+          <div class="stat-icon">
+            <mat-icon>trending_up</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Monthly Revenue</h3>
+            <p class="stat-value">KSh {{formatCurrency(stats.monthlyRevenue)}}</p>
+            <span class="stat-label">This month</span>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card primary">
+          <div class="stat-icon">
+            <mat-icon>work</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Service Requests</h3>
+            <p class="stat-value">{{stats.totalServiceRequests}}</p>
+            <span class="stat-label">{{stats.completedServices}} completed</span>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card warning" (click)="moderateContent()">
+          <div class="stat-icon">
+            <mat-icon [matBadge]="stats.reportedIssues" matBadgeColor="warn">report</mat-icon>
+          </div>
+          <div class="stat-content">
+            <h3>Reported Issues</h3>
+            <p class="stat-value">{{stats.reportedIssues}}</p>
+            <span class="stat-label">Requires review</span>
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Quick Actions -->
+      <mat-card class="quick-actions-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>flash_on</mat-icon>
+            Quick Actions
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="actions-grid">
+            <button mat-stroked-button (click)="manageUsers()">
+              <mat-icon>manage_accounts</mat-icon>
+              Manage Users
+            </button>
+            <button mat-stroked-button (click)="manageBusinesses()">
+              <mat-icon>store</mat-icon>
+              Manage Businesses
+            </button>
+            <button mat-stroked-button (click)="reviewDocuments()">
+              <mat-icon>description</mat-icon>
+              Review Documents
+            </button>
+            <button mat-stroked-button (click)="moderateContent()">
+              <mat-icon>fact_check</mat-icon>
+              Moderate Content
+            </button>
+            <button mat-stroked-button (click)="manageEscrow()">
+              <mat-icon>security</mat-icon>
+              Manage Escrow
+            </button>
+            <button mat-stroked-button (click)="viewAnalytics()">
+              <mat-icon>insights</mat-icon>
+              View Analytics
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tabs Section -->
+      <mat-tab-group class="admin-tabs" animationDuration="300ms">
+        
+        <!-- Recent Activity -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>history</mat-icon>
+            Recent Activity
+          </ng-template>
+          <div class="tab-content">
+            <div *ngIf="recentActivities.length === 0" class="empty-state">
+              <mat-icon>inbox</mat-icon>
+              <p>No recent activity</p>
+            </div>
+            <div *ngFor="let activity of recentActivities" class="activity-item">
+              <div class="activity-icon" [ngClass]="activity.priority">
+                <mat-icon>{{getActivityIcon(activity.type)}}</mat-icon>
+              </div>
+              <div class="activity-content">
+                <p class="activity-description">{{activity.description}}</p>
+                <span class="activity-time">{{formatTime(activity.timestamp)}}</span>
+              </div>
+              <mat-chip [ngClass]="activity.status">{{activity.status}}</mat-chip>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Pending Approvals -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon [matBadge]="pendingApprovals.length" matBadgeColor="warn">approval</mat-icon>
+            Pending Approvals
+          </ng-template>
+          <div class="tab-content">
+            <div *ngIf="pendingApprovals.length === 0" class="empty-state">
+              <mat-icon>check_circle</mat-icon>
+              <p>No pending approvals</p>
+            </div>
+            <div *ngFor="let approval of pendingApprovals" class="approval-item">
+              <div class="approval-info">
+                <mat-chip [color]="getApprovalColor(approval.type)">{{approval.type}}</mat-chip>
+                <h4>{{approval.name}}</h4>
+                <p>{{approval.email}}</p>
+                <span *ngIf="approval.category" class="category">{{approval.category}}</span>
+                <span class="date">Submitted: {{formatDate(approval.submittedDate)}}</span>
+              </div>
+              <div class="approval-actions">
+                <button mat-raised-button color="primary" (click)="approveItem(approval)">
+                  <mat-icon>check</mat-icon>
+                  Approve
+                </button>
+                <button mat-stroked-button color="warn" (click)="rejectItem(approval)">
+                  <mat-icon>close</mat-icon>
+                  Reject
+                </button>
+                <button mat-icon-button (click)="viewDetails(approval)" matTooltip="View Details">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- User Statistics -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>bar_chart</mat-icon>
+            User Statistics
+          </ng-template>
+          <div class="tab-content">
+            <div class="user-stats-grid">
+              <mat-card class="user-stat-card">
+                <mat-icon color="primary">person</mat-icon>
+                <h3>{{stats.activeTenants}}</h3>
+                <p>Active Tenants</p>
+              </mat-card>
+              <mat-card class="user-stat-card">
+                <mat-icon color="accent">home</mat-icon>
+                <h3>{{stats.activeLandlords}}</h3>
+                <p>Active Landlords</p>
+              </mat-card>
+              <mat-card class="user-stat-card">
+                <mat-icon color="warn">badge</mat-icon>
+                <h3>{{stats.activeCaretakers}}</h3>
+                <p>Active Caretakers</p>
+              </mat-card>
+              <mat-card class="user-stat-card">
+                <mat-icon style="color: #4CAF50">business_center</mat-icon>
+                <h3>{{stats.activeBusinesses}}</h3>
+                <p>Active Businesses</p>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+
+    </div>
+  </div>
+</div>
