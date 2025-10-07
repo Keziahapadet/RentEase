@@ -37,10 +37,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(cloned).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          console.log('🔴 401 Unauthorized - clearing corrupted storage and redirecting to login');
+          console.log(' 401 Unauthorized - clearing corrupted storage and redirecting to login');
           authService.clearCorruptedStorage();
           
-          // Redirect to login page with a return URL
+         
           const currentUrl = router.url;
           if (!currentUrl.includes('/auth/login')) {
             router.navigate(['/auth/login'], {
@@ -53,8 +53,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       })
     );
   } else {
-    // No token found - redirect to login
-    console.log('🔴 No auth token found - redirecting to login');
+   
+    console.log(' No auth token found - redirecting to login');
     const currentUrl = router.url;
     if (!currentUrl.includes('/auth/login')) {
       router.navigate(['/auth/login'], {

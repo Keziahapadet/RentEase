@@ -192,7 +192,7 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
     if (!this.isOtpComplete()) {
       this.showOtpError = true;
       this.otpErrorMessage = 'Please enter all 7 characters of the OTP';
-      this.snackBar.open('❌ Please enter all 7 OTP characters', 'Close', {
+      this.snackBar.open(' Please enter all 7 OTP characters', 'Close', {
         duration: 3000,
         panelClass: ['snackbar-error']
       });
@@ -212,22 +212,21 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
         otp: otpValue 
       };
 
-      console.log('✅ OTP Payload:', payload);
+      console.log(' OTP Payload:', payload);
 
       setTimeout(() => {
         this.isLoading = false;
         
-        this.snackBar.open('✅ OTP verified successfully! Redirecting...', 'Close', {
+        this.snackBar.open('OTP verified successfully! Redirecting...', 'Close', {
           duration: 2000,
           panelClass: ['snackbar-success']
         });
 
-        console.log('🔄 Navigating to reset-password with:', { email: this.email, otp: otpValue });
+        console.log(' Navigating to reset-password with:', { email: this.email, otp: otpValue });
 
-        // FIXED: No URL encoding for email
         this.router.navigate(['/reset-password'], {
           queryParams: { 
-            email: this.email, // No encoding
+            email: this.email, 
             otp: otpValue 
           }
         });
@@ -235,7 +234,7 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
     } else {
       this.showOtpError = true;
       this.otpErrorMessage = 'OTP must contain only letters and numbers';
-      this.snackBar.open('❌ Invalid OTP format', 'Close', {
+      this.snackBar.open(' Invalid OTP format', 'Close', {
         duration: 3000,
         panelClass: ['snackbar-error']
       });
@@ -265,7 +264,7 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
 
     setTimeout(() => {
       this.isResending = false;
-      this.snackBar.open('📩 New OTP sent to your email!', 'Close', {
+      this.snackBar.open('New OTP sent to your email!', 'Close', {
         duration: 3000,
         panelClass: ['snackbar-success']
       });

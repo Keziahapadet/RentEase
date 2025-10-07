@@ -149,7 +149,7 @@ export class RegistrationComponent implements OnInit {
             this.router.navigate(['/verify-otp'], { 
               queryParams: { 
                 email: registerRequest.email,
-                userType: registerRequest.role.toLowerCase(), // FIX: Pass the role to OTP component
+                userType: registerRequest.role.toLowerCase(), 
                 message: 'Registration successful! Please check your email for verification code.'
               }
             });

@@ -70,11 +70,11 @@ export class ForgotPasswordComponent implements OnDestroy {
           this.emailSent = true;
           this.startCountdown(60);
           this.showSnackBar(
-            response.message || 'Password reset OTP has been sent to your email 📧',
+            response.message || 'Password reset OTP has been sent to your email',
             'success'
           );
 
-          // ✅ Navigate to OTP verification after 2 seconds
+         
           setTimeout(() => {
             this.router.navigate(['/otp-verification'], {
               queryParams: { email: this.email?.value.trim().toLowerCase() }
@@ -83,7 +83,7 @@ export class ForgotPasswordComponent implements OnDestroy {
 
         } else {
           this.showSnackBar(
-            response.message || 'Failed to send password reset email ❌',
+            response.message || 'Failed to send password reset email ',
             'error'
           );
         }
@@ -94,7 +94,7 @@ export class ForgotPasswordComponent implements OnDestroy {
         this.showSnackBar(
           error.error?.message ||
           error.message ||
-          'We could not process your request. Please try again later ❌',
+          'We could not process your request. Please try again later ',
           'error'
         );
       }

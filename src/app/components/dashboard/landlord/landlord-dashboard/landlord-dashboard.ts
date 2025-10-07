@@ -105,18 +105,18 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.updateCurrentSectionFromRoute(event.urlAfterRedirects);
-      // Refresh profile image on navigation
+     
       this.loadProfileImage();
     });
 
     this.updateCurrentSectionFromRoute(this.router.url);
     
-    // Listen for profile update events
+    
     this.setupProfileUpdateListener();
   }
 
   ngOnDestroy(): void {
-    // Clean up event listener
+  
     if (this.profileUpdateListener) {
       window.removeEventListener('profileImageUpdated', this.profileUpdateListener);
     }
@@ -127,10 +127,10 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
       this.loadProfileImage();
     };
     
-    // Listen for custom events from profile edit component
+ 
     window.addEventListener('profileImageUpdated', this.profileUpdateListener);
     
-    // Also listen for storage events (for cross-tab updates)
+   
     window.addEventListener('storage', (event) => {
       if (event.key === 'profileImage' || event.key === 'profileUpdated') {
         this.loadProfileImage();
@@ -158,7 +158,7 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
   private loadProfileImage(): void {
     const savedImage = localStorage.getItem('profileImage');
     if (savedImage) {
-      // Add cache buster to prevent browser caching
+      
       this.profileImage = this.addCacheBuster(savedImage);
     } else if (this.currentUser?.avatar) {
       this.profileImage = this.addCacheBuster(this.currentUser.avatar);

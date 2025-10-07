@@ -184,7 +184,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   private loadDashboardData() {
-    // Simulate API call
+    
     setTimeout(() => {
       this.isLoading = false;
     }, 1000);
@@ -194,7 +194,7 @@ export class AdminDashboardComponent implements OnInit {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
-  // Utility methods
+
   formatCurrency(amount: number): string {
     return amount.toLocaleString('en-KE');
   }
@@ -246,7 +246,7 @@ export class AdminDashboardComponent implements OnInit {
     return colors[type] || '';
   }
 
-  // Navigation methods
+
   viewReports() { 
     this.router.navigate(['/admin/reports']); 
   }
@@ -285,21 +285,20 @@ export class AdminDashboardComponent implements OnInit {
 
   exportData() { 
     this.snackBar.open('Exporting dashboard data...', 'Close', { duration: 3000 });
-    // Implement export logic
+   
   }
 
   settings() { 
     this.router.navigate(['/admin/settings']); 
   }
 
-  // Action methods
+
   approveItem(approval: PendingApproval) {
     this.snackBar.open(`Approving ${approval.name}...`, 'Close', { duration: 2000 });
     
-    // Remove from pending list
+
     this.pendingApprovals = this.pendingApprovals.filter(item => item.id !== approval.id);
-    
-    // Update stats
+
     if (approval.type === 'business') {
       this.stats.pendingBusinessApprovals--;
       this.stats.activeBusinesses++;
@@ -311,10 +310,10 @@ export class AdminDashboardComponent implements OnInit {
   rejectItem(approval: PendingApproval) {
     this.snackBar.open(`Rejecting ${approval.name}...`, 'Close', { duration: 2000 });
     
-    // Remove from pending list
+  
     this.pendingApprovals = this.pendingApprovals.filter(item => item.id !== approval.id);
     
-    // Update stats
+  
     if (approval.type === 'business') {
       this.stats.pendingBusinessApprovals--;
     } else if (approval.type === 'user') {

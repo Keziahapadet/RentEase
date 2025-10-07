@@ -152,7 +152,7 @@ mat-form-field {
   }
 }
 
-/* Angular Material Overrides */
+
 ::ng-deep .mat-form-field {
   font-family: inherit;
   width: 100%;
@@ -227,7 +227,7 @@ mat-form-field {
   font-size: 15px;
 }
 
-/* Mobile Responsive */
+
 @media (max-width: 600px) {
   .login-card {
     padding: 30px 20px;

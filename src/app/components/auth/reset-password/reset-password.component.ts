@@ -67,7 +67,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       console.log('Reset Password - Raw Email:', this.email);
       console.log('Reset Password - OTP:', this.otpCode);
 
-      // FIXED: Decode URL encoded email
+  
       if (this.email.includes('%40')) {
         this.email = decodeURIComponent(this.email);
         console.log('Reset Password - Decoded Email:', this.email);
@@ -213,7 +213,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     const payload: ResetPasswordRequest = {
-      email: this.email, // Now properly decoded
+      email: this.email, 
       otpCode: this.otpCode,
       newPassword: this.resetForm.value.newPassword,
       confirmNewPassword: this.resetForm.value.confirmNewPassword

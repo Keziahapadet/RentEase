@@ -10,7 +10,7 @@
     </p>
 
     <form [formGroup]="otpForm" (ngSubmit)="onSubmit()">
-      <!-- 7 OTP Input Boxes -->
+    
       <div class="otp-container">
         <div class="otp-inputs" formGroupName="otpFields">
           <mat-form-field appearance="outline" *ngFor="let field of otpFields; let i = index">

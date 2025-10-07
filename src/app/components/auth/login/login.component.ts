@@ -89,14 +89,14 @@ export class LoginComponent implements OnInit {
       next: (response: AuthResponse) => {
         console.log('Login response:', response);
         
-        // Wait a bit to ensure user data is stored
+       
         setTimeout(() => {
           const user = this.authService.getCurrentUser();
           console.log('Current user after login:', user);
           
           let userRole: string | undefined;
           
-          // Get role from multiple possible sources
+         
           if (user && user.role) {
             userRole = user.role;
           } else if (response.role) {
@@ -128,10 +128,9 @@ export class LoginComponent implements OnInit {
   private redirectBasedOnRole(userRole: string): void {
     console.log('Redirecting based on role:', userRole);
     
-    // Normalize the role string for comparison
+   
     const normalizedRole = userRole.toUpperCase().trim();
     
-    // Map roles to their respective dashboards
     const roleMap: { [key: string]: string } = {
       'LANDLORD': '/landlord-dashboard/home',
       'TENANT': '/tenant-dashboard/home', 
@@ -140,7 +139,6 @@ export class LoginComponent implements OnInit {
       'ADMIN': '/admin-dashboard'
     };
 
-    // Check if role exists in our map
     if (roleMap[normalizedRole]) {
       const dashboardRoute = roleMap[normalizedRole];
       console.log(`Redirecting to: ${dashboardRoute}`);

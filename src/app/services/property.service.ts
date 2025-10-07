@@ -20,7 +20,7 @@ export class PropertyService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  // Get current user profile
+  
   getCurrentUserProfile(): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log('PropertyService - Fetching user profile data');
@@ -34,7 +34,6 @@ export class PropertyService {
     );
   }
 
-  // Update user profile
   updateUserProfile(profileData: any): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log('PropertyService - Updating user profile:', profileData);
@@ -49,7 +48,7 @@ export class PropertyService {
     );
   }
 
-  // Get user profile by ID
+ 
   getUserProfileById(userId: string): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log(`PropertyService - Fetching user profile for ID: ${userId}`);
@@ -63,7 +62,7 @@ export class PropertyService {
     );
   }
 
-  // Get profile picture
+ 
   getProfilePicture(): Observable<ProfilePictureResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log('PropertyService - Fetching profile picture');
@@ -77,7 +76,7 @@ export class PropertyService {
     );
   }
 
-  // Upload profile picture
+
   uploadProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
     formData.append('picture', file);
@@ -96,7 +95,7 @@ export class PropertyService {
     );
   }
 
-  // Update profile picture
+ 
   updateProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
     formData.append('picture', file);
@@ -115,7 +114,6 @@ export class PropertyService {
     );
   }
 
-  // Delete profile picture
   deleteProfilePicture(): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log('PropertyService - Deleting profile picture');
@@ -129,7 +127,7 @@ export class PropertyService {
     );
   }
 
-  // Create property
+  
   createProperty(request: PropertyRequest): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
@@ -152,7 +150,6 @@ export class PropertyService {
     );
   }
 
-  // Get all properties
   getProperties(): Observable<Property[]> {
     const httpOptions = { headers: this.createHeaders() };
     console.log('PropertyService - Fetching properties');
@@ -179,7 +176,6 @@ export class PropertyService {
     );
   }
 
-  // Get property by ID
   getPropertyById(propertyId: string): Observable<Property> {
     const httpOptions = { headers: this.createHeaders() };
     console.log(`PropertyService - Fetching property: ${propertyId}`);
@@ -201,7 +197,7 @@ export class PropertyService {
     );
   }
 
-  // Update property
+ 
   updateProperty(propertyId: string, request: PropertyRequest): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
@@ -224,7 +220,7 @@ export class PropertyService {
     );
   }
 
-  // Delete property
+ 
   deleteProperty(propertyId: string): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log(`PropertyService - Deleting property: ${propertyId}`);
@@ -238,7 +234,7 @@ export class PropertyService {
     );
   }
 
-  // Get units by property ID
+
   getUnitsByPropertyId(propertyId: string): Observable<Unit[]> {
     const httpOptions = { headers: this.createHeaders() };
     console.log(`PropertyService - Fetching units for property: ${propertyId}`);
@@ -272,12 +268,11 @@ export class PropertyService {
     );
   }
 
-  // Get property units (alias for getUnitsByPropertyId)
+ 
   getPropertyUnits(propertyId: string): Observable<Unit[]> {
     return this.getUnitsByPropertyId(propertyId);
   }
 
-  // Create unit
   createUnit(propertyId: string, unit: any): Observable<any> {
     const httpOptions = { headers: this.createHeaders() };
 

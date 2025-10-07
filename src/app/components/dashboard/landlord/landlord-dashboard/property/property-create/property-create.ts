@@ -236,7 +236,7 @@ export class PropertyCreateComponent implements OnInit, OnDestroy {
 
     this.snackBar.open(`Unit ${this.newUnit.unitNumber} added successfully!`, 'Close', { duration: 2000 });
 
-    // Reset form but keep the unit type selected
+    
     const keepType = this.newUnit.unitType;
     
     this.newUnit = {
@@ -319,8 +319,7 @@ export class PropertyCreateComponent implements OnInit, OnDestroy {
   }
 
   onUnitTypeChange() {
-    // No longer setting default rent amounts
-    // User will manually enter rent and deposit amounts
+    
   }
 
   getPropertyTypeLabel(value: string): string {
@@ -407,7 +406,7 @@ export class PropertyCreateComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Helper method for template disabled state
+
   isAddUnitDisabled(): boolean {
     return !this.newUnit.unitNumber || 
            !this.newUnit.unitType || 

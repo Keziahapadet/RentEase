@@ -1,5 +1,5 @@
 <div class="admin-dashboard">
-  <!-- Sidebar -->
+
   <div class="sidebar" [class.collapsed]="isSidebarCollapsed">
     <div class="sidebar-header">
       <h3>{{isSidebarCollapsed ? 'A' : 'Admin Panel'}}</h3>
@@ -9,7 +9,6 @@
     </div>
     
     <mat-nav-list>
-      <!-- Dashboard -->
       <mat-list-item 
         routerLink="/admin/dashboard" 
         routerLinkActive="active"
@@ -18,7 +17,7 @@
         <span matListItemTitle *ngIf="!isSidebarCollapsed">Dashboard</span>
       </mat-list-item>
 
-      <!-- User Management -->
+    
       <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
         <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
           <mat-panel-title>
@@ -42,7 +41,7 @@
         </mat-nav-list>
       </mat-expansion-panel>
 
-      <!-- Business Management -->
+    
       <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
         <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
           <mat-panel-title>
@@ -66,7 +65,7 @@
         </mat-nav-list>
       </mat-expansion-panel>
 
-      <!-- Financial Management -->
+   
       <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
         <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
           <mat-panel-title>
@@ -87,7 +86,7 @@
         </mat-nav-list>
       </mat-expansion-panel>
 
-      <!-- Support & Disputes -->
+   
       <mat-expansion-panel class="menu-panel" [class.collapsed]="isSidebarCollapsed">
         <mat-expansion-panel-header [class.collapsed]="isSidebarCollapsed">
           <mat-panel-title>
@@ -108,7 +107,7 @@
         </mat-nav-list>
       </mat-expansion-panel>
 
-      <!-- Analytics -->
+   
       <mat-list-item 
         routerLink="/admin/analytics" 
         routerLinkActive="active"
@@ -117,7 +116,7 @@
         <span matListItemTitle *ngIf="!isSidebarCollapsed">Analytics</span>
       </mat-list-item>
 
-      <!-- Settings -->
+   
       <mat-list-item 
         routerLink="/admin/settings" 
         routerLinkActive="active"
@@ -128,9 +127,9 @@
     </mat-nav-list>
   </div>
 
-  <!-- Main Content -->
+
   <div class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
-    <!-- Header -->
+   
     <div class="dashboard-header">
       <div class="header-content">
         <h1>Admin Dashboard</h1>
@@ -160,18 +159,16 @@
       </div>
     </div>
 
-    <!-- Loading State -->
+   
     <div *ngIf="isLoading" class="loading-container">
       <mat-spinner diameter="50"></mat-spinner>
       <p>Loading dashboard data...</p>
     </div>
 
-    <!-- Dashboard Content -->
+   
     <div *ngIf="!isLoading" class="dashboard-content">
-      
-      <!-- Stats Grid -->
+    
       <div class="stats-grid">
-        <!-- User Stats -->
         <mat-card class="stat-card primary" (click)="manageUsers()">
           <div class="stat-icon">
             <mat-icon>people</mat-icon>
@@ -218,7 +215,7 @@
           </div>
         </mat-card>
 
-        <!-- Financial Stats -->
+     
         <mat-card class="stat-card info" (click)="manageEscrow()">
           <div class="stat-icon">
             <mat-icon>account_balance</mat-icon>
@@ -264,7 +261,7 @@
         </mat-card>
       </div>
 
-      <!-- Quick Actions -->
+   
       <mat-card class="quick-actions-card">
         <mat-card-header>
           <mat-card-title>
@@ -302,10 +299,10 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- Tabs Section -->
+    
       <mat-tab-group class="admin-tabs" animationDuration="300ms">
         
-        <!-- Recent Activity -->
+    
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon>history</mat-icon>
@@ -329,7 +326,7 @@
           </div>
         </mat-tab>
 
-        <!-- Pending Approvals -->
+       
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon [matBadge]="pendingApprovals.length" matBadgeColor="warn">approval</mat-icon>
@@ -365,7 +362,7 @@
           </div>
         </mat-tab>
 
-        <!-- User Statistics -->
+      
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon>bar_chart</mat-icon>

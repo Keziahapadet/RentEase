@@ -619,7 +619,7 @@ mat-chip {
   }
 }
 
-// Responsive Design
+
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

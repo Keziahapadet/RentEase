@@ -38,7 +38,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
 
   email = '';
   verificationType: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification' = 'email_verification';
-  userType = ''; // Changed from default 'tenant'
+  userType = ''; 
 
   pageTitle = 'Verify Your Account';
   infoText = 'We\'ve sent a 7-character verification code to your email';
@@ -72,7 +72,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       this.route.queryParams.subscribe(params => {
         this.email = (params['email'] || '').trim().toLowerCase();
         this.verificationType = params['type'] || 'email_verification';
-        this.userType = params['userType'] || ''; // FIX: No default value
+        this.userType = params['userType'] || ''; 
 
         console.log('OTP Component - User Type:', this.userType);
         console.log('OTP Component - Email:', this.email);
@@ -90,7 +90,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private updateUIBasedOnType() {
-    // Convert userType to proper case for display
+
     const userTypeDisplay = this.userType?.charAt(0).toUpperCase() + this.userType?.slice(1) || 'User';
     
     switch (this.verificationType) {
@@ -165,7 +165,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       sessionStorage.setItem('otpVerified', 'true');
       this.router.navigate(['/reset-password'], { queryParams: { email: this.email } });
     } else if (this.verificationType === 'email_verification') {
-      // FIX: Use the actual userType from query params with proper routing
       const dashboardRoute = this.getDashboardRoute();
       console.log('Navigating to:', dashboardRoute);
       this.router.navigate([dashboardRoute]);
@@ -217,7 +216,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       const response = await firstValueFrom(this.authService.resendOtp(resendRequest));
 
       if (response.success) {
-        this.showMessage('New code sent! Check your email. ✉️', 'success');
+        this.showMessage('New code sent! Check your email. ', 'success');
         this.startResendTimer();
         this.clearOtpInputs();
       } else {
