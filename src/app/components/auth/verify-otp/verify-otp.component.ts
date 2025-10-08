@@ -78,7 +78,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         console.log('OTP Component - Email:', this.email);
         console.log('OTP Component - Verification Type:', this.verificationType);
 
-       
+        // Debug: Check if userType is coming through correctly
         console.log('All query params:', params);
 
         if (!this.email) {
@@ -136,7 +136,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! ', 'success');
+        this.showMessage('Verification successful! 🎉', 'success');
         await this.handleSuccessfulVerification();
       } else {
         throw new Error(response.message || 'Verification failed');
@@ -163,11 +163,13 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   private async handleSuccessfulVerification() {
     console.log('Verification successful - User Type:', this.userType);
     console.log('Verification Type:', this.verificationType);
-  
+    
+    // Add a small delay to ensure message is seen
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
       if (this.verificationType === 'password_reset') {
+        // For password reset
         sessionStorage.setItem('resetEmail', this.email);
         sessionStorage.setItem('otpVerified', 'true');
         console.log('Navigating to reset-password with email:', this.email);
@@ -175,16 +177,18 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
           queryParams: { email: this.email } 
         });
       } else if (this.verificationType === 'email_verification') {
+        // For email verification - route to appropriate dashboard
         const dashboardRoute = this.getDashboardRoute();
         console.log('Attempting to navigate to dashboard:', dashboardRoute);
         
+        // Store user info in session storage for persistence
         sessionStorage.setItem('currentUser', JSON.stringify({
           email: this.email,
           userType: this.userType,
           isVerified: true
         }));
 
-    
+        // Use navigateByUrl for more reliable navigation
         this.router.navigateByUrl(dashboardRoute, { 
           replaceUrl: true 
         }).then(success => {
@@ -195,6 +199,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
           }
         });
       } else {
+        // Fallback for other verification types
         this.router.navigate(['/login']);
       }
     } catch (navigationError) {
@@ -204,19 +209,23 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  private getDashboardRoute(): string 
+  private getDashboardRoute(): string {
+    // Normalize userType for comparison
     const normalizedUserType = this.userType?.toLowerCase().trim();
     
     console.log('Determining dashboard route for user type:', normalizedUserType);
 
-   
+    // Map user types to their dashboard routes
     const routeMap: { [key: string]: string } = {
       'landlord': '/landlord-dashboard',
       'tenant': '/tenant-dashboard', 
       'caretaker': '/caretaker-dashboard',
       'business': '/business-dashboard',
       'admin': '/admin-dashboard',
-    
+      // Add fallbacks or common variations
+      'property_owner': '/landlord-dashboard',
+      'property owner': '/landlord-dashboard',
+      'renter': '/tenant-dashboard'
     };
 
     const route = routeMap[normalizedUserType] || '/dashboard';
