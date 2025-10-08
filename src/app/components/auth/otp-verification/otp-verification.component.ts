@@ -172,33 +172,56 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     console.log('Verification Type:', this.verificationType);
     console.log('API Response:', response);
     
- 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Add a small delay to ensure message is seen
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
       if (this.verificationType === 'password_reset') {
-     
+        // Even though backend says "login", we force password reset
+        // because the OTP is valid and this is a password reset flow
+        
+        console.log('🔄 Overriding backend response for password reset flow');
+        
+        // Store data for reset-password component
         sessionStorage.setItem('resetEmail', this.email);
-        sessionStorage.setItem('otpVerified', 'true');
         sessionStorage.setItem('otpCode', otpCode);
+        sessionStorage.setItem('otpVerified', 'true');
+        sessionStorage.setItem('verificationType', this.verificationType);
         
-        console.log('Navigating to reset-password with email:', this.email, 'and OTP:', otpCode);
-        
-        this.router.navigate(['/reset-password'], { 
-          queryParams: { 
-            email: this.email,
-            otp: otpCode
-          } 
-        }).then(success => {
-          console.log('Navigation to reset-password successful:', success);
-        }).catch(err => {
-          console.error('Navigation to reset-password failed:', err);
-        
-          window.location.href = `/reset-password?email=${encodeURIComponent(this.email)}&otp=${otpCode}`;
+        console.log('🔐 Stored reset data:', {
+          email: this.email,
+          otp: otpCode,
+          type: this.verificationType
         });
         
+        // Show appropriate message
+        this.showMessage('Verification successful! You can now reset your password.', 'success');
+        
+        // Navigate after short delay
+        setTimeout(() => {
+          console.log('📍 Navigating to reset-password with:', this.email, otpCode);
+          
+          this.router.navigate(['/reset-password'], { 
+            queryParams: { 
+              email: this.email,
+              otp: otpCode,
+              source: 'otp_verification'
+            },
+            replaceUrl: true
+          }).then(navSuccess => {
+            console.log('🧭 Navigation successful:', navSuccess);
+            if (!navSuccess) {
+              console.warn('🧭 Router navigation failed, using window location');
+              window.location.assign(`/reset-password?email=${encodeURIComponent(this.email)}&otp=${otpCode}`);
+            }
+          }).catch(navError => {
+            console.error('🧭 Navigation error:', navError);
+            window.location.assign(`/reset-password?email=${encodeURIComponent(this.email)}&otp=${otpCode}`);
+          });
+        }, 1500);
+        
       } else {
-       
+        // For actual email verification, go to login
         this.showMessage('Email verified successfully! Please login.', 'success');
         setTimeout(() => {
           this.router.navigate(['/login'], {
@@ -210,9 +233,9 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
         }, 2000);
       }
     } catch (navigationError) {
-      console.error('Navigation error:', navigationError);
-      this.showMessage('Verification successful! Please login manually.', 'success');
-      this.router.navigate(['/login']);
+      console.error('🚨 Navigation error:', navigationError);
+      // Final fallback
+      window.location.href = `/reset-password?email=${encodeURIComponent(this.email)}&otp=${otpCode}`;
     }
   }
 
@@ -274,7 +297,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
         this.startResendTimer();
         this.clearOtpInputs();
         
-      
+        // Focus on first input
         setTimeout(() => {
           const firstInput = this.otpInputs.first;
           if (firstInput) firstInput.nativeElement.focus();
@@ -318,7 +341,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const input = event.target as HTMLInputElement;
     let value = input.value.toUpperCase();
     
-   
+    // Validate input based on position
     if (position === 1) {
       value = value.replace(/[^A-Z]/g, '');
     } else {
@@ -328,7 +351,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const digitKey = `digit${position}` as keyof typeof this.otpData;
     this.otpData[digitKey] = value.slice(-1);
 
-  
+    // Auto-focus next input
     if (value && position < 7) {
       const nextInput = this.otpInputs.toArray()[position];
       if (nextInput) {
@@ -336,9 +359,10 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       }
     }
 
+    // Clear error when user starts typing
     this.showOtpError = false;
 
-
+    // Auto-submit when OTP is complete
     if (this.isOtpComplete() && !this.isLoading) {
       setTimeout(() => this.verifyOtp(), 300);
     }
@@ -349,7 +373,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     
     if (event.key === 'Backspace') {
       if (!this.otpData[digitKey] && position > 1) {
-      
+        // Move to previous input if current is empty
         const prevInput = this.otpInputs.toArray()[position - 2];
         if (prevInput) {
           prevInput.nativeElement.focus();
@@ -373,17 +397,17 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const pastedData = event.clipboardData?.getData('text') || '';
     const cleanOtp = pastedData.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
 
-  
+    // Fill OTP inputs with pasted data
     for (let i = 0; i < cleanOtp.length && i < 7; i++) {
       const key = `digit${i + 1}` as keyof typeof this.otpData;
       const char = cleanOtp[i];
       this.otpData[key] = i === 0 ? (/[A-Z]/.test(char) ? char : '') : (/[0-9]/.test(char) ? char : '');
     }
 
- 
+    // Clear error on paste
     this.showOtpError = false;
 
- 
+    // Auto-focus next empty input or verify if complete
     if (cleanOtp.length === 7) {
       setTimeout(() => this.verifyOtp(), 300);
     } else if (cleanOtp.length > 0) {

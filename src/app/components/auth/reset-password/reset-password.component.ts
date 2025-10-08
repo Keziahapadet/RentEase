@@ -240,6 +240,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
               }
             });
           }, 2000);
+          
         } else {
           this.handleApiError(response.message || 'Failed to reset password');
         }

@@ -60,7 +60,6 @@ export class ForgotPasswordComponent implements OnDestroy {
     if (this.forgotPasswordForm.invalid) {
       this.markFormGroupTouched();
       
-    
       if (this.email?.hasError('required')) {
         this.emailError = 'Email is required';
       } else if (this.email?.hasError('email')) {
@@ -88,14 +87,15 @@ export class ForgotPasswordComponent implements OnDestroy {
             'success'
           );
 
-         setTimeout(() => {
-     this.router.navigate(['/verify-otp'], {
-      queryParams: { 
-      email: this.email?.value.trim().toLowerCase(),
-      type: 'password_reset'  
-    }
-  });
-}, 2000);
+          setTimeout(() => {
+           this.router.navigate(['/otp-verification'], {
+              queryParams: { 
+                email: this.email?.value.trim().toLowerCase(),
+                type: 'password_reset'  
+              }
+            });
+          }, 2000);
+
         } else {
           this.handleApiError(response.message || 'Failed to send password reset email');
         }
@@ -144,7 +144,6 @@ export class ForgotPasswordComponent implements OnDestroy {
       errorMessage = error.message;
     }
     
-  
     if (fieldError) {
       this.emailError = fieldError;
     }
