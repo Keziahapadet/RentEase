@@ -10,12 +10,12 @@
       </div>
     </div>
     <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="createNewUnit()">
+      <button mat-raised-button color="primary" (click)="createNewUnit($event)">
         <mat-icon>add</mat-icon>
         Add Unit
       </button>
       
-      <button mat-raised-button color="accent" (click)="inviteTenantToProperty()">
+      <button mat-raised-button color="accent" (click)="inviteTenantToProperty($event)">
         <mat-icon>person_add</mat-icon>
         Invite Tenant
       </button>
@@ -169,7 +169,7 @@
           <h3>No units found</h3>
           <p *ngIf="hasActiveFilters()">Try adjusting your filters or search terms</p>
           <p *ngIf="!hasActiveFilters()">No units have been added to this property yet</p>
-          <button mat-raised-button color="primary" (click)="createNewUnit()">
+          <button mat-raised-button color="primary" (click)="createNewUnit($event)">
             <mat-icon>add</mat-icon>
             Add First Unit
           </button>
@@ -202,7 +202,7 @@
               <td mat-cell *matCellDef="let unit">
                 <div class="status-chip" [class]="getStatusClass(unit.status)">
                   <mat-icon>{{ getStatusIcon(unit.status) }}</mat-icon>
-                  {{ unit.status || 'unknown' }}
+                  {{ getStatusDisplay(unit.status) }}
                 </div>
               </td>
             </ng-container>

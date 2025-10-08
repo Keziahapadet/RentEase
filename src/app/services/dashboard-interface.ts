@@ -14,7 +14,7 @@ export interface Unit {
   rentAmount: number;
   deposit: number;
   description?: string;
-  status?: 'occupied' | 'vacant' | 'maintenance' | 'reserved';
+ status?: "occupied" | "vacant" | "maintenance" | "reserved" | "";
   tenant?: {
     id?: string;
     name?: string;

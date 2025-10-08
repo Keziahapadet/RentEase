@@ -124,6 +124,14 @@ export class PropertyUnitsComponent implements OnInit {
 
         this.property = result.property;
         this.units = result.units || [];
+        
+        this.units = this.units.map(unit => {
+          if (!unit.status) {
+            unit.status = unit.tenant ? 'occupied' : 'vacant';
+          }
+          return unit;
+        });
+        
         this.filteredUnits = [...this.units];
         this.calculateStats();
         this.loading = false;
@@ -141,7 +149,7 @@ export class PropertyUnitsComponent implements OnInit {
   private calculateStats() {
     this.totalUnits = this.units.length;
     this.occupiedUnits = this.units.filter(unit => unit.status === 'occupied').length;
-    this.vacantUnits = this.units.filter(unit => unit.status === 'vacant').length;
+    this.vacantUnits = this.units.filter(unit => unit.status !== 'occupied').length;
     this.maintenanceUnits = this.units.filter(unit => unit.status === 'maintenance').length;
 
     this.occupancyRate = this.totalUnits > 0 ? Math.round((this.occupiedUnits / this.totalUnits) * 100) : 0;
@@ -153,7 +161,10 @@ export class PropertyUnitsComponent implements OnInit {
     this.annualRevenue = this.monthlyRevenue * 12;
   }
 
-  inviteTenantToProperty() {
+  inviteTenantToProperty(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
     const availableUnits = this.units.filter(unit => 
       unit.status !== 'occupied'
     );
@@ -165,6 +176,8 @@ export class PropertyUnitsComponent implements OnInit {
 
     const dialogRef = this.dialog.open(InviteDialogComponent, {
       width: '500px',
+      maxWidth: '95vw',
+      panelClass: 'responsive-dialog',
       data: {
         type: 'tenant',
         propertyId: this.propertyId,
@@ -182,9 +195,12 @@ export class PropertyUnitsComponent implements OnInit {
 
   inviteTenantToUnit(unit: Unit, event: Event) {
     event.stopPropagation();
+    event.preventDefault();
     
     const dialogRef = this.dialog.open(InviteDialogComponent, {
       width: '500px',
+      maxWidth: '95vw',
+      panelClass: 'responsive-dialog',
       data: {
         type: 'tenant',
         propertyId: this.propertyId,
@@ -306,8 +322,12 @@ export class PropertyUnitsComponent implements OnInit {
   private applyFilter() {
     let filtered = [...this.units];
 
-    if (this.activeFilter !== 'all') {
-      filtered = filtered.filter(unit => unit.status === this.activeFilter);
+    if (this.activeFilter === 'occupied') {
+      filtered = filtered.filter(unit => unit.status === 'occupied');
+    } else if (this.activeFilter === 'vacant') {
+      filtered = filtered.filter(unit => unit.status !== 'occupied');
+    } else if (this.activeFilter === 'maintenance') {
+      filtered = filtered.filter(unit => unit.status === 'maintenance');
     }
 
     if (this.searchTerm.trim()) {
@@ -332,12 +352,16 @@ export class PropertyUnitsComponent implements OnInit {
     this.router.navigate(['/landlord-dashboard/property', this.propertyId, 'unit', unitId, 'edit']);
   }
 
-  createNewUnit() {
+  createNewUnit(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
     this.router.navigate(['/landlord-dashboard/property', this.propertyId, 'unit', 'create']);
   }
 
   onDeleteUnit(unitId: string | number, event: Event) {
     event.stopPropagation();
+    event.preventDefault();
+    
     if (isPlatformBrowser(this.platformId) && confirm('Are you sure you want to delete this unit? This action cannot be undone.')) {
       this.propertyService.deleteUnit(this.propertyId, unitId.toString()).subscribe({
         next: () => {
@@ -359,11 +383,11 @@ export class PropertyUnitsComponent implements OnInit {
 
   getStatusClass(status: string | undefined): string {
     switch (status) {
-      case 'occupied': return 'status-occupied';
-      case 'vacant': return 'status-vacant';
-      case 'maintenance': return 'status-maintenance';
-      case 'reserved': return 'status-reserved';
-      default: return 'status-unknown';
+      case 'occupied': return 'occupied';
+      case 'vacant': return 'vacant';
+      case 'maintenance': return 'maintenance';
+      case 'reserved': return 'reserved';
+      default: return 'vacant';
     }
   }
 
@@ -373,7 +397,17 @@ export class PropertyUnitsComponent implements OnInit {
       case 'vacant': return 'event_available';
       case 'maintenance': return 'build';
       case 'reserved': return 'schedule';
-      default: return 'help';
+      default: return 'event_available';
+    }
+  }
+
+  getStatusDisplay(status: string | undefined): string {
+    switch (status) {
+      case 'occupied': return 'Occupied';
+      case 'vacant': return 'Vacant';
+      case 'maintenance': return 'Maintenance';
+      case 'reserved': return 'Reserved';
+      default: return 'Vacant';
     }
   }
 
@@ -395,14 +429,6 @@ export class PropertyUnitsComponent implements OnInit {
 
   getTenantDisplay(unit: Unit): string {
     return unit.tenant?.name || unit.tenant?.email || 'No tenant';
-  }
-
-  getUnitDescription(unit: Unit): string {
-    return unit.description?.length
-      ? unit.description.length > 50
-        ? unit.description.substring(0, 50) + '...'
-        : unit.description
-      : 'No description';
   }
 
   getUnitTypeDisplay(unit: Unit): string {
@@ -433,7 +459,7 @@ export class PropertyUnitsComponent implements OnInit {
 
   getPropertyTypeDisplay(): string {
     const typeMap: { [key: string]: string } = {
-      'APARTMENT': 'Apartment ',
+      'APARTMENT': 'Apartment',
       'HOUSE': 'Single House',
       'BUNGALOW': 'Bungalow',
       'COMMERCIAL': 'Commercial Building',
