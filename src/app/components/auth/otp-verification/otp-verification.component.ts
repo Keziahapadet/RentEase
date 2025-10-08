@@ -129,6 +129,22 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     this.isLoading = true;
     this.showOtpError = false;
 
+    if (this.verificationType === 'password_reset') {
+      this.showMessage('OTP verified! Please set your new password.', 'success');
+      
+      setTimeout(() => {
+        this.router.navigate(['/reset-password'], {
+          queryParams: {
+            email: this.email,
+            otp: otpCode
+          }
+        });
+      }, 1000);
+      
+      this.isLoading = false;
+      return;
+    }
+
     try {
       const verifyRequest: OtpVerifyRequest = {
         email: this.email,
@@ -139,7 +155,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! ', 'success');
+        this.showMessage('Verification successful!', 'success');
         await this.handleSuccessfulVerification(response, otpCode);
       } else {
         throw new Error(response.message || 'Verification failed');
@@ -163,30 +179,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
   }
 
   private async handleSuccessfulVerification(response: any, otpCode: string) {
-    if (this.verificationType === 'password_reset') {
-      this.showMessage('Verification successful! You can now reset your password.', 'success');
-      
-      setTimeout(() => {
-        this.router.navigate(['/reset-password'], {
-          queryParams: {
-            email: this.email,
-            otp: otpCode,
-            verified: 'true',
-            timestamp: Date.now()
-          }
-        }).then(success => {
-          if (!success) {
-            const queryParams = new URLSearchParams({
-              email: this.email,
-              otp: otpCode,
-              verified: 'true'
-            });
-            window.location.href = `/reset-password?${queryParams.toString()}`;
-          }
-        });
-      }, 1000);
-      
-    } else {
+    if (this.verificationType === 'email_verification') {
       this.showMessage('Email verified successfully! Please login.', 'success');
       setTimeout(() => {
         this.router.navigate(['/login'], {
