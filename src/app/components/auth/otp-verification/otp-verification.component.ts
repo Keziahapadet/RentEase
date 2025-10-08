@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
 import { AuthService } from '../../../services/auth.service';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { OtpVerifyRequest, OtpRequest } from '../../../services/auth-interfaces';
@@ -23,7 +24,8 @@ import { OtpVerifyRequest, OtpRequest } from '../../../services/auth-interfaces'
     MatIconModule,
     MatSnackBarModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatCardModule
   ],
   templateUrl: './otp-verification.component.html',
   styleUrls: ['./otp-verification.component.scss']
@@ -37,8 +39,8 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
 
   isLoading = false;
   isResending = false;
-  resendTimer = 0;
-  canResend = true;
+  resendTimer = 60;
+  canResend = false;
   showOtpError = false;
   otpErrorMessage = '';
 
@@ -47,6 +49,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
 
   pageTitle = 'OTP Verification';
   infoText = 'Enter the 7-character code sent to your email';
+  buttonText = 'Verify Code';
 
   private resendTimerInterval: any;
   private subscription = new Subscription();
@@ -58,6 +61,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
 
   ngOnInit() {
     this.initializeComponent();
+    this.startResendTimer();
   }
 
   ngAfterViewInit() {
@@ -95,16 +99,19 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
   private updateUIBasedOnType() {
     switch (this.verificationType) {
       case 'email_verification':
-        this.pageTitle = 'OTP Verification';
-        this.infoText = 'Enter the 7-character code sent to your email';
+        this.pageTitle = 'Verify Your Email';
+        this.infoText = 'Enter the 7-character verification code sent to your email address';
+        this.buttonText = 'Verify Email';
         break;
       case 'password_reset':
         this.pageTitle = 'Reset Password Verification';
         this.infoText = 'Enter the 7-character code sent to your email to reset your password';
+        this.buttonText = 'Verify & Reset Password';
         break;
       default:
         this.pageTitle = 'OTP Verification';
         this.infoText = 'Enter the 7-character verification code';
+        this.buttonText = 'Verify Code';
     }
   }
 
@@ -138,7 +145,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
 
       if (response.success) {
         this.showMessage('Verification successful! 🎉', 'success');
-        await this.handleSuccessfulVerification(response);
+        await this.handleSuccessfulVerification(response, otpCode);
       } else {
         throw new Error(response.message || 'Verification failed');
       }
@@ -146,7 +153,6 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       console.error('OTP verification error:', error);
       this.handleVerificationError(error);
       this.shakeInputs();
-      this.clearOtpInputs();
     } finally {
       this.isLoading = false;
     }
@@ -161,60 +167,90 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     return null;
   }
 
-  private async handleSuccessfulVerification(response: any) {
+  private async handleSuccessfulVerification(response: any, otpCode: string) {
     console.log('Verification successful');
     console.log('Verification Type:', this.verificationType);
+    console.log('API Response:', response);
     
-    // Add a small delay to ensure message is seen
+ 
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
       if (this.verificationType === 'password_reset') {
-        // For password reset
+     
         sessionStorage.setItem('resetEmail', this.email);
         sessionStorage.setItem('otpVerified', 'true');
-        console.log('Navigating to reset-password with email:', this.email);
+        sessionStorage.setItem('otpCode', otpCode);
+        
+        console.log('Navigating to reset-password with email:', this.email, 'and OTP:', otpCode);
+        
         this.router.navigate(['/reset-password'], { 
-          queryParams: { email: this.email } 
+          queryParams: { 
+            email: this.email,
+            otp: otpCode
+          } 
+        }).then(success => {
+          console.log('Navigation to reset-password successful:', success);
+        }).catch(err => {
+          console.error('Navigation to reset-password failed:', err);
+        
+          window.location.href = `/reset-password?email=${encodeURIComponent(this.email)}&otp=${otpCode}`;
         });
+        
       } else {
-        // For other verification types, go to login
-        this.showMessage('Verification successful! Please login.', 'success');
-        this.router.navigate(['/login']);
+       
+        this.showMessage('Email verified successfully! Please login.', 'success');
+        setTimeout(() => {
+          this.router.navigate(['/login'], {
+            queryParams: { 
+              email: this.email,
+              verified: 'true'
+            }
+          });
+        }, 2000);
       }
     } catch (navigationError) {
       console.error('Navigation error:', navigationError);
-      this.showMessage('Navigation failed. Please login manually.', 'error');
+      this.showMessage('Verification successful! Please login manually.', 'success');
       this.router.navigate(['/login']);
     }
   }
 
   private handleVerificationError(error: any) {
-    const errorMsg = (error.message || '').toLowerCase();
+    let errorMessage = 'Verification failed. Please try again.';
+    let userMessage = 'Verification failed. Please try again.';
     
-    if (errorMsg.includes('expired')) {
-      this.showOtpError = true;
-      this.otpErrorMessage = 'Code has expired. Please request a new one.';
-      this.showMessage('Code has expired. Please request a new one.', 'error');
-      this.canResend = true;
-    } else if (errorMsg.includes('invalid')) {
-      this.showOtpError = true;
-      this.otpErrorMessage = 'Invalid code. Please check and try again.';
-      this.showMessage('Invalid code. Please check and try again.', 'error');
-    } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
-      this.showOtpError = true;
-      this.otpErrorMessage = 'Account not found. Please check your email or register.';
-      this.showMessage('Account not found. Please check your email or register.', 'error');
-    } else if (errorMsg.includes('already verified')) {
-      this.showOtpError = true;
-      this.otpErrorMessage = 'Account already verified. Please login.';
-      this.showMessage('Account already verified. Please login.', 'info');
-      this.router.navigate(['/login']);
-    } else {
-      this.showOtpError = true;
-      this.otpErrorMessage = error.message || 'Verification failed. Please try again.';
-      this.showMessage(error.message || 'Verification failed. Please try again.', 'error');
+    if (typeof error === 'string') {
+      errorMessage = error;
+      userMessage = error;
+    } else if (error?.error?.message) {
+      errorMessage = error.error.message;
+      const msg = error.error.message.toLowerCase();
+      
+      if (msg.includes('expired')) {
+        userMessage = 'Code has expired. Please request a new one.';
+        this.canResend = true;
+      } else if (msg.includes('invalid') || msg.includes('incorrect')) {
+        userMessage = 'Invalid code. Please check and try again.';
+      } else if (msg.includes('not found') || msg.includes('does not exist')) {
+        userMessage = 'Account not found. Please check your email or register.';
+      } else if (msg.includes('already verified')) {
+        userMessage = 'Account already verified. Please login.';
+        setTimeout(() => this.router.navigate(['/login']), 3000);
+      } else {
+        userMessage = error.error.message;
+      }
+    } else if (error?.message) {
+      errorMessage = error.message;
+      userMessage = error.message;
     }
+
+    console.error('Verification error details:', errorMessage);
+    
+    this.showOtpError = true;
+    this.otpErrorMessage = userMessage;
+    this.showMessage(userMessage, 'error');
+    this.clearOtpInputs();
   }
 
   async resendOtp() {
@@ -229,16 +265,26 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
         type: this.verificationType
       };
 
+      console.log('Resending OTP request:', resendRequest);
+
       const response = await firstValueFrom(this.authService.resendOtp(resendRequest));
 
       if (response.success) {
-        this.showMessage('New code sent! Check your email. ', 'success');
+        this.showMessage('New verification code sent! Check your email.', 'success');
         this.startResendTimer();
         this.clearOtpInputs();
+        
+      
+        setTimeout(() => {
+          const firstInput = this.otpInputs.first;
+          if (firstInput) firstInput.nativeElement.focus();
+        }, 100);
+        
       } else {
         throw new Error(response.message || 'Failed to resend code');
       }
     } catch (error: any) {
+      console.error('Resend OTP error:', error);
       this.showOtpError = true;
       this.otpErrorMessage = error.message || 'Failed to resend code. Please try again.';
       this.showMessage(error.message || 'Failed to resend code. Please try again.', 'error');
@@ -272,6 +318,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const input = event.target as HTMLInputElement;
     let value = input.value.toUpperCase();
     
+   
     if (position === 1) {
       value = value.replace(/[^A-Z]/g, '');
     } else {
@@ -281,13 +328,16 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const digitKey = `digit${position}` as keyof typeof this.otpData;
     this.otpData[digitKey] = value.slice(-1);
 
+  
     if (value && position < 7) {
       const nextInput = this.otpInputs.toArray()[position];
-      if (nextInput) nextInput.nativeElement.focus();
+      if (nextInput) {
+        setTimeout(() => nextInput.nativeElement.focus(), 10);
+      }
     }
 
-    // Clear error when user starts typing
     this.showOtpError = false;
+
 
     if (this.isOtpComplete() && !this.isLoading) {
       setTimeout(() => this.verifyOtp(), 300);
@@ -298,17 +348,23 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const digitKey = `digit${position}` as keyof typeof this.otpData;
     
     if (event.key === 'Backspace') {
-      event.preventDefault();
-      if (this.otpData[digitKey]) {
-        this.otpData[digitKey] = '';
-      } else if (position > 1) {
-        const prevKey = `digit${position - 1}` as keyof typeof this.otpData;
-        this.otpData[prevKey] = '';
+      if (!this.otpData[digitKey] && position > 1) {
+      
         const prevInput = this.otpInputs.toArray()[position - 2];
-        if (prevInput) prevInput.nativeElement.focus();
+        if (prevInput) {
+          prevInput.nativeElement.focus();
+        }
       }
     } else if (event.key === 'Enter' && this.isOtpComplete() && !this.isLoading) {
       this.verifyOtp();
+    } else if (event.key === 'ArrowLeft' && position > 1) {
+      event.preventDefault();
+      const prevInput = this.otpInputs.toArray()[position - 2];
+      if (prevInput) prevInput.nativeElement.focus();
+    } else if (event.key === 'ArrowRight' && position < 7) {
+      event.preventDefault();
+      const nextInput = this.otpInputs.toArray()[position];
+      if (nextInput) nextInput.nativeElement.focus();
     }
   }
 
@@ -317,17 +373,23 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const pastedData = event.clipboardData?.getData('text') || '';
     const cleanOtp = pastedData.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
 
+  
     for (let i = 0; i < cleanOtp.length && i < 7; i++) {
       const key = `digit${i + 1}` as keyof typeof this.otpData;
       const char = cleanOtp[i];
       this.otpData[key] = i === 0 ? (/[A-Z]/.test(char) ? char : '') : (/[0-9]/.test(char) ? char : '');
     }
 
-    // Clear error on paste
+ 
     this.showOtpError = false;
 
+ 
     if (cleanOtp.length === 7) {
       setTimeout(() => this.verifyOtp(), 300);
+    } else if (cleanOtp.length > 0) {
+      const nextEmptyIndex = cleanOtp.length;
+      const nextInput = this.otpInputs.toArray()[nextEmptyIndex];
+      if (nextInput) nextInput.nativeElement.focus();
     }
   }
 
@@ -363,6 +425,14 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     this.router.navigate([routeMap[this.verificationType] || '/login']);
   }
 
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  navigateToRegistration() {
+    this.router.navigate(['/registration']);
+  }
+
   private navigateToStart() {
     const startRoute = this.verificationType === 'password_reset' ? '/forgot-password' : '/registration';
     this.router.navigate([startRoute]);
@@ -370,7 +440,8 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
 
   getResendText(): string {
     if (this.isResending) return 'Sending...';
-    return this.canResend ? 'Resend Code' : `Resend in ${this.resendTimer}s`;
+    if (!this.canResend) return `Resend in ${this.resendTimer}s`;
+    return 'Resend Code';
   }
 
   getDisplayEmail(): string {
@@ -381,6 +452,14 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       ? localPart.substring(0, 2) + '*'.repeat(Math.min(localPart.length - 2, 3))
       : localPart;
     return `${maskedLocal}@${domain}`;
+  }
+
+  getOtpPattern(position: number): string {
+    return position === 1 ? '[A-Z]' : '[0-9]';
+  }
+
+  getOtpMaxLength(position: number): number {
+    return 1;
   }
 
   private showMessage(message: string, type: 'success' | 'error' | 'info' = 'info') {

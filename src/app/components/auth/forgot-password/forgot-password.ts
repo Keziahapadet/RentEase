@@ -89,7 +89,7 @@ export class ForgotPasswordComponent implements OnDestroy {
           );
 
          setTimeout(() => {
-      this.router.navigate(['/otp-verification'], {
+     this.router.navigate(['/verify-otp'], {
       queryParams: { 
       email: this.email?.value.trim().toLowerCase(),
       type: 'password_reset'  
