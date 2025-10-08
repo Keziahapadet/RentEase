@@ -184,7 +184,7 @@ export class ForgotPasswordComponent implements OnDestroy {
   }
 
   navigateToLogin(): void {
-    this.router.navigate(['/auth/login']).catch(err => console.error('Navigation error:', err));
+    this.router.navigate(['/login']).catch(err => console.error('Navigation error:', err));
   }
 
   navigateToHome(): void {
