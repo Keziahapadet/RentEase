@@ -499,6 +499,8 @@
   .dashboard-content {
     flex: 1;
     padding: 2.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
 
     .stats-grid {
       display: grid;
@@ -785,22 +787,23 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: #ffffff;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   cursor: pointer;
   position: fixed;
-  top: 1.25rem;
-  left: 1.25rem;
+  top: 1rem;
+  left: 1rem;
   z-index: 1001;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
 
   &:hover {
-    background: #f9fafb;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     transform: scale(1.05);
   }
 
@@ -812,7 +815,7 @@
     font-size: 24px;
     width: 24px;
     height: 24px;
-    color: #64748b;
+    color: #1e293b;
   }
 }
 
@@ -871,18 +874,29 @@
   .main-content {
     margin-left: 0;
     width: 100%;
+    height: 100vh;
+    overflow: hidden;
 
     .content-header {
-      padding: 1.5rem 2rem;
-      padding-left: 5rem;
+      padding: 1.25rem 1.5rem;
+      padding-left: 4.5rem;
+      flex-shrink: 0;
 
       .header-left h1 {
         font-size: 1.5rem;
+      }
+
+      .header-left p {
+        font-size: 0.85rem;
       }
     }
 
     .dashboard-content {
       padding: 1.5rem;
+      height: calc(100vh - 140px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
 
       .stats-grid {
         grid-template-columns: 1fr;
@@ -915,7 +929,18 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-    padding-left: 5rem;
+    padding: 1rem 1.25rem;
+    padding-left: 4rem;
+
+    .header-left {
+      h1 {
+        font-size: 1.25rem;
+      }
+
+      p {
+        font-size: 0.8rem;
+      }
+    }
 
     .header-actions {
       width: 100%;
@@ -924,19 +949,28 @@
       .btn-primary {
         flex: 1;
         justify-content: center;
+        padding: 0.625rem 1rem;
+        font-size: 0.85rem;
       }
     }
   }
 
-  .dashboard-content {
-    padding: 1rem !important;
+  .main-content .dashboard-content {
+    padding: 1rem;
+    height: calc(100vh - 160px);
   }
 
   .mobile-menu-btn {
-    top: 1rem;
-    left: 1rem;
-    width: 44px;
-    height: 44px;
+    top: 0.875rem;
+    left: 0.875rem;
+    width: 40px;
+    height: 40px;
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
   }
 }
 

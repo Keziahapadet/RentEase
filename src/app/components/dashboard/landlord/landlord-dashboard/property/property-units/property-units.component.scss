@@ -15,9 +15,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 24px;
     padding: 32px;
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
 
@@ -29,6 +27,7 @@
       right: 0;
       height: 3px;
       background: linear-gradient(90deg,#2563eb 0%, #764ba2 100%);
+      z-index: 1;
     }
 
     .header-content {
@@ -36,6 +35,8 @@
       align-items: flex-start;
       gap: 20px;
       flex: 1;
+      position: relative;
+      z-index: 10;
 
       .back-button {
         margin-top: 4px;
@@ -44,7 +45,7 @@
         border-radius: 12px;
         transition: all 0.3s ease;
         position: relative;
-        z-index: 10;
+        z-index: 100;
         
         &:hover {
           background: #2563eb;
@@ -94,7 +95,7 @@
       gap: 12px;
       flex-shrink: 0;
       position: relative;
-      z-index: 1000;
+      z-index: 100;
 
       button[mat-raised-button] {
         font-weight: 600;
@@ -105,8 +106,7 @@
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         transition: all 0.3s ease;
         position: relative;
-        z-index: 1001;
-        pointer-events: auto !important;
+        z-index: 101;
         
         &:hover {
           transform: translateY(-2px);
@@ -134,8 +134,7 @@
         border-radius: 12px;
         transition: all 0.3s ease;
         position: relative;
-        z-index: 1001;
-        pointer-events: auto !important;
+        z-index: 101;
         
         &:hover {
           background: #2563eb;
@@ -233,9 +232,6 @@
           border-radius: 12px;
           border: none;
           box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-          position: relative;
-          z-index: 11;
-          pointer-events: auto !important;
           
           mat-icon {
             font-size: 20px;
@@ -283,9 +279,7 @@
 
         &:hover {
           transform: translateY(-8px) scale(1.02);
-          box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.15),
-            0 8px 25px rgba(102, 126, 234, 0.2);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 25px rgba(102, 126, 234, 0.2);
           
           &::before {
             height: 6px;
@@ -506,7 +500,6 @@
               box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
               position: relative;
               z-index: 13;
-              pointer-events: auto !important;
 
               &:hover {
                 background: #f8fafc;
@@ -532,7 +525,6 @@
             transition: all 0.3s ease;
             position: relative;
             z-index: 13;
-            pointer-events: auto !important;
 
             &:hover {
               background: #fff7ed;
@@ -596,9 +588,6 @@
             border: none;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             transition: all 0.3s ease;
-            position: relative;
-            z-index: 11;
-            pointer-events: auto !important;
             
             &:hover {
               transform: translateY(-2px);
@@ -695,8 +684,6 @@
               text-transform: uppercase;
               letter-spacing: 0.5px;
               transition: all 0.3s ease;
-              position: relative;
-              z-index: 11;
 
               mat-icon {
                 font-size: 16px;
@@ -739,9 +726,6 @@
                 height: 40px;
                 border-radius: 10px;
                 transition: all 0.3s ease;
-                position: relative;
-                z-index: 12;
-                pointer-events: auto !important;
                 
                 &:hover {
                   transform: scale(1.1);
@@ -934,17 +918,14 @@ mat-icon {
   }
 }
 
-// Ensure all interactive elements are clickable
 button, [mat-raised-button], [mat-icon-button], [mat-stroked-button], 
 .mat-row, .stat-card, .back-button {
   pointer-events: auto !important;
 }
 
-
 .header-section, .error-card, .stat-card, .units-card {
   transform: translateZ(0); 
 }
-
 
 .header-actions > *,
 .filters-section > *,

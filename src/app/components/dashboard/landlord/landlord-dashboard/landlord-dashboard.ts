@@ -105,18 +105,14 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.updateCurrentSectionFromRoute(event.urlAfterRedirects);
-     
       this.loadProfileImage();
     });
 
     this.updateCurrentSectionFromRoute(this.router.url);
-    
-    
     this.setupProfileUpdateListener();
   }
 
   ngOnDestroy(): void {
-  
     if (this.profileUpdateListener) {
       window.removeEventListener('profileImageUpdated', this.profileUpdateListener);
     }
@@ -127,10 +123,8 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
       this.loadProfileImage();
     };
     
- 
     window.addEventListener('profileImageUpdated', this.profileUpdateListener);
     
-   
     window.addEventListener('storage', (event) => {
       if (event.key === 'profileImage' || event.key === 'profileUpdated') {
         this.loadProfileImage();
@@ -158,7 +152,6 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
   private loadProfileImage(): void {
     const savedImage = localStorage.getItem('profileImage');
     if (savedImage) {
-      
       this.profileImage = this.addCacheBuster(savedImage);
     } else if (this.currentUser?.avatar) {
       this.profileImage = this.addCacheBuster(this.currentUser.avatar);
@@ -286,11 +279,15 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
     
     if (this.isMobileMenuOpen) {
       this.isProfileMenuOpen = false;
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
   }
 
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
+    document.body.style.overflow = '';
   }
 
   toggleMenu(menuName: keyof typeof this.expandedMenus): void {
@@ -306,6 +303,7 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
     this.currentSection = section;
     this.isMobileMenuOpen = false;
     this.isProfileMenuOpen = false;
+    document.body.style.overflow = '';
 
     switch (section) {
       case 'dashboard':
