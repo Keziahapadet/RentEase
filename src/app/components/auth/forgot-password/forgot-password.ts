@@ -88,12 +88,14 @@ export class ForgotPasswordComponent implements OnDestroy {
             'success'
           );
 
-          setTimeout(() => {
-            this.router.navigate(['/otp-verification'], {
-              queryParams: { email: this.email?.value.trim().toLowerCase() }
-            });
-          }, 2000);
-
+         setTimeout(() => {
+      this.router.navigate(['/otp-verification'], {
+      queryParams: { 
+      email: this.email?.value.trim().toLowerCase(),
+      type: 'password_reset'  
+    }
+  });
+}, 2000);
         } else {
           this.handleApiError(response.message || 'Failed to send password reset email');
         }
