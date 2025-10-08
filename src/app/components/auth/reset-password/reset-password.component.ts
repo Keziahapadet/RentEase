@@ -67,6 +67,9 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       this.email = params['email'] || '';
       this.otpCode = params['otp'] || '';
 
+      console.log('ResetPassword - Email:', this.email);
+      console.log('ResetPassword - OTP:', this.otpCode);
+
       if (this.email.includes('%40')) {
         this.email = decodeURIComponent(this.email);
       }
@@ -220,15 +223,13 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-
     const payload: ResetPasswordRequest = {
       email: this.email,
       otpCode: this.otpCode,
       newPassword: this.resetForm.value.newPassword
-     
     };
 
-    console.log('🔐 Sending reset password payload:', payload); 
+    console.log('Sending reset password payload:', payload);
 
     this.authService.resetPassword(payload).subscribe({
       next: (response: ApiResponse) => {
@@ -243,7 +244,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
               }
             });
           }, 2000);
-          
         } else {
           this.handleApiError(response.message || 'Failed to reset password');
         }
@@ -256,40 +256,66 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   private handleApiError(error: any): void {
+    console.log('Full error object:', error);
+    console.log('Error status:', error.status);
+    console.log('Error body:', error.error);
+    
     let errorMessage = 'Failed to reset password. Please try again.';
+    
     if (typeof error === 'string') {
       errorMessage = error;
     } else if (error.error?.message) {
-      const msg = error.error.message.toLowerCase();
-      if (msg.includes('otp') && (msg.includes('invalid') || msg.includes('incorrect'))) {
-        errorMessage = 'Invalid or expired OTP code. Please request a new password reset';
-      } else if (msg.includes('otp') && msg.includes('expired')) {
-        errorMessage = 'OTP code has expired. Please request a new password reset';
-      } else if (msg.includes('password') && msg.includes('same')) {
-        this.passwordError = 'Cannot use previous password';
-        errorMessage = 'New password cannot be the same as your old password';
-      } else if (msg.includes('password') && msg.includes('weak')) {
-        this.passwordError = 'Password too weak';
-        errorMessage = 'Password is too weak. Please use a stronger password';
-      } else if (msg.includes('password') && msg.includes('common')) {
-        this.passwordError = 'Password too common';
-        errorMessage = 'This password is too common. Please choose a different password';
-      } else if (msg.includes('passwords') && msg.includes('match')) {
-        this.confirmPasswordError = 'Passwords do not match';
-        errorMessage = 'Passwords do not match';
-      } else if (msg.includes('email') && msg.includes('not found')) {
-        errorMessage = 'Account not found. Please check your email address';
-      } else if (msg.includes('too many') || msg.includes('rate limit')) {
-        errorMessage = 'Too many attempts. Please try again later';
-      } else if (msg.includes('token') && (msg.includes('invalid') || msg.includes('expired'))) {
-        errorMessage = 'Invalid or expired reset token. Please request a new password reset';
-      } else {
-        errorMessage = error.error.message;
-      }
+      errorMessage = this.parseBackendError(error.error.message);
     } else if (error.message) {
       errorMessage = error.message;
+    } else if (error.status === 400) {
+      errorMessage = this.getDetailed400Error(error);
+    } else if (error.status === 404) {
+      errorMessage = 'Reset password endpoint not found. Please contact support.';
+    } else if (error.status === 500) {
+      errorMessage = 'Server error. Please try again later.';
     }
+    
     this.showSnackBar(errorMessage, 'error');
+  }
+
+  private parseBackendError(message: string): string {
+    const msg = message.toLowerCase();
+    console.log('Parsing backend error:', message);
+    
+    if (msg.includes('otp') && (msg.includes('invalid') || msg.includes('incorrect'))) {
+      return 'Invalid or expired OTP code. Please request a new password reset';
+    } else if (msg.includes('otp') && msg.includes('expired')) {
+      return 'OTP code has expired. Please request a new password reset';
+    } else if (msg.includes('password') && msg.includes('same')) {
+      this.passwordError = 'Cannot use previous password';
+      return 'New password cannot be the same as your old password';
+    } else if (msg.includes('password') && msg.includes('weak')) {
+      this.passwordError = 'Password too weak';
+      return 'Password is too weak. Please use a stronger password';
+    } else if (msg.includes('user') && msg.includes('not found')) {
+      return 'Account not found. Please check your email address';
+    } else if (msg.includes('validation failed')) {
+      return 'Invalid request data. Please check your inputs';
+    } else {
+      return message;
+    }
+  }
+
+  private getDetailed400Error(error: any): string {
+    if (error.error) {
+      if (typeof error.error === 'string') {
+        return error.error;
+      } else if (error.error.errors) {
+        const errors = error.error.errors;
+        if (Array.isArray(errors) && errors.length > 0) {
+          return errors.map((e: any) => e.defaultMessage || e.message).join(', ');
+        }
+      } else if (error.error.error) {
+        return error.error.error;
+      }
+    }
+    return 'Invalid request. Please check your inputs and try again.';
   }
 
   private markFormGroupTouched() {
