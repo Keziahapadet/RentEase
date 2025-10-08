@@ -2,7 +2,7 @@
   <div class="otp-card">
     <div class="logo-title">
       <img src="/images/logo.png" alt="RentEase Logo" />
-      <h2><mat-icon>verified</mat-icon> OTP Verification</h2>
+      <h2>OTP Verification</h2>
     </div>
 
     <p class="subtitle">
@@ -24,6 +24,7 @@
               (paste)="onOtpPaste($event)"
               autocomplete="one-time-code"
               [placeholder]="i === 0 ? 'A' : '0'"
+              [attr.inputmode]="i === 0 ? 'text' : 'numeric'"
             />
           </mat-form-field>
         </div>
@@ -31,6 +32,8 @@
         <mat-error *ngIf="showOtpError" class="otp-error">
           {{ otpErrorMessage }}
         </mat-error>
+        
+        <p class="helper-text">Format: Letter + 6 numbers (e.g., R123456)</p>
       </div>
 
       <button
@@ -48,6 +51,7 @@
     </form>
 
     <div class="resend-section">
+      <p class="resend-text">Didn't receive the code?</p>
       <button
         mat-stroked-button
         color="primary"
@@ -57,6 +61,7 @@
       >
         <div class="resend-button-content">
           <mat-spinner diameter="16" *ngIf="isResending" class="spinner-icon"></mat-spinner>
+          <mat-icon *ngIf="!isResending && canResend">refresh</mat-icon>
           {{
             isResending
               ? 'Resending...'
@@ -66,6 +71,17 @@
           }}
         </div>
       </button>
+    </div>
+
+    <div class="help-section">
+      <p class="help-text">
+        <mat-icon>info</mat-icon>
+        Check your spam folder if you don't see the email
+      </p>
+      <p class="help-text">
+        <mat-icon>timer</mat-icon>
+        Code expires in 10 minutes
+      </p>
     </div>
 
     <div class="back-links">

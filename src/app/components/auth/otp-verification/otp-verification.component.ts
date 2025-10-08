@@ -291,4 +291,13 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
   navigateToLogin() {
     this.router.navigate(['/login']);
   }
+
+
+  private shakeInputs() {
+    const container = document.querySelector('.otp-inputs');
+    if (container) {
+      container.classList.add('shake');
+      setTimeout(() => container.classList.remove('shake'), 500);
+    }
+  }
 }

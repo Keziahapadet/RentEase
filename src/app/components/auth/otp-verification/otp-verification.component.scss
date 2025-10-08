@@ -24,18 +24,10 @@
       }
 
       h2 {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
         color: #333;
         font-size: 24px;
         font-weight: 600;
         margin: 0;
-
-        mat-icon {
-          color: #1976d2;
-        }
       }
     }
 
@@ -71,20 +63,39 @@
           animation: shake 0.5s ease-in-out;
         }
 
+       
         .otp-input {
           width: 48px !important;
           height: 56px;
           
-          .mat-form-field-wrapper {
+      
+          ::ng-deep .mat-form-field-wrapper {
             padding-bottom: 0;
           }
           
-          .mat-form-field-infix {
+          ::ng-deep .mat-form-field-infix {
             width: 48px;
             padding: 0.5em 0;
+            border-top: none;
           }
           
+          ::ng-deep .mat-form-field-outline {
+            display: none !important;
+          }
+
+          ::ng-deep .mat-form-field-flex {
+            background: transparent !important;
+            padding: 0 !important;
+          }
+
+          ::ng-deep .mat-form-field-underline {
+            display: none !important;
+          }
+
+        
           input {
+            width: 48px;
+            height: 56px;
             text-align: center;
             font-size: 20px;
             font-weight: 600;
@@ -92,11 +103,19 @@
             border-radius: 8px;
             background: #fafafa;
             transition: all 0.3s ease;
-            height: 56px;
-            width: 100%;
+            outline: none;
+
+            &:first-of-type {
+              color: #1976d2;
+              border-color: #1976d2;
+            }
+
+           
+            &:not(:first-of-type) {
+              color: #333;
+            }
 
             &:focus {
-              outline: none;
               border-color: #1976d2;
               background: white;
               box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
@@ -112,20 +131,6 @@
               color: #999;
               cursor: not-allowed;
             }
-          }
-
-        
-          ::ng-deep .mat-form-field-outline {
-            display: none;
-          }
-
-    
-          ::ng-deep .mat-form-field-flex {
-            background: transparent !important;
-          }
-
-          ::ng-deep .mat-form-field-underline {
-            display: none;
           }
         }
       }
@@ -254,11 +259,12 @@
           .otp-input {
             width: 42px !important;
             
-            .mat-form-field-infix {
+            ::ng-deep .mat-form-field-infix {
               width: 42px;
             }
             
             input {
+              width: 42px;
               height: 48px;
               font-size: 18px;
             }
