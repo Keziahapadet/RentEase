@@ -10,17 +10,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
-import { RegisterRequest, UserRole } from '../../../services/auth-interfaces';
-
-interface FormData {
-  role: string;
-  fullName: string;       
-  email: string;
-  phoneNumber: string;    
-  password: string;
-  confirmPassword: string;
-  accessCode?: string;
-}
+import { 
+  RegisterRequest, 
+  UserRole, 
+  ApiResponse,
+  RegistrationFormData,
+  RegistrationFieldErrors 
+} from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-registration',
@@ -45,7 +41,7 @@ export class RegistrationComponent implements OnInit {
   private authService: AuthService = inject(AuthService);
   private snackBar: MatSnackBar = inject(MatSnackBar);
 
-  formData: FormData = {
+  formData: RegistrationFormData = {
     role: '',
     fullName: '',
     email: '',
@@ -66,8 +62,7 @@ export class RegistrationComponent implements OnInit {
   agreedToTerms = false;
   isLoading = false;
 
-
-  fieldErrors = {
+  fieldErrors: RegistrationFieldErrors = {
     role: '',
     fullName: '',
     email: '',
@@ -97,11 +92,11 @@ export class RegistrationComponent implements OnInit {
 
   clearAllErrors(): void {
     Object.keys(this.fieldErrors).forEach(key => {
-      this.fieldErrors[key as keyof typeof this.fieldErrors] = '';
+      this.fieldErrors[key as keyof RegistrationFieldErrors] = '';
     });
   }
 
-  clearFieldError(field: keyof typeof this.fieldErrors): void {
+  clearFieldError(field: keyof RegistrationFieldErrors): void {
     this.fieldErrors[field] = '';
   }
 
@@ -122,92 +117,73 @@ export class RegistrationComponent implements OnInit {
     this.clearAllErrors();
     let isValid = true;
 
-  
+    // Check ALL validations without early returns
     if (!this.formData.role) {
       this.fieldErrors.role = 'Please select a role';
-      this.showError('Please select a role');
-      return false;
+      isValid = false;
     }
 
-   
     if (!this.formData.fullName.trim()) {
       this.fieldErrors.fullName = 'Full name is required';
-      this.showError('Full name is required');
-      return false;
-    }
-    if (this.formData.fullName.trim().length < 3) {
+      isValid = false;
+    } else if (this.formData.fullName.trim().length < 3) {
       this.fieldErrors.fullName = 'Full name must be at least 3 characters';
-      this.showError('Full name must be at least 3 characters');
-      return false;
+      isValid = false;
     }
 
-   
     if (!this.formData.email.trim()) {
       this.fieldErrors.email = 'Email is required';
-      this.showError('Email is required');
-      return false;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.formData.email)) {
-      this.fieldErrors.email = 'Invalid email format';
-      this.showError('Please enter a valid email address');
-      return false;
+      isValid = false;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.formData.email)) {
+        this.fieldErrors.email = 'Invalid email format';
+        isValid = false;
+      }
     }
 
- 
     if (!this.formData.phoneNumber.trim()) {
       this.fieldErrors.phoneNumber = 'Phone number is required';
-      this.showError('Phone number is required');
-      return false;
-    }
-    const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
-    if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
-      this.fieldErrors.phoneNumber = 'Invalid phone number format';
-      this.showError('Invalid phone number format. Use format: +254712345678 or 0712345678');
-      return false;
+      isValid = false;
+    } else {
+      const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
+      if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
+        this.fieldErrors.phoneNumber = 'Invalid phone number format';
+        isValid = false;
+      }
     }
 
-    
     if (!this.formData.password) {
       this.fieldErrors.password = 'Password is required';
-      this.showError('Password is required');
-      return false;
-    }
-    if (this.formData.password.length < 8) {
+      isValid = false;
+    } else if (this.formData.password.length < 8) {
       this.fieldErrors.password = 'Password must be at least 8 characters';
-      this.showError('Password must be at least 8 characters');
-      return false;
+      isValid = false;
     }
 
-   
     if (!this.formData.confirmPassword) {
       this.fieldErrors.confirmPassword = 'Please confirm your password';
-      this.showError('Please confirm your password');
-      return false;
-    }
-    if (!this.passwordsMatch()) {
+      isValid = false;
+    } else if (!this.passwordsMatch()) {
       this.fieldErrors.confirmPassword = 'Passwords do not match';
-      this.showError('Passwords do not match');
-      return false;
+      isValid = false;
     }
 
-   
     if (!this.agreedToTerms) {
+      // For terms agreement, use snackbar since it's not a field
       this.showError('Please agree to Terms and Conditions');
       return false;
     }
 
-    
     if (this.formData.role === UserRole.BUSINESS && this.formData.accessCode !== 'BUSINESS2024') {
       this.fieldErrors.accessCode = 'Invalid business access code';
-      this.showError('Invalid business access code');
-      return false;
+      isValid = false;
     }
 
-    return true;
+    return isValid;
   }
 
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     if (!this.validateForm()) return;
 
     this.isLoading = true;
@@ -225,18 +201,19 @@ export class RegistrationComponent implements OnInit {
     console.log('Registering user with role:', registerRequest.role);
 
     this.authService.register(registerRequest).subscribe({
-      next: (response) => {
+      next: (response: ApiResponse) => {
         this.isLoading = false;
         if (response.success) {
           sessionStorage.setItem('pendingVerificationEmail', registerRequest.email);
           
+          // ONLY show snackbar for success (API response)
           this.showSuccess(response.message || 'Registration successful! Please check your email for verification code');
         
           setTimeout(() => {
             this.router.navigate(['/verify-otp'], { 
               queryParams: { 
                 email: registerRequest.email,
-              userType: registerRequest.role,
+                userType: registerRequest.role,
                 message: 'Registration successful! Please check your email for verification code.'
               }
             });
@@ -245,7 +222,7 @@ export class RegistrationComponent implements OnInit {
           this.handleApiError(response.message || 'Registration failed. Please try again.');
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         this.isLoading = false;
         console.error('Registration error:', error);
         this.handleApiError(error);
@@ -287,6 +264,7 @@ export class RegistrationComponent implements OnInit {
       }
     }
     
+    // ONLY show snackbar for API errors
     this.showError(errorMessage);
   }
 
@@ -320,7 +298,6 @@ export class RegistrationComponent implements OnInit {
     window.open('/privacy', '_blank'); 
   }
 
- 
   get isFormValid(): boolean {
     return (
       this.formData.role !== '' &&

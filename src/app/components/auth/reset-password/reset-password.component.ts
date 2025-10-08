@@ -46,7 +46,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   private routeSub?: Subscription;
 
-
   passwordError: string = '';
   confirmPasswordError: string = '';
 
@@ -221,36 +220,30 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     
     if (this.resetForm.get('newPassword')?.hasError('required')) {
       this.passwordError = 'Password is required';
-      this.showSnackBar('Password is required', 'error');
       this.markFormGroupTouched();
       return;
     }
 
     if (!this.isPasswordValid) {
       this.passwordError = 'Password does not meet requirements';
-      this.showSnackBar('Password must meet all security requirements', 'error');
       this.markFormGroupTouched();
       return;
     }
 
-    
     if (this.resetForm.get('confirmNewPassword')?.hasError('required')) {
       this.confirmPasswordError = 'Please confirm your password';
-      this.showSnackBar('Please confirm your password', 'error');
       this.markFormGroupTouched();
       return;
     }
 
     if (!this.passwordsMatch) {
       this.confirmPasswordError = 'Passwords do not match';
-      this.showSnackBar('Passwords do not match', 'error');
       this.markFormGroupTouched();
       return;
     }
 
     if (this.resetForm.invalid) {
       this.markFormGroupTouched();
-      this.showSnackBar('Please fix all validation errors before submitting', 'error');
       return;
     }
 
@@ -332,6 +325,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       errorMessage = error.message;
     }
     
+   
     this.showSnackBar(errorMessage, 'error');
   }
 
@@ -365,7 +359,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     return this.resetForm.get('confirmNewPassword');
   }
 
- 
   get isFormValid(): boolean {
     return this.resetForm.valid && this.isPasswordValid && this.passwordsMatch;
   }

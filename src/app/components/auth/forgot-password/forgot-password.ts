@@ -60,13 +60,11 @@ export class ForgotPasswordComponent implements OnDestroy {
     if (this.forgotPasswordForm.invalid) {
       this.markFormGroupTouched();
       
-     
+    
       if (this.email?.hasError('required')) {
         this.emailError = 'Email is required';
-        this.showSnackBar('Please enter your email address', 'error');
       } else if (this.email?.hasError('email')) {
         this.emailError = 'Invalid email format';
-        this.showSnackBar('Please enter a valid email address', 'error');
       }
       return;
     }
@@ -84,6 +82,7 @@ export class ForgotPasswordComponent implements OnDestroy {
         if (response.success) {
           this.emailSent = true;
           this.startCountdown(60);
+        
           this.showSnackBar(
             response.message || 'Password reset OTP has been sent to your email',
             'success'
@@ -143,10 +142,11 @@ export class ForgotPasswordComponent implements OnDestroy {
       errorMessage = error.message;
     }
     
-   
+  
     if (fieldError) {
       this.emailError = fieldError;
     }
+ 
     this.showSnackBar(errorMessage, 'error');
   }
 

@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../services/auth.service';
 import { LoginRequest, UserRole, AuthResponse } from '../../../services/auth-interfaces';
 
@@ -22,7 +23,8 @@ import { LoginRequest, UserRole, AuthResponse } from '../../../services/auth-int
     MatInputModule,
     MatButtonModule,
     MatCheckboxModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -39,7 +41,7 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   returnUrl: string = '/dashboard';
   
- 
+  // Field errors
   emailError: string = '';
   passwordError: string = '';
 
@@ -55,11 +57,16 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  // Helper method for email validation
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
-  
   onEmailInput(): void {
     this.emailError = '';
   }
@@ -73,32 +80,21 @@ export class LoginComponent implements OnInit {
     this.passwordError = '';
     let isValid = true;
 
-   
+    // Email validation - ONLY set field errors
     if (!this.loginData.email.trim()) {
       this.emailError = 'Email is required';
-      this.showSnackbar('Email is required', 'error');
       isValid = false;
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.loginData.email)) {
-        this.emailError = 'Invalid email format';
-        this.showSnackbar('Please enter a valid email address', 'error');
-        isValid = false;
-      }
+    } else if (!this.isValidEmail(this.loginData.email)) {
+      this.emailError = 'Invalid email format';
+      isValid = false;
     }
 
-  
+    // Password validation - ONLY set field errors
     if (!this.loginData.password) {
       this.passwordError = 'Password is required';
-      if (isValid) { 
-        this.showSnackbar('Password is required', 'error');
-      }
       isValid = false;
     } else if (this.loginData.password.length < 6) {
       this.passwordError = 'Password must be at least 6 characters';
-      if (isValid) {
-        this.showSnackbar('Password must be at least 6 characters', 'error');
-      }
       isValid = false;
     }
 
@@ -188,6 +184,7 @@ export class LoginComponent implements OnInit {
       errorMessage = error.message;
     }
     
+    // ONLY show snackbar for API errors
     this.showSnackbar(errorMessage, 'error');
     this.loginData.password = '';
   }
@@ -252,7 +249,7 @@ export class LoginComponent implements OnInit {
       this.loginData.email.trim() !== '' &&
       this.loginData.password !== '' &&
       this.loginData.password.length >= 6 &&
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.loginData.email)
+      this.isValidEmail(this.loginData.email)
     );
   }
 

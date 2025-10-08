@@ -141,3 +141,23 @@ export interface AuthState {
 }
 
 export type AuthenticationStatus = 'authenticated' | 'unauthenticated' | 'pending';
+
+export interface RegistrationFormData {
+  role: string;
+  fullName: string;       
+  email: string;
+  phoneNumber: string;    
+  password: string;
+  confirmPassword: string;
+  accessCode?: string;
+}
+
+export interface RegistrationFieldErrors {
+  role: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  confirmPassword: string;
+  accessCode: string;
+}
