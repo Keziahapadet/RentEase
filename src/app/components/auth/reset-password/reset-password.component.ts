@@ -67,12 +67,8 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       this.email = params['email'] || '';
       this.otpCode = params['otp'] || '';
 
-      console.log('Reset Password - Raw Email:', this.email);
-      console.log('Reset Password - OTP:', this.otpCode);
-
       if (this.email.includes('%40')) {
         this.email = decodeURIComponent(this.email);
-        console.log('Reset Password - Decoded Email:', this.email);
       }
 
       if (!this.email || !this.otpCode) {
@@ -99,39 +95,18 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   passwordMatchValidator(form: AbstractControl): ValidationErrors | null {
     const newPassword = form.get('newPassword')?.value;
     const confirmNewPassword = form.get('confirmNewPassword')?.value;
-
-    if (newPassword && confirmNewPassword && newPassword !== confirmNewPassword) {
-      return { mismatch: true };
-    }
-    return null;
+    return newPassword && confirmNewPassword && newPassword !== confirmNewPassword ? { mismatch: true } : null;
   }
 
   passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value;
     if (!value) return null;
-
     const errors: ValidationErrors = {};
-
-    if (value.length < 6) {
-      errors['minLength'] = true;
-    }
-
-    if (!/(?=.*[a-z])/.test(value)) {
-      errors['lowercase'] = true;
-    }
-
-    if (!/(?=.*[A-Z])/.test(value)) {
-      errors['uppercase'] = true;
-    }
-
-    if (!/(?=.*\d)/.test(value)) {
-      errors['number'] = true;
-    }
-
-    if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(value)) {
-      errors['specialChar'] = true;
-    }
-
+    if (value.length < 6) errors['minLength'] = true;
+    if (!/(?=.*[a-z])/.test(value)) errors['lowercase'] = true;
+    if (!/(?=.*[A-Z])/.test(value)) errors['uppercase'] = true;
+    if (!/(?=.*\d)/.test(value)) errors['number'] = true;
+    if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(value)) errors['specialChar'] = true;
     return Object.keys(errors).length ? errors : null;
   }
 
@@ -167,8 +142,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   get isPasswordValid(): boolean {
-    return this.hasMinLength && this.hasUpperCase && this.hasLowerCase &&
-           this.hasNumber && this.hasSpecialChar;
+    return this.hasMinLength && this.hasUpperCase && this.hasLowerCase && this.hasNumber && this.hasSpecialChar;
   }
 
   get passwordStrength(): string {
@@ -178,7 +152,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     if (this.hasLowerCase) strength++;
     if (this.hasNumber) strength++;
     if (this.hasSpecialChar) strength++;
-
     switch (strength) {
       case 0:
       case 1:
@@ -201,7 +174,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     if (this.hasLowerCase) strength++;
     if (this.hasNumber) strength++;
     if (this.hasSpecialChar) strength++;
-    
     return (strength / 5) * 100;
   }
 
@@ -217,7 +189,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     this.passwordError = '';
     this.confirmPasswordError = '';
 
-    
     if (this.resetForm.get('newPassword')?.hasError('required')) {
       this.passwordError = 'Password is required';
       this.markFormGroupTouched();
@@ -250,24 +221,17 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     const payload: ResetPasswordRequest = {
-      email: this.email, 
+      email: this.email,
       otpCode: this.otpCode,
       newPassword: this.resetForm.value.newPassword,
       confirmNewPassword: this.resetForm.value.confirmNewPassword
     };
 
-    console.log('Reset Password Payload:', payload);
-
     this.authService.resetPassword(payload).subscribe({
       next: (response: ApiResponse) => {
         this.isLoading = false;
-        
         if (response.success) {
-          this.showSnackBar(
-            response.message || 'Password reset successful! Redirecting to login...',
-            'success'
-          );
-          
+          this.showSnackBar(response.message || 'Password reset successful! Redirecting to login...', 'success');
           setTimeout(() => {
             this.router.navigate(['/login'], {
               queryParams: {
@@ -282,7 +246,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isLoading = false;
-        console.error('Reset password error:', error);
         this.handleApiError(error);
       }
     });
@@ -290,12 +253,10 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
   private handleApiError(error: any): void {
     let errorMessage = 'Failed to reset password. Please try again.';
-    
     if (typeof error === 'string') {
       errorMessage = error;
     } else if (error.error?.message) {
       const msg = error.error.message.toLowerCase();
-      
       if (msg.includes('otp') && (msg.includes('invalid') || msg.includes('incorrect'))) {
         errorMessage = 'Invalid or expired OTP code. Please request a new password reset';
       } else if (msg.includes('otp') && msg.includes('expired')) {
@@ -324,8 +285,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
-   
     this.showSnackBar(errorMessage, 'error');
   }
 
@@ -344,11 +303,15 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   navigateToLogin() {
-    this.router.navigate(['/login']);
+    if (!this.isLoading) {
+      this.router.navigate(['/login']);
+    }
   }
 
   navigateToForgotPassword() {
-    this.router.navigate(['/forgot-password']);
+    if (!this.isLoading) {
+      this.router.navigate(['/forgot-password']);
+    }
   }
 
   get newPasswordControl() {

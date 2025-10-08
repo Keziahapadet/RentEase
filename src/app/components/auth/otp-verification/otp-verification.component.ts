@@ -124,6 +124,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
 
     this.isLoading = true;
     this.showOtpError = false;
+    this.otpErrorMessage = '';
 
     try {
       const verifyRequest: OtpVerifyRequest = {
@@ -165,43 +166,31 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     console.log('Verification successful');
     console.log('Verification Type:', this.verificationType);
     
- 
+    // Add a small delay to ensure message is seen
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
       if (this.verificationType === 'password_reset') {
-      
-        const otpCode = Object.values(this.otpData).join('').toUpperCase();
-        console.log('Navigating to reset-password with email:', this.email, 'and OTP:', otpCode);
+        // For password reset - navigate to reset password page
+        sessionStorage.setItem('resetEmail', this.email);
+        sessionStorage.setItem('otpVerified', 'true');
+        console.log('Navigating to reset-password with email:', this.email);
         
         this.router.navigate(['/reset-password'], { 
           queryParams: { 
             email: this.email,
-            otp: otpCode
-          }
-        });
-      } else if (this.verificationType === 'email_verification') {
-        // For email verification - go to login with success message
-        this.showMessage('Email verified successfully! Please login.', 'success');
-        this.router.navigate(['/login'], {
-          queryParams: {
-            message: 'Email verified successfully! Please login.'
-          }
+            verified: 'true'
+          } 
         });
       } else {
-        // For other verification types
-        this.showMessage('Verification successful!', 'success');
+        // For other verification types, go to login
+        this.showMessage('Verification successful! Please login.', 'success');
         this.router.navigate(['/login']);
       }
     } catch (navigationError) {
       console.error('Navigation error:', navigationError);
-      this.showMessage('Navigation failed. Please try manual navigation.', 'error');
-      // Fallback navigation
-      if (this.verificationType === 'password_reset') {
-        this.router.navigate(['/reset-password']);
-      } else {
-        this.router.navigate(['/login']);
-      }
+      this.showMessage('Navigation failed. Please login manually.', 'error');
+      this.router.navigate(['/login']);
     }
   }
 
@@ -222,8 +211,6 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       this.otpErrorMessage = 'Account not found. Please check your email or register.';
       this.showMessage('Account not found. Please check your email or register.', 'error');
     } else if (errorMsg.includes('already verified')) {
-      this.showOtpError = true;
-      this.otpErrorMessage = 'Account already verified. Please login.';
       this.showMessage('Account already verified. Please login.', 'info');
       this.router.navigate(['/login']);
     } else {
@@ -238,6 +225,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     
     this.isResending = true;
     this.showOtpError = false;
+    this.otpErrorMessage = '';
 
     try {
       const resendRequest: OtpRequest = {
@@ -288,6 +276,10 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     const input = event.target as HTMLInputElement;
     let value = input.value.toUpperCase();
     
+    // Clear any previous error when user starts typing
+    this.showOtpError = false;
+    this.otpErrorMessage = '';
+    
     if (position === 1) {
       value = value.replace(/[^A-Z]/g, '');
     } else {
@@ -302,9 +294,6 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       if (nextInput) nextInput.nativeElement.focus();
     }
 
-   
-    this.showOtpError = false;
-
     if (this.isOtpComplete() && !this.isLoading) {
       setTimeout(() => this.verifyOtp(), 300);
     }
@@ -315,6 +304,10 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
     
     if (event.key === 'Backspace') {
       event.preventDefault();
+      // Clear error on backspace
+      this.showOtpError = false;
+      this.otpErrorMessage = '';
+      
       if (this.otpData[digitKey]) {
         this.otpData[digitKey] = '';
       } else if (position > 1) {
@@ -330,6 +323,10 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
 
   onPaste(event: ClipboardEvent) {
     event.preventDefault();
+    // Clear error on paste
+    this.showOtpError = false;
+    this.otpErrorMessage = '';
+    
     const pastedData = event.clipboardData?.getData('text') || '';
     const cleanOtp = pastedData.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
 
@@ -338,9 +335,6 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       const char = cleanOtp[i];
       this.otpData[key] = i === 0 ? (/[A-Z]/.test(char) ? char : '') : (/[0-9]/.test(char) ? char : '');
     }
-
-    
-    this.showOtpError = false;
 
     if (cleanOtp.length === 7) {
       setTimeout(() => this.verifyOtp(), 300);
@@ -376,15 +370,11 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       '2fa': '/login',
       'phone_verification': '/settings'
     };
-    
-    const targetRoute = routeMap[this.verificationType] || '/login';
-    console.log('Navigating back to:', targetRoute);
-    this.router.navigate([targetRoute]);
+    this.router.navigate([routeMap[this.verificationType] || '/login']);
   }
 
   private navigateToStart() {
     const startRoute = this.verificationType === 'password_reset' ? '/forgot-password' : '/registration';
-    console.log('Navigating to start route:', startRoute);
     this.router.navigate([startRoute]);
   }
 
