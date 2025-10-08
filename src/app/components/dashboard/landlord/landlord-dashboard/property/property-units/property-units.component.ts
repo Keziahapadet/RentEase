@@ -355,7 +355,7 @@ export class PropertyUnitsComponent implements OnInit {
   createNewUnit(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    this.router.navigate(['/landlord-dashboard/property', this.propertyId, 'unit', 'create']);
+      this.router.navigate(['/landlord-dashboard/property', this.propertyId, 'unit', 'create']);
   }
 
   onDeleteUnit(unitId: string | number, event: Event) {

@@ -82,7 +82,8 @@ export const routes: Routes = [
       { path: 'property/list', component: PropertyListComponent },
       { path: 'property/:id', redirectTo: 'property/:id/units' },
       { path: 'property/:id/units', component: PropertyUnitsComponent },
-      { path: 'property/:propertyId/unit/create', component: PropertyUnitsComponent },
+      
+      { path: 'property/:propertyId/unit/create', component: PropertyCreateComponent },
       
      
       { path: 'financials', component: FinancialsComponent },
