@@ -46,7 +46,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   private routeSub?: Subscription;
 
-  // Field-specific error tracking
+
   passwordError: string = '';
   confirmPasswordError: string = '';
 
@@ -218,7 +218,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     this.passwordError = '';
     this.confirmPasswordError = '';
 
-    // Validate password requirements
+    
     if (this.resetForm.get('newPassword')?.hasError('required')) {
       this.passwordError = 'Password is required';
       this.showSnackBar('Password is required', 'error');
@@ -233,7 +233,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Validate confirm password
+    
     if (this.resetForm.get('confirmNewPassword')?.hasError('required')) {
       this.confirmPasswordError = 'Please confirm your password';
       this.showSnackBar('Please confirm your password', 'error');
@@ -284,51 +284,55 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
             });
           }, 2000);
         } else {
-          this.showSnackBar(response.message || 'Failed to reset password', 'error');
+          this.handleApiError(response.message || 'Failed to reset password');
         }
       },
       error: (error: any) => {
         this.isLoading = false;
         console.error('Reset password error:', error);
-        
-        // Parse specific error messages
-        let errorMessage = 'Failed to reset password. Please try again.';
-        
-        if (error.error?.message) {
-          const msg = error.error.message.toLowerCase();
-          
-          if (msg.includes('otp') && (msg.includes('invalid') || msg.includes('incorrect'))) {
-            errorMessage = 'Invalid or expired OTP code. Please request a new password reset';
-          } else if (msg.includes('otp') && msg.includes('expired')) {
-            errorMessage = 'OTP code has expired. Please request a new password reset';
-          } else if (msg.includes('password') && msg.includes('same')) {
-            this.passwordError = 'Cannot use previous password';
-            errorMessage = 'New password cannot be the same as your old password';
-          } else if (msg.includes('password') && msg.includes('weak')) {
-            this.passwordError = 'Password too weak';
-            errorMessage = 'Password is too weak. Please use a stronger password';
-          } else if (msg.includes('password') && msg.includes('common')) {
-            this.passwordError = 'Password too common';
-            errorMessage = 'This password is too common. Please choose a different password';
-          } else if (msg.includes('passwords') && msg.includes('match')) {
-            this.confirmPasswordError = 'Passwords do not match';
-            errorMessage = 'Passwords do not match';
-          } else if (msg.includes('email') && msg.includes('not found')) {
-            errorMessage = 'Account not found. Please check your email address';
-          } else if (msg.includes('too many') || msg.includes('rate limit')) {
-            errorMessage = 'Too many attempts. Please try again later';
-          } else if (msg.includes('token') && (msg.includes('invalid') || msg.includes('expired'))) {
-            errorMessage = 'Invalid or expired reset token. Please request a new password reset';
-          } else {
-            errorMessage = error.error.message;
-          }
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-        
-        this.showSnackBar(errorMessage, 'error');
+        this.handleApiError(error);
       }
     });
+  }
+
+  private handleApiError(error: any): void {
+    let errorMessage = 'Failed to reset password. Please try again.';
+    
+    if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error.error?.message) {
+      const msg = error.error.message.toLowerCase();
+      
+      if (msg.includes('otp') && (msg.includes('invalid') || msg.includes('incorrect'))) {
+        errorMessage = 'Invalid or expired OTP code. Please request a new password reset';
+      } else if (msg.includes('otp') && msg.includes('expired')) {
+        errorMessage = 'OTP code has expired. Please request a new password reset';
+      } else if (msg.includes('password') && msg.includes('same')) {
+        this.passwordError = 'Cannot use previous password';
+        errorMessage = 'New password cannot be the same as your old password';
+      } else if (msg.includes('password') && msg.includes('weak')) {
+        this.passwordError = 'Password too weak';
+        errorMessage = 'Password is too weak. Please use a stronger password';
+      } else if (msg.includes('password') && msg.includes('common')) {
+        this.passwordError = 'Password too common';
+        errorMessage = 'This password is too common. Please choose a different password';
+      } else if (msg.includes('passwords') && msg.includes('match')) {
+        this.confirmPasswordError = 'Passwords do not match';
+        errorMessage = 'Passwords do not match';
+      } else if (msg.includes('email') && msg.includes('not found')) {
+        errorMessage = 'Account not found. Please check your email address';
+      } else if (msg.includes('too many') || msg.includes('rate limit')) {
+        errorMessage = 'Too many attempts. Please try again later';
+      } else if (msg.includes('token') && (msg.includes('invalid') || msg.includes('expired'))) {
+        errorMessage = 'Invalid or expired reset token. Please request a new password reset';
+      } else {
+        errorMessage = error.error.message;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    this.showSnackBar(errorMessage, 'error');
   }
 
   private markFormGroupTouched() {
@@ -359,5 +363,10 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
   get confirmNewPasswordControl() {
     return this.resetForm.get('confirmNewPassword');
+  }
+
+ 
+  get isFormValid(): boolean {
+    return this.resetForm.valid && this.isPasswordValid && this.passwordsMatch;
   }
 }

@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   returnUrl: string = '/dashboard';
   
-  // Error tracking
+ 
   emailError: string = '';
   passwordError: string = '';
 
@@ -59,7 +59,7 @@ export class LoginComponent implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
-  // Clear specific field errors on input
+  
   onEmailInput(): void {
     this.emailError = '';
   }
@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
     this.passwordError = '';
     let isValid = true;
 
-    // Email validation
+   
     if (!this.loginData.email.trim()) {
       this.emailError = 'Email is required';
       this.showSnackbar('Email is required', 'error');
@@ -87,10 +87,10 @@ export class LoginComponent implements OnInit {
       }
     }
 
-    // Password validation
+  
     if (!this.loginData.password) {
       this.passwordError = 'Password is required';
-      if (isValid) { // Only show if email passed
+      if (isValid) { 
         this.showSnackbar('Password is required', 'error');
       }
       isValid = false;
@@ -147,45 +147,49 @@ export class LoginComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         console.error('Login error:', error);
-        
-        // Parse specific error messages
-        let errorMessage = 'Login failed. Please try again.';
-        
-        if (error.error?.message) {
-          const msg = error.error.message.toLowerCase();
-          
-          if (msg.includes('email') && msg.includes('not found')) {
-            this.emailError = 'Email not found';
-            errorMessage = 'No account found with this email address';
-          } else if (msg.includes('user') && msg.includes('not found')) {
-            this.emailError = 'Account not found';
-            errorMessage = 'No account found with this email address';
-          } else if (msg.includes('password') && msg.includes('incorrect')) {
-            this.passwordError = 'Incorrect password';
-            errorMessage = 'Incorrect password. Please try again';
-          } else if (msg.includes('invalid') && msg.includes('credentials')) {
-            this.emailError = 'Invalid credentials';
-            this.passwordError = 'Invalid credentials';
-            errorMessage = 'Invalid email or password';
-          } else if (msg.includes('account') && msg.includes('locked')) {
-            errorMessage = 'Your account has been locked. Please contact support';
-          } else if (msg.includes('account') && msg.includes('suspended')) {
-            errorMessage = 'Your account has been suspended. Please contact support';
-          } else if (msg.includes('not verified') || msg.includes('verify')) {
-            errorMessage = 'Please verify your email address before logging in';
-          } else if (msg.includes('disabled')) {
-            errorMessage = 'Your account has been disabled. Please contact support';
-          } else {
-            errorMessage = error.error.message;
-          }
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-        
-        this.showSnackbar(errorMessage, 'error');
-        this.loginData.password = '';
+        this.handleApiError(error);
       }
     });
+  }
+
+  private handleApiError(error: any): void {
+    let errorMessage = 'Login failed. Please try again.';
+    
+    if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error.error?.message) {
+      const msg = error.error.message.toLowerCase();
+      
+      if (msg.includes('email') && msg.includes('not found')) {
+        this.emailError = 'Email not found';
+        errorMessage = 'No account found with this email address';
+      } else if (msg.includes('user') && msg.includes('not found')) {
+        this.emailError = 'Account not found';
+        errorMessage = 'No account found with this email address';
+      } else if (msg.includes('password') && msg.includes('incorrect')) {
+        this.passwordError = 'Incorrect password';
+        errorMessage = 'Incorrect password. Please try again';
+      } else if (msg.includes('invalid') && msg.includes('credentials')) {
+        this.emailError = 'Invalid credentials';
+        this.passwordError = 'Invalid credentials';
+        errorMessage = 'Invalid email or password';
+      } else if (msg.includes('account') && msg.includes('locked')) {
+        errorMessage = 'Your account has been locked. Please contact support';
+      } else if (msg.includes('account') && msg.includes('suspended')) {
+        errorMessage = 'Your account has been suspended. Please contact support';
+      } else if (msg.includes('not verified') || msg.includes('verify')) {
+        errorMessage = 'Please verify your email address before logging in';
+      } else if (msg.includes('disabled')) {
+        errorMessage = 'Your account has been disabled. Please contact support';
+      } else {
+        errorMessage = error.error.message;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    this.showSnackbar(errorMessage, 'error');
+    this.loginData.password = '';
   }
 
   private redirectBasedOnRole(userRole: string): void {

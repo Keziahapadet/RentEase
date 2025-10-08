@@ -6,14 +6,14 @@
     </div>
 
     <p class="subtitle">
-      Enter the 7-digit OTP sent to your email <span *ngIf="email">({{ email }})</span>.
+      Enter the 7-character code sent to your email 
+      <span *ngIf="email"><strong>({{ getDisplayEmail() }})</strong></span>
     </p>
 
     <form [formGroup]="otpForm" (ngSubmit)="onSubmit()">
-    
       <div class="otp-container">
         <div class="otp-inputs" formGroupName="otpFields">
-          <mat-form-field appearance="outline" *ngFor="let field of otpFields; let i = index" class="otp-input">
+          <mat-form-field appearance="fill" *ngFor="let field of otpFields; let i = index" class="otp-input">
             <input
               matInput
               type="text"
@@ -23,14 +23,15 @@
               (keydown)="onOtpKeyDown($event, i)"
               (paste)="onOtpPaste($event)"
               autocomplete="one-time-code"
+              [placeholder]="i === 0 ? 'A' : '0'"
             />
           </mat-form-field>
         </div>
-      </div>
 
-      <mat-error *ngIf="showOtpError" class="otp-error">
-        {{ otpErrorMessage }}
-      </mat-error>
+        <mat-error *ngIf="showOtpError" class="otp-error">
+          {{ otpErrorMessage }}
+        </mat-error>
+      </div>
 
       <button
         mat-raised-button
@@ -39,31 +40,43 @@
         type="submit"
         [disabled]="isLoading || !isOtpComplete()"
       >
-        {{ isLoading ? 'Verifying...' : 'Verify OTP' }}
+        <div class="button-content">
+          <mat-spinner diameter="20" *ngIf="isLoading" class="button-spinner"></mat-spinner>
+          {{ isLoading ? 'Verifying...' : 'Verify OTP' }}
+        </div>
       </button>
     </form>
 
     <div class="resend-section">
       <button
         mat-stroked-button
-        color="accent"
+        color="primary"
         (click)="resendOtp()"
         [disabled]="!canResend || isResending"
         type="button"
       >
-        {{
-          isResending
-            ? 'Resending...'
-            : canResend
-              ? 'Resend OTP'
-              : 'Resend in ' + resendTimer + 's'
-        }}
+        <div class="resend-button-content">
+          <mat-spinner diameter="16" *ngIf="isResending" class="spinner-icon"></mat-spinner>
+          {{
+            isResending
+              ? 'Resending...'
+              : canResend
+                ? 'Resend OTP'
+                : 'Resend in ' + resendTimer + 's'
+          }}
+        </div>
       </button>
     </div>
 
-    <p class="back-links">
-      <a (click)="navigateToForgotPassword()">Back to Forgot Password</a> |
-      <a (click)="navigateToLogin()">Back to Login</a>
-    </p>
+    <div class="back-links">
+      <a (click)="navigateToForgotPassword()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Forgot Password
+      </a>
+      <a (click)="navigateToLogin()">
+        <mat-icon>login</mat-icon>
+        Back to Login
+      </a>
+    </div>
   </div>
 </div>

@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subscription, interval } from 'rxjs';
 
 @Component({
@@ -22,7 +23,8 @@ import { Subscription, interval } from 'rxjs';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatProgressSpinnerModule
   ]
 })
 export class OtpVerificationComponent implements OnInit, OnDestroy {
@@ -103,6 +105,16 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
 
   getCombinedOtp(): string {
     return this.getOtpValues().join('');
+  }
+
+  getDisplayEmail(): string {
+    if (!this.email) return '';
+    const [localPart, domain] = this.email.split('@');
+    if (!domain) return this.email;
+    const maskedLocal = localPart.length > 2 
+      ? localPart.substring(0, 2) + '*'.repeat(Math.min(localPart.length - 2, 3))
+      : localPart;
+    return `${maskedLocal}@${domain}`;
   }
 
   onOtpInput(event: any, index: number) {

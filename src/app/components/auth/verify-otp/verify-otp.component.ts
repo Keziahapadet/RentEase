@@ -72,13 +72,13 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       this.route.queryParams.subscribe(params => {
         this.email = (params['email'] || '').trim().toLowerCase();
         this.verificationType = params['type'] || 'email_verification';
-        this.userType = params['userType'] || ''; 
-
+        
+      
+        this.userType = params['userType'] || params['usertype'] || params['role'] || params['user_type'] || '';
+        
         console.log('OTP Component - User Type:', this.userType);
         console.log('OTP Component - Email:', this.email);
         console.log('OTP Component - Verification Type:', this.verificationType);
-
-        // Debug: Check if userType is coming through correctly
         console.log('All query params:', params);
 
         if (!this.email) {
@@ -93,7 +93,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private updateUIBasedOnType() {
-    const userTypeDisplay = this.userType?.charAt(0).toUpperCase() + this.userType?.slice(1) || 'User';
+    const userTypeDisplay = this.getUserTypeDisplay();
     
     switch (this.verificationType) {
       case 'email_verification':
@@ -108,6 +108,23 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         this.pageTitle = 'Verify Your Account';
         this.infoText = 'Enter the 7-character verification code';
     }
+  }
+
+  private getUserTypeDisplay(): string {
+    if (!this.userType) return 'User';
+    
+   
+    const normalized = this.userType.toLowerCase().trim();
+    const displayMap: { [key: string]: string } = {
+      'landlord': 'Landlord',
+      'tenant': 'Tenant',
+      'caretaker': 'Caretaker',
+      'business': 'Business',
+      'admin': 'Admin',
+      
+    };
+    
+    return displayMap[normalized] || this.userType.charAt(0).toUpperCase() + this.userType.slice(1);
   }
 
   async verifyOtp() {
@@ -137,7 +154,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
 
       if (response.success) {
         this.showMessage('Verification successful! 🎉', 'success');
-        await this.handleSuccessfulVerification();
+        await this.handleSuccessfulVerification(response);
       } else {
         throw new Error(response.message || 'Verification failed');
       }
@@ -160,16 +177,17 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     return null;
   }
 
-  private async handleSuccessfulVerification() {
+  private async handleSuccessfulVerification(response: any) {
     console.log('Verification successful - User Type:', this.userType);
     console.log('Verification Type:', this.verificationType);
+    console.log('API Response:', response);
     
-    // Add a small delay to ensure message is seen
+  
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
       if (this.verificationType === 'password_reset') {
-        // For password reset
+      
         sessionStorage.setItem('resetEmail', this.email);
         sessionStorage.setItem('otpVerified', 'true');
         console.log('Navigating to reset-password with email:', this.email);
@@ -177,29 +195,10 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
           queryParams: { email: this.email } 
         });
       } else if (this.verificationType === 'email_verification') {
-        // For email verification - route to appropriate dashboard
-        const dashboardRoute = this.getDashboardRoute();
-        console.log('Attempting to navigate to dashboard:', dashboardRoute);
-        
-        // Store user info in session storage for persistence
-        sessionStorage.setItem('currentUser', JSON.stringify({
-          email: this.email,
-          userType: this.userType,
-          isVerified: true
-        }));
-
-        // Use navigateByUrl for more reliable navigation
-        this.router.navigateByUrl(dashboardRoute, { 
-          replaceUrl: true 
-        }).then(success => {
-          if (!success) {
-            console.error('Failed to navigate to dashboard, falling back to login');
-            this.showMessage('Dashboard not available. Please login.', 'info');
-            this.router.navigate(['/login']);
-          }
-        });
+       
+        await this.handleEmailVerificationSuccess(response);
       } else {
-        // Fallback for other verification types
+       
         this.router.navigate(['/login']);
       }
     } catch (navigationError) {
@@ -209,29 +208,149 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  private getDashboardRoute(): string {
-    // Normalize userType for comparison
-    const normalizedUserType = this.userType?.toLowerCase().trim();
+  private async handleEmailVerificationSuccess(response: any) {
+  
+    let finalUserType = this.userType;
     
-    console.log('Determining dashboard route for user type:', normalizedUserType);
+    if (!finalUserType && response.user?.role) {
+      finalUserType = response.user.role;
+    }
+    
+    if (!finalUserType && response.role) {
+      finalUserType = response.role;
+    }
 
-    // Map user types to their dashboard routes
+    console.log('Final user type for dashboard:', finalUserType);
+
+    if (!finalUserType) {
+      console.error('No user type found for dashboard navigation');
+      this.showMessage('User type not found. Please login manually.', 'error');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    
+    const userData = {
+      email: this.email,
+      userType: finalUserType,
+      isVerified: true,
+      ...response.user
+    };
+    
+    sessionStorage.setItem('currentUser', JSON.stringify(userData));
+    sessionStorage.setItem('authToken', response.token || '');
+    sessionStorage.setItem('isAuthenticated', 'true');
+
+    console.log('Stored user data:', userData);
+
+    const dashboardRoute = this.getDashboardRoute(finalUserType);
+    console.log('Attempting to navigate to dashboard:', dashboardRoute);
+
+ 
+    this.router.navigate([dashboardRoute]).then(success => {
+      if (success) {
+        console.log('Successfully navigated to:', dashboardRoute);
+      } else {
+        console.error('Failed to navigate to dashboard:', dashboardRoute);
+     
+        this.tryAlternativeNavigation(finalUserType);
+      }
+    }).catch(error => {
+      console.error('Navigation error:', error);
+      this.tryAlternativeNavigation(finalUserType);
+    });
+  }
+
+  private getDashboardRoute(userType: string): string {
+  
+    const normalizedUserType = userType.toLowerCase().trim();
+    
+    console.log('Determining dashboard route for user type:', normalizedUserType, 'Original:', userType);
+
+   
     const routeMap: { [key: string]: string } = {
-      'landlord': '/landlord-dashboard',
-      'tenant': '/tenant-dashboard', 
+      'landlord': '/landlord-dashboard/home',
+      'tenant': '/tenant-dashboard/dashboard', 
       'caretaker': '/caretaker-dashboard',
       'business': '/business-dashboard',
       'admin': '/admin-dashboard',
-      // Add fallbacks or common variations
-      'property_owner': '/landlord-dashboard',
-      'property owner': '/landlord-dashboard',
-      'renter': '/tenant-dashboard'
+    
     };
 
-    const route = routeMap[normalizedUserType] || '/dashboard';
+    const route = routeMap[normalizedUserType] || '/tenant-dashboard/dashboard';
     
     console.log('Selected route:', route);
     return route;
+  }
+
+  private tryAlternativeNavigation(userType: string) {
+    const normalizedUserType = userType.toLowerCase().trim();
+    
+    console.log('Trying alternative navigation for:', normalizedUserType);
+
+
+    if (normalizedUserType === 'landlord' || normalizedUserType === 'property_owner' || normalizedUserType === 'property owner') {
+      console.log('Trying alternative landlord navigation...');
+      const landlordRoutes = [
+        '/landlord-dashboard',
+        '/landlord-dashboard/home',
+        '/landlord'
+      ];
+      
+      this.tryMultipleRoutes(landlordRoutes, 'Landlord dashboard');
+      
+    } else if (normalizedUserType === 'tenant' || normalizedUserType === 'renter') {
+      console.log('Trying alternative tenant navigation...');
+      const tenantRoutes = [
+        '/tenant-dashboard',
+        '/tenant-dashboard/dashboard',
+        '/tenant',
+        '/dashboard'
+      ];
+      
+      this.tryMultipleRoutes(tenantRoutes, 'Tenant dashboard');
+      
+    } else {
+      console.log('Trying generic dashboard navigation...');
+      const genericRoutes = [
+        '/dashboard',
+        '/tenant-dashboard/dashboard',
+        '/login'
+      ];
+      
+      this.tryMultipleRoutes(genericRoutes, 'Generic dashboard');
+    }
+  }
+
+  private tryMultipleRoutes(routes: string[], routeType: string) {
+    let currentIndex = 0;
+    
+    const tryNextRoute = () => {
+      if (currentIndex >= routes.length) {
+        this.showMessage(`${routeType} not available. Redirecting to login.`, 'info');
+        this.router.navigate(['/login']);
+        return;
+      }
+      
+      const route = routes[currentIndex];
+      console.log(`Trying route ${currentIndex + 1}/${routes.length}:`, route);
+      
+      this.router.navigate([route]).then(success => {
+        if (success) {
+          console.log(`Successfully navigated to ${routeType} via:`, route);
+        } else {
+          console.log(`Failed to navigate to:`, route);
+          currentIndex++;
+          tryNextRoute();
+        }
+      }).catch(error => {
+        console.error(`Error navigating to ${route}:`, error);
+        currentIndex++;
+        tryNextRoute();
+      });
+    };
+    
+    tryNextRoute();
   }
 
   private handleVerificationError(error: any) {
@@ -244,6 +363,9 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       this.showMessage('Invalid code. Please check and try again.', 'error');
     } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
       this.showMessage('Account not found. Please check your email or register.', 'error');
+    } else if (errorMsg.includes('already verified')) {
+      this.showMessage('Account already verified. Please login.', 'info');
+      this.router.navigate(['/login']);
     } else {
       this.showMessage(error.message || 'Verification failed. Please try again.', 'error');
     }

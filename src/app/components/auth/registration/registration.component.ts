@@ -66,7 +66,7 @@ export class RegistrationComponent implements OnInit {
   agreedToTerms = false;
   isLoading = false;
 
-  // Field-specific error tracking
+
   fieldErrors = {
     role: '',
     fullName: '',
@@ -122,14 +122,14 @@ export class RegistrationComponent implements OnInit {
     this.clearAllErrors();
     let isValid = true;
 
-    // Role validation
+  
     if (!this.formData.role) {
       this.fieldErrors.role = 'Please select a role';
       this.showError('Please select a role');
       return false;
     }
 
-    // Full name validation
+   
     if (!this.formData.fullName.trim()) {
       this.fieldErrors.fullName = 'Full name is required';
       this.showError('Full name is required');
@@ -141,7 +141,7 @@ export class RegistrationComponent implements OnInit {
       return false;
     }
 
-    // Email validation
+   
     if (!this.formData.email.trim()) {
       this.fieldErrors.email = 'Email is required';
       this.showError('Email is required');
@@ -154,7 +154,7 @@ export class RegistrationComponent implements OnInit {
       return false;
     }
 
-    // Phone number validation
+ 
     if (!this.formData.phoneNumber.trim()) {
       this.fieldErrors.phoneNumber = 'Phone number is required';
       this.showError('Phone number is required');
@@ -167,7 +167,7 @@ export class RegistrationComponent implements OnInit {
       return false;
     }
 
-    // Password validation
+    
     if (!this.formData.password) {
       this.fieldErrors.password = 'Password is required';
       this.showError('Password is required');
@@ -179,7 +179,7 @@ export class RegistrationComponent implements OnInit {
       return false;
     }
 
-    // Confirm password validation
+   
     if (!this.formData.confirmPassword) {
       this.fieldErrors.confirmPassword = 'Please confirm your password';
       this.showError('Please confirm your password');
@@ -191,13 +191,13 @@ export class RegistrationComponent implements OnInit {
       return false;
     }
 
-    // Terms validation
+   
     if (!this.agreedToTerms) {
       this.showError('Please agree to Terms and Conditions');
       return false;
     }
 
-    // Business access code validation
+    
     if (this.formData.role === UserRole.BUSINESS && this.formData.accessCode !== 'BUSINESS2024') {
       this.fieldErrors.accessCode = 'Invalid business access code';
       this.showError('Invalid business access code');
@@ -236,54 +236,58 @@ export class RegistrationComponent implements OnInit {
             this.router.navigate(['/verify-otp'], { 
               queryParams: { 
                 email: registerRequest.email,
-                userType: registerRequest.role.toLowerCase(), 
+              userType: registerRequest.role,
                 message: 'Registration successful! Please check your email for verification code.'
               }
             });
           }, 2000);
         } else {
-          this.showError(response.message || 'Registration failed. Please try again.');
+          this.handleApiError(response.message || 'Registration failed. Please try again.');
         }
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Registration error:', error);
-        
-        // Parse specific error messages
-        let errorMessage = 'Registration failed. Please try again.';
-        
-        if (error?.error?.message) {
-          const msg = error.error.message.toLowerCase();
-          
-          if (msg.includes('email') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
-            this.fieldErrors.email = 'Email already registered';
-            errorMessage = 'This email is already registered. Please use a different email or login';
-          } else if (msg.includes('phone') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
-            this.fieldErrors.phoneNumber = 'Phone number already registered';
-            errorMessage = 'This phone number is already registered. Please use a different number';
-          } else if (msg.includes('username') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
-            this.fieldErrors.fullName = 'Username already taken';
-            errorMessage = 'This username is already taken. Please choose a different name';
-          } else if (msg.includes('invalid') && msg.includes('email')) {
-            this.fieldErrors.email = 'Invalid email format';
-            errorMessage = 'Please enter a valid email address';
-          } else if (msg.includes('invalid') && msg.includes('phone')) {
-            this.fieldErrors.phoneNumber = 'Invalid phone number';
-            errorMessage = 'Please enter a valid phone number';
-          } else if (msg.includes('weak') && msg.includes('password')) {
-            this.fieldErrors.password = 'Password too weak';
-            errorMessage = 'Password is too weak. Please use a stronger password';
-          } else if (msg.includes('access code') || msg.includes('invalid code')) {
-            this.fieldErrors.accessCode = 'Invalid access code';
-            errorMessage = 'Invalid business access code';
-          } else {
-            errorMessage = error.error.message;
-          }
-        }
-        
-        this.showError(errorMessage);
+        this.handleApiError(error);
       }
     });
+  }
+
+  private handleApiError(error: any): void {
+    let errorMessage = 'Registration failed. Please try again.';
+    
+    if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error?.error?.message) {
+      const msg = error.error.message.toLowerCase();
+      
+      if (msg.includes('email') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
+        this.fieldErrors.email = 'Email already registered';
+        errorMessage = 'This email is already registered. Please use a different email or login';
+      } else if (msg.includes('phone') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
+        this.fieldErrors.phoneNumber = 'Phone number already registered';
+        errorMessage = 'This phone number is already registered. Please use a different number';
+      } else if (msg.includes('username') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
+        this.fieldErrors.fullName = 'Username already taken';
+        errorMessage = 'This username is already taken. Please choose a different name';
+      } else if (msg.includes('invalid') && msg.includes('email')) {
+        this.fieldErrors.email = 'Invalid email format';
+        errorMessage = 'Please enter a valid email address';
+      } else if (msg.includes('invalid') && msg.includes('phone')) {
+        this.fieldErrors.phoneNumber = 'Invalid phone number';
+        errorMessage = 'Please enter a valid phone number';
+      } else if (msg.includes('weak') && msg.includes('password')) {
+        this.fieldErrors.password = 'Password too weak';
+        errorMessage = 'Password is too weak. Please use a stronger password';
+      } else if (msg.includes('access code') || msg.includes('invalid code')) {
+        this.fieldErrors.accessCode = 'Invalid access code';
+        errorMessage = 'Invalid business access code';
+      } else {
+        errorMessage = error.error.message;
+      }
+    }
+    
+    this.showError(errorMessage);
   }
 
   private showSuccess(message: string): void {
@@ -314,5 +318,24 @@ export class RegistrationComponent implements OnInit {
   
   navigateToPrivacy(): void { 
     window.open('/privacy', '_blank'); 
+  }
+
+ 
+  get isFormValid(): boolean {
+    return (
+      this.formData.role !== '' &&
+      this.formData.fullName.trim() !== '' &&
+      this.formData.fullName.trim().length >= 3 &&
+      this.formData.email.trim() !== '' &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.email) &&
+      this.formData.phoneNumber.trim() !== '' &&
+      /^(\+254|0)[1-9]\d{8}$/.test(this.formData.phoneNumber.replace(/\s/g, '')) &&
+      this.formData.password !== '' &&
+      this.formData.password.length >= 8 &&
+      this.formData.confirmPassword !== '' &&
+      this.passwordsMatch() &&
+      this.agreedToTerms &&
+      (this.formData.role !== UserRole.BUSINESS || this.formData.accessCode === 'BUSINESS2024')
+    );
   }
 }
