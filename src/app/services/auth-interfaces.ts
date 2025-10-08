@@ -76,7 +76,7 @@ export interface ResetPasswordRequest {
   email: string;
   otpCode: string;
   newPassword: string;
-  confirmNewPassword: string;
+ 
 }
 
 export interface ChangePasswordRequest {

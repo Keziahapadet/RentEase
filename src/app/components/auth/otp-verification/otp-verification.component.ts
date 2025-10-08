@@ -144,7 +144,7 @@ export class OtpVerificationComponent implements AfterViewInit, OnInit, OnDestro
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! 🎉', 'success');
+        this.showMessage('Verification successful! ', 'success');
         await this.handleSuccessfulVerification(response, otpCode);
       } else {
         throw new Error(response.message || 'Verification failed');

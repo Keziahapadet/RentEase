@@ -220,12 +220,15 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
+
     const payload: ResetPasswordRequest = {
       email: this.email,
       otpCode: this.otpCode,
-      newPassword: this.resetForm.value.newPassword,
-      confirmNewPassword: this.resetForm.value.confirmNewPassword
+      newPassword: this.resetForm.value.newPassword
+     
     };
+
+    console.log('🔐 Sending reset password payload:', payload); 
 
     this.authService.resetPassword(payload).subscribe({
       next: (response: ApiResponse) => {

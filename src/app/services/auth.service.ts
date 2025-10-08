@@ -161,7 +161,7 @@ export class AuthService {
       email: request.email.trim().toLowerCase(),
       otpCode: request.otpCode.toString().trim(),
       newPassword: request.newPassword,
-      confirmNewPassword: request.confirmNewPassword
+      
     };
     
     return this.http.post<ApiResponse>(
