@@ -67,9 +67,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       this.email = params['email'] || '';
       this.otpCode = params['otp'] || '';
 
-      console.log('ResetPassword - Email:', this.email);
-      console.log('ResetPassword - OTP:', this.otpCode);
-
       if (this.email.includes('%40')) {
         this.email = decodeURIComponent(this.email);
       }
@@ -229,8 +226,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       newPassword: this.resetForm.value.newPassword
     };
 
-    console.log('Sending reset password payload:', payload);
-
     this.authService.resetPassword(payload).subscribe({
       next: (response: ApiResponse) => {
         this.isLoading = false;
@@ -256,10 +251,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   private handleApiError(error: any): void {
-    console.log('Full error object:', error);
-    console.log('Error status:', error.status);
-    console.log('Error body:', error.error);
-    
     let errorMessage = 'Failed to reset password. Please try again.';
     
     if (typeof error === 'string') {
@@ -281,7 +272,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
   private parseBackendError(message: string): string {
     const msg = message.toLowerCase();
-    console.log('Parsing backend error:', message);
     
     if (msg.includes('otp') && (msg.includes('invalid') || msg.includes('incorrect'))) {
       return 'Invalid or expired OTP code. Please request a new password reset';
