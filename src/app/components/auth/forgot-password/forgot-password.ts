@@ -39,6 +39,7 @@ export class ForgotPasswordComponent implements OnDestroy {
   isLoading = false;
   emailSent = false;
   countdown = 0;
+  emailError = '';
   private countdownInterval: any;
 
   constructor() {
@@ -51,13 +52,27 @@ export class ForgotPasswordComponent implements OnDestroy {
     return this.forgotPasswordForm.get('email');
   }
 
+  onEmailInput(): void {
+    this.emailError = '';
+  }
+
   onSubmit(): void {
     if (this.forgotPasswordForm.invalid) {
       this.markFormGroupTouched();
+      
+      // Set specific error messages
+      if (this.email?.hasError('required')) {
+        this.emailError = 'Email is required';
+        this.showSnackBar('Please enter your email address', 'error');
+      } else if (this.email?.hasError('email')) {
+        this.emailError = 'Invalid email format';
+        this.showSnackBar('Please enter a valid email address', 'error');
+      }
       return;
     }
 
     this.isLoading = true;
+    this.emailError = '';
 
     const request: ForgotPasswordRequest = {
       email: this.email?.value.trim().toLowerCase()
@@ -74,7 +89,6 @@ export class ForgotPasswordComponent implements OnDestroy {
             'success'
           );
 
-         
           setTimeout(() => {
             this.router.navigate(['/otp-verification'], {
               queryParams: { email: this.email?.value.trim().toLowerCase() }
@@ -83,7 +97,7 @@ export class ForgotPasswordComponent implements OnDestroy {
 
         } else {
           this.showSnackBar(
-            response.message || 'Failed to send password reset email ',
+            response.message || 'Failed to send password reset email',
             'error'
           );
         }
@@ -91,18 +105,51 @@ export class ForgotPasswordComponent implements OnDestroy {
       error: (error: any) => {
         this.isLoading = false;
         console.error('Password reset error:', error);
-        this.showSnackBar(
-          error.error?.message ||
-          error.message ||
-          'We could not process your request. Please try again later ',
-          'error'
-        );
+        
+        // Parse specific error messages
+        let errorMessage = 'We could not process your request. Please try again later';
+        
+        if (error.error?.message) {
+          const msg = error.error.message.toLowerCase();
+          
+          if (msg.includes('email') && (msg.includes('not found') || msg.includes('does not exist'))) {
+            this.emailError = 'Email not registered';
+            errorMessage = 'No account found with this email address';
+          } else if (msg.includes('user') && msg.includes('not found')) {
+            this.emailError = 'Account not found';
+            errorMessage = 'No account found with this email address';
+          } else if (msg.includes('invalid') && msg.includes('email')) {
+            this.emailError = 'Invalid email format';
+            errorMessage = 'Please enter a valid email address';
+          } else if (msg.includes('too many') || msg.includes('rate limit') || msg.includes('wait')) {
+            this.emailError = 'Too many attempts';
+            errorMessage = 'Too many password reset attempts. Please try again later';
+          } else if (msg.includes('account') && (msg.includes('locked') || msg.includes('suspended') || msg.includes('disabled'))) {
+            this.emailError = 'Account locked';
+            errorMessage = 'Your account is locked. Please contact support';
+          } else if (msg.includes('not verified') || msg.includes('verify email')) {
+            this.emailError = 'Email not verified';
+            errorMessage = 'Please verify your email address first';
+          } else if (msg.includes('email') && msg.includes('fail')) {
+            errorMessage = 'Failed to send email. Please check your email address and try again';
+          } else {
+            errorMessage = error.error.message;
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.showSnackBar(errorMessage, 'error');
       }
     });
   }
 
   resendEmail(): void {
-    if (this.countdown > 0) return;
+    if (this.countdown > 0) {
+      this.showSnackBar(`Please wait ${this.countdown} seconds before resending`, 'error');
+      return;
+    }
+    this.emailSent = false;
     this.onSubmit();
   }
 

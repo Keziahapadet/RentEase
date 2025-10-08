@@ -38,6 +38,10 @@ export class LoginComponent implements OnInit {
   rememberMe = false;
   isLoading = false;
   returnUrl: string = '/dashboard';
+  
+  // Error tracking
+  emailError: string = '';
+  passwordError: string = '';
 
   ngOnInit(): void {
     if (this.authService.isAuthenticated()) {
@@ -55,29 +59,55 @@ export class LoginComponent implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
+  // Clear specific field errors on input
+  onEmailInput(): void {
+    this.emailError = '';
+  }
+
+  onPasswordInput(): void {
+    this.passwordError = '';
+  }
+
   validateForm(): boolean {
+    this.emailError = '';
+    this.passwordError = '';
+    let isValid = true;
+
+    // Email validation
     if (!this.loginData.email.trim()) {
-      this.showSnackbar('Email is required.', 'error');
-      return false;
+      this.emailError = 'Email is required';
+      this.showSnackbar('Email is required', 'error');
+      isValid = false;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.loginData.email)) {
+        this.emailError = 'Invalid email format';
+        this.showSnackbar('Please enter a valid email address', 'error');
+        isValid = false;
+      }
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.loginData.email)) {
-      this.showSnackbar('Please enter a valid email address.', 'error');
-      return false;
-    }
+
+    // Password validation
     if (!this.loginData.password) {
-      this.showSnackbar('Password is required.', 'error');
-      return false;
+      this.passwordError = 'Password is required';
+      if (isValid) { // Only show if email passed
+        this.showSnackbar('Password is required', 'error');
+      }
+      isValid = false;
+    } else if (this.loginData.password.length < 6) {
+      this.passwordError = 'Password must be at least 6 characters';
+      if (isValid) {
+        this.showSnackbar('Password must be at least 6 characters', 'error');
+      }
+      isValid = false;
     }
-    if (this.loginData.password.length < 6) {
-      this.showSnackbar('Password must be at least 6 characters.', 'error');
-      return false;
-    }
-    return true;
+
+    return isValid;
   }
 
   onSubmit(): void {
     if (!this.validateForm()) return;
+    
     this.isLoading = true;
     const loginRequest: LoginRequest = {
       email: this.loginData.email.trim().toLowerCase(),
@@ -89,14 +119,12 @@ export class LoginComponent implements OnInit {
       next: (response: AuthResponse) => {
         console.log('Login response:', response);
         
-       
         setTimeout(() => {
           const user = this.authService.getCurrentUser();
           console.log('Current user after login:', user);
           
           let userRole: string | undefined;
           
-         
           if (user && user.role) {
             userRole = user.role;
           } else if (response.role) {
@@ -119,7 +147,42 @@ export class LoginComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         console.error('Login error:', error);
-        this.showSnackbar(error.message || 'Login failed. Please try again.', 'error');
+        
+        // Parse specific error messages
+        let errorMessage = 'Login failed. Please try again.';
+        
+        if (error.error?.message) {
+          const msg = error.error.message.toLowerCase();
+          
+          if (msg.includes('email') && msg.includes('not found')) {
+            this.emailError = 'Email not found';
+            errorMessage = 'No account found with this email address';
+          } else if (msg.includes('user') && msg.includes('not found')) {
+            this.emailError = 'Account not found';
+            errorMessage = 'No account found with this email address';
+          } else if (msg.includes('password') && msg.includes('incorrect')) {
+            this.passwordError = 'Incorrect password';
+            errorMessage = 'Incorrect password. Please try again';
+          } else if (msg.includes('invalid') && msg.includes('credentials')) {
+            this.emailError = 'Invalid credentials';
+            this.passwordError = 'Invalid credentials';
+            errorMessage = 'Invalid email or password';
+          } else if (msg.includes('account') && msg.includes('locked')) {
+            errorMessage = 'Your account has been locked. Please contact support';
+          } else if (msg.includes('account') && msg.includes('suspended')) {
+            errorMessage = 'Your account has been suspended. Please contact support';
+          } else if (msg.includes('not verified') || msg.includes('verify')) {
+            errorMessage = 'Please verify your email address before logging in';
+          } else if (msg.includes('disabled')) {
+            errorMessage = 'Your account has been disabled. Please contact support';
+          } else {
+            errorMessage = error.error.message;
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.showSnackbar(errorMessage, 'error');
         this.loginData.password = '';
       }
     });
@@ -128,7 +191,6 @@ export class LoginComponent implements OnInit {
   private redirectBasedOnRole(userRole: string): void {
     console.log('Redirecting based on role:', userRole);
     
-   
     const normalizedRole = userRole.toUpperCase().trim();
     
     const roleMap: { [key: string]: string } = {
@@ -194,11 +256,13 @@ export class LoginComponent implements OnInit {
     this.loginData = { email: '', password: '' };
     this.rememberMe = false;
     this.isLoading = false;
+    this.emailError = '';
+    this.passwordError = '';
   }
 
   private showSnackbar(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
     this.snackBar.open(message, 'Close', {
-      duration: 4000,
+      duration: 5000,
       horizontalPosition: 'center',
       verticalPosition: 'bottom',
       panelClass:

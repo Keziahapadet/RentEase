@@ -13,7 +13,7 @@
     
       <div class="otp-container">
         <div class="otp-inputs" formGroupName="otpFields">
-          <mat-form-field appearance="outline" *ngFor="let field of otpFields; let i = index">
+          <mat-form-field appearance="outline" *ngFor="let field of otpFields; let i = index" class="otp-input">
             <input
               matInput
               type="text"
@@ -22,7 +22,7 @@
               (input)="onOtpInput($event, i)"
               (keydown)="onOtpKeyDown($event, i)"
               (paste)="onOtpPaste($event)"
-              class="otp-input"
+              autocomplete="one-time-code"
             />
           </mat-form-field>
         </div>
@@ -36,6 +36,7 @@
         mat-raised-button
         color="primary"
         class="full-width verify-btn"
+        type="submit"
         [disabled]="isLoading || !isOtpComplete()"
       >
         {{ isLoading ? 'Verifying...' : 'Verify OTP' }}
@@ -48,6 +49,7 @@
         color="accent"
         (click)="resendOtp()"
         [disabled]="!canResend || isResending"
+        type="button"
       >
         {{
           isResending

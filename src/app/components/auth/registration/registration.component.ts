@@ -66,6 +66,17 @@ export class RegistrationComponent implements OnInit {
   agreedToTerms = false;
   isLoading = false;
 
+  // Field-specific error tracking
+  fieldErrors = {
+    role: '',
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+    password: '',
+    confirmPassword: '',
+    accessCode: ''
+  };
+
   ngOnInit(): void {
     console.log('RegistrationComponent initialized');
     this.resetForm();
@@ -81,6 +92,17 @@ export class RegistrationComponent implements OnInit {
       confirmPassword: ''
     };
     this.agreedToTerms = false;
+    this.clearAllErrors();
+  }
+
+  clearAllErrors(): void {
+    Object.keys(this.fieldErrors).forEach(key => {
+      this.fieldErrors[key as keyof typeof this.fieldErrors] = '';
+    });
+  }
+
+  clearFieldError(field: keyof typeof this.fieldErrors): void {
+    this.fieldErrors[field] = '';
   }
 
   togglePasswordVisibility(field: string): void {
@@ -97,25 +119,91 @@ export class RegistrationComponent implements OnInit {
   }
 
   validateForm(): boolean {
-    if (!this.formData.role) { this.showError('Role is required'); return false; }
-    
-    if (!this.formData.fullName.trim()) { this.showError('Full name is required'); return false; }
-    if (!this.formData.email.trim()) { this.showError('Email is required'); return false; }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.formData.email)) { this.showError('Invalid email address'); return false; }
-    if (!this.formData.phoneNumber.trim()) { this.showError('Phone number is required'); return false; }
-    const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
-    if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) { 
-      this.showError('Invalid phone number format'); return false; 
-    }
-    if (!this.formData.password) { this.showError('Password required'); return false; }
-    if (this.formData.password.length < 8) { this.showError('Password must be at least 8 characters'); return false; }
-    if (!this.passwordsMatch()) { this.showError('Passwords do not match'); return false; }
-    if (!this.agreedToTerms) { this.showError('Please agree to Terms and Conditions'); return false; }
+    this.clearAllErrors();
+    let isValid = true;
 
-    if (this.formData.role === UserRole.BUSINESS && this.formData.accessCode !== 'BUSINESS2024') {
-      this.showError('Invalid business access code'); return false;
+    // Role validation
+    if (!this.formData.role) {
+      this.fieldErrors.role = 'Please select a role';
+      this.showError('Please select a role');
+      return false;
     }
+
+    // Full name validation
+    if (!this.formData.fullName.trim()) {
+      this.fieldErrors.fullName = 'Full name is required';
+      this.showError('Full name is required');
+      return false;
+    }
+    if (this.formData.fullName.trim().length < 3) {
+      this.fieldErrors.fullName = 'Full name must be at least 3 characters';
+      this.showError('Full name must be at least 3 characters');
+      return false;
+    }
+
+    // Email validation
+    if (!this.formData.email.trim()) {
+      this.fieldErrors.email = 'Email is required';
+      this.showError('Email is required');
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.formData.email)) {
+      this.fieldErrors.email = 'Invalid email format';
+      this.showError('Please enter a valid email address');
+      return false;
+    }
+
+    // Phone number validation
+    if (!this.formData.phoneNumber.trim()) {
+      this.fieldErrors.phoneNumber = 'Phone number is required';
+      this.showError('Phone number is required');
+      return false;
+    }
+    const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
+    if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
+      this.fieldErrors.phoneNumber = 'Invalid phone number format';
+      this.showError('Invalid phone number format. Use format: +254712345678 or 0712345678');
+      return false;
+    }
+
+    // Password validation
+    if (!this.formData.password) {
+      this.fieldErrors.password = 'Password is required';
+      this.showError('Password is required');
+      return false;
+    }
+    if (this.formData.password.length < 8) {
+      this.fieldErrors.password = 'Password must be at least 8 characters';
+      this.showError('Password must be at least 8 characters');
+      return false;
+    }
+
+    // Confirm password validation
+    if (!this.formData.confirmPassword) {
+      this.fieldErrors.confirmPassword = 'Please confirm your password';
+      this.showError('Please confirm your password');
+      return false;
+    }
+    if (!this.passwordsMatch()) {
+      this.fieldErrors.confirmPassword = 'Passwords do not match';
+      this.showError('Passwords do not match');
+      return false;
+    }
+
+    // Terms validation
+    if (!this.agreedToTerms) {
+      this.showError('Please agree to Terms and Conditions');
+      return false;
+    }
+
+    // Business access code validation
+    if (this.formData.role === UserRole.BUSINESS && this.formData.accessCode !== 'BUSINESS2024') {
+      this.fieldErrors.accessCode = 'Invalid business access code';
+      this.showError('Invalid business access code');
+      return false;
+    }
+
     return true;
   }
 
@@ -140,7 +228,6 @@ export class RegistrationComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-
           sessionStorage.setItem('pendingVerificationEmail', registerRequest.email);
           
           this.showSuccess(response.message || 'Registration successful! Please check your email for verification code');
@@ -160,7 +247,41 @@ export class RegistrationComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.showError(error?.error?.message || 'Registration failed. Please try again.');
+        console.error('Registration error:', error);
+        
+        // Parse specific error messages
+        let errorMessage = 'Registration failed. Please try again.';
+        
+        if (error?.error?.message) {
+          const msg = error.error.message.toLowerCase();
+          
+          if (msg.includes('email') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
+            this.fieldErrors.email = 'Email already registered';
+            errorMessage = 'This email is already registered. Please use a different email or login';
+          } else if (msg.includes('phone') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
+            this.fieldErrors.phoneNumber = 'Phone number already registered';
+            errorMessage = 'This phone number is already registered. Please use a different number';
+          } else if (msg.includes('username') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
+            this.fieldErrors.fullName = 'Username already taken';
+            errorMessage = 'This username is already taken. Please choose a different name';
+          } else if (msg.includes('invalid') && msg.includes('email')) {
+            this.fieldErrors.email = 'Invalid email format';
+            errorMessage = 'Please enter a valid email address';
+          } else if (msg.includes('invalid') && msg.includes('phone')) {
+            this.fieldErrors.phoneNumber = 'Invalid phone number';
+            errorMessage = 'Please enter a valid phone number';
+          } else if (msg.includes('weak') && msg.includes('password')) {
+            this.fieldErrors.password = 'Password too weak';
+            errorMessage = 'Password is too weak. Please use a stronger password';
+          } else if (msg.includes('access code') || msg.includes('invalid code')) {
+            this.fieldErrors.accessCode = 'Invalid access code';
+            errorMessage = 'Invalid business access code';
+          } else {
+            errorMessage = error.error.message;
+          }
+        }
+        
+        this.showError(errorMessage);
       }
     });
   }

@@ -78,6 +78,9 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         console.log('OTP Component - Email:', this.email);
         console.log('OTP Component - Verification Type:', this.verificationType);
 
+       
+        console.log('All query params:', params);
+
         if (!this.email) {
           this.showMessage('No email found. Please restart the process.', 'error');
           setTimeout(() => this.navigateToStart(), 3000);
@@ -90,7 +93,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private updateUIBasedOnType() {
-
     const userTypeDisplay = this.userType?.charAt(0).toUpperCase() + this.userType?.slice(1) || 'User';
     
     switch (this.verificationType) {
@@ -129,15 +131,18 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         type: this.verificationType
       };
 
+      console.log('Sending OTP verification request:', verifyRequest);
+
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! 🎉', 'success');
+        this.showMessage('Verification successful! ', 'success');
         await this.handleSuccessfulVerification();
       } else {
         throw new Error(response.message || 'Verification failed');
       }
     } catch (error: any) {
+      console.error('OTP verification error:', error);
       this.handleVerificationError(error);
       this.shakeInputs();
       this.clearOtpInputs();
@@ -157,36 +162,67 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private async handleSuccessfulVerification() {
     console.log('Verification successful - User Type:', this.userType);
-   
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('Verification Type:', this.verificationType);
+  
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    if (this.verificationType === 'password_reset') {
-      sessionStorage.setItem('resetEmail', this.email);
-      sessionStorage.setItem('otpVerified', 'true');
-      this.router.navigate(['/reset-password'], { queryParams: { email: this.email } });
-    } else if (this.verificationType === 'email_verification') {
-      const dashboardRoute = this.getDashboardRoute();
-      console.log('Navigating to:', dashboardRoute);
-      this.router.navigate([dashboardRoute]);
-    } else {
+    try {
+      if (this.verificationType === 'password_reset') {
+        sessionStorage.setItem('resetEmail', this.email);
+        sessionStorage.setItem('otpVerified', 'true');
+        console.log('Navigating to reset-password with email:', this.email);
+        this.router.navigate(['/reset-password'], { 
+          queryParams: { email: this.email } 
+        });
+      } else if (this.verificationType === 'email_verification') {
+        const dashboardRoute = this.getDashboardRoute();
+        console.log('Attempting to navigate to dashboard:', dashboardRoute);
+        
+        sessionStorage.setItem('currentUser', JSON.stringify({
+          email: this.email,
+          userType: this.userType,
+          isVerified: true
+        }));
+
+    
+        this.router.navigateByUrl(dashboardRoute, { 
+          replaceUrl: true 
+        }).then(success => {
+          if (!success) {
+            console.error('Failed to navigate to dashboard, falling back to login');
+            this.showMessage('Dashboard not available. Please login.', 'info');
+            this.router.navigate(['/login']);
+          }
+        });
+      } else {
+        this.router.navigate(['/login']);
+      }
+    } catch (navigationError) {
+      console.error('Navigation error:', navigationError);
+      this.showMessage('Navigation failed. Please login manually.', 'error');
       this.router.navigate(['/login']);
     }
   }
 
-  private getDashboardRoute(): string {
-    switch (this.userType?.toLowerCase()) {
-      case 'landlord':
-        return '/landlord-dashboard/home';
-      case 'tenant':
-        return '/tenant-dashboard/home';
-      case 'caretaker':
-        return '/caretaker-dashboard';
-      case 'business':
-        return '/business-dashboard';
-      default:
-        console.warn('Unknown user type, defaulting to /dashboard:', this.userType);
-        return '/dashboard';
-    }
+  private getDashboardRoute(): string 
+    const normalizedUserType = this.userType?.toLowerCase().trim();
+    
+    console.log('Determining dashboard route for user type:', normalizedUserType);
+
+   
+    const routeMap: { [key: string]: string } = {
+      'landlord': '/landlord-dashboard',
+      'tenant': '/tenant-dashboard', 
+      'caretaker': '/caretaker-dashboard',
+      'business': '/business-dashboard',
+      'admin': '/admin-dashboard',
+    
+    };
+
+    const route = routeMap[normalizedUserType] || '/dashboard';
+    
+    console.log('Selected route:', route);
+    return route;
   }
 
   private handleVerificationError(error: any) {
@@ -197,6 +233,8 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       this.canResend = true;
     } else if (errorMsg.includes('invalid')) {
       this.showMessage('Invalid code. Please check and try again.', 'error');
+    } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
+      this.showMessage('Account not found. Please check your email or register.', 'error');
     } else {
       this.showMessage(error.message || 'Verification failed. Please try again.', 'error');
     }
