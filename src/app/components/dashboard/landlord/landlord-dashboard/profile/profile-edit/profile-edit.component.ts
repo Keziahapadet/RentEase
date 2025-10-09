@@ -62,14 +62,14 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadUserDataFromApi();
+    this.loadUserData();
   }
 
   ngOnDestroy(): void {
     this.stopCamera();
   }
 
-  private loadUserDataFromApi(): void {
+  private loadUserData(): void {
     const currentUser = this.authService.getCurrentUser();
     const token = this.authService.getToken();
     
@@ -95,7 +95,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.originalPhoneNumber = response.user.phoneNumber || '';
           this.populateForm();
           this.loadProfilePicture();
-          this.updateLocalUserData(response.user);
         } else {
           this.snackBar.open('Failed to load profile data from server', 'Close', { duration: 3000 });
           this.loadUserDataFromLocalStorage();
@@ -211,16 +210,14 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       this.snackBar.open('Please select a valid image file (JPEG, PNG, or WebP)', 'Close', { 
-        duration: 3000,
-        panelClass: ['error-snackbar']
+        duration: 3000
       });
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
       this.snackBar.open('Image size must be less than 10MB', 'Close', { 
-        duration: 3000,
-        panelClass: ['error-snackbar']
+        duration: 3000
       });
       return;
     }
@@ -230,8 +227,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     
     if (!token || !user) {
       this.snackBar.open('Please log in again to upload images', 'Login', { 
-        duration: 5000,
-        panelClass: ['error-snackbar']
+        duration: 5000
       }).onAction().subscribe(() => {
         this.authService.logout();
       });
@@ -255,14 +251,11 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
             }, 500);
             
             this.snackBar.open('Profile photo updated successfully!', 'Close', { 
-              duration: 2000,
-              panelClass: ['success-snackbar']
+              duration: 2000
             });
-            this.triggerProfileUpdate();
           } else {
             this.snackBar.open(response.message || 'Failed to upload photo', 'Close', { 
-              duration: 3000,
-              panelClass: ['error-snackbar']
+              duration: 3000
             });
           }
         },
@@ -282,16 +275,14 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           }
           
           this.snackBar.open(errorMessage, 'Close', { 
-            duration: 4000,
-            panelClass: ['error-snackbar']
+            duration: 4000
           });
         }
       });
     }).catch(error => {
       this.isUploadingPhoto = false;
       this.snackBar.open('Error processing image', 'Close', { 
-        duration: 3000,
-        panelClass: ['error-snackbar']
+        duration: 3000
       });
     });
   }
@@ -369,8 +360,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       
     } catch (error) {
       this.snackBar.open('Unable to access camera. Please check permissions.', 'Close', { 
-        duration: 4000,
-        panelClass: ['error-snackbar']
+        duration: 4000
       });
       this.stopCamera();
     }
@@ -438,15 +428,12 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           }, 500);
           
           this.snackBar.open('Photo captured successfully!', 'Close', { 
-            duration: 2000,
-            panelClass: ['success-snackbar']
+            duration: 2000
           });
-          this.triggerProfileUpdate();
           this.stopCamera();
         } else {
           this.snackBar.open(response.message || 'Failed to update photo', 'Close', { 
-            duration: 3000,
-            panelClass: ['error-snackbar']
+            duration: 3000
           });
         }
       },
@@ -456,7 +443,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         this.snackBar.open(
           error.message || 'Failed to upload captured photo', 
           'Close', 
-          { duration: 3000, panelClass: ['error-snackbar'] }
+          { duration: 3000 }
         );
         this.stopCamera();
       }
@@ -479,38 +466,28 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
           localStorage.removeItem('profileImage');
           this.snackBar.open('Profile photo removed successfully', 'Close', { 
-            duration: 2000,
-            panelClass: ['success-snackbar']
+            duration: 2000
           });
-          this.triggerProfileUpdate();
         } else {
           this.snackBar.open(response.message || 'Failed to remove photo', 'Close', { 
-            duration: 3000,
-            panelClass: ['error-snackbar']
+            duration: 3000
           });
         }
       },
       error: (error: any) => {
         this.isDeletingPhoto = false;
         this.snackBar.open('Failed to remove profile photo', 'Close', { 
-          duration: 3000,
-          panelClass: ['error-snackbar']
+          duration: 3000
         });
       }
     });
-  }
-
-  private triggerProfileUpdate(): void {
-    window.dispatchEvent(new CustomEvent('profileImageUpdated'));
-    localStorage.setItem('profileUpdated', Date.now().toString());
   }
 
   onSubmit(): void {
     if (this.profileForm.invalid || !this.user) {
       this.profileForm.markAllAsTouched();
       this.snackBar.open('Please fill in all required fields correctly', 'Close', { 
-        duration: 3000,
-        panelClass: ['error-snackbar']
+        duration: 3000
       });
       return;
     }
@@ -539,7 +516,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.snackBar.open(
             response.message || 'Failed to update phone number',
             'Close',
-            { duration: 3000, panelClass: ['error-snackbar'] }
+            { duration: 3000 }
           );
         }
       },
@@ -548,7 +525,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         this.snackBar.open(
           error.message || 'Failed to update phone number',
           'Close',
-          { duration: 3000, panelClass: ['error-snackbar'] }
+          { duration: 3000 }
         );
       }
     });
@@ -565,14 +542,22 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
     this.propertyService.updateUserProfile(updatedUserData).subscribe({
       next: (response: ApiResponse) => {
+        this.isSubmitting = false;
         if (response.success && response.user) {
-          this.handleSuccess(response.user);
+          this.snackBar.open('Profile updated successfully!', 'Close', { 
+            duration: 2000
+          });
+          
+          setTimeout(() => {
+            this.router.navigate(['/landlord-dashboard/profile/view'], {
+              state: { refreshProfile: true }
+            });
+          }, 500);
         } else {
-          this.isSubmitting = false;
           this.snackBar.open(
             response.message || 'Failed to update profile',
             'Close',
-            { duration: 3000, panelClass: ['error-snackbar'] }
+            { duration: 3000 }
           );
         }
       },
@@ -581,36 +566,10 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         this.snackBar.open(
           'Failed to update profile. Please try again.',
           'Close',
-          { duration: 3000, panelClass: ['error-snackbar'] }
+          { duration: 3000 }
         );
       }
     });
-  }
-
-  private handleSuccess(updatedUser: User): void {
-    this.updateLocalUserData(updatedUser);
-    
-    this.snackBar.open('Profile updated successfully!', 'Close', { 
-      duration: 2000,
-      panelClass: ['success-snackbar']
-    });
-    
-    setTimeout(() => {
-      this.router.navigate(['/landlord-dashboard/profile/view'], {
-        state: { refreshProfile: true }
-      });
-      this.isSubmitting = false;
-    }, 500);
-  }
-
-  private updateLocalUserData(user: User): void {
-    const isPermanent = !!localStorage.getItem('userData');
-    const storage = isPermanent ? localStorage : sessionStorage;
-    storage.setItem('userData', JSON.stringify(user));
-    
-    if ((this.authService as any).currentUserSubject) {
-      (this.authService as any).currentUserSubject.next(user);
-    }
   }
 
   goBack(): void {
@@ -634,4 +593,5 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   get fullName() { return this.profileForm.get('fullName'); }
   get email() { return this.profileForm.get('email'); }
   get phoneNumber() { return this.profileForm.get('phoneNumber'); }
-  get bio() { return this.profileForm.get('bio'); }}
+  get bio() { return this.profileForm.get('bio'); }
+}

@@ -117,7 +117,6 @@ export class RegistrationComponent implements OnInit {
     this.clearAllErrors();
     let isValid = true;
 
-    // Check ALL validations without early returns
     if (!this.formData.role) {
       this.fieldErrors.role = 'Please select a role';
       isValid = false;
@@ -170,7 +169,6 @@ export class RegistrationComponent implements OnInit {
     }
 
     if (!this.agreedToTerms) {
-      // For terms agreement, use snackbar since it's not a field
       this.showError('Please agree to Terms and Conditions');
       return false;
     }
@@ -206,18 +204,17 @@ export class RegistrationComponent implements OnInit {
         if (response.success) {
           sessionStorage.setItem('pendingVerificationEmail', registerRequest.email);
           
-          // ONLY show snackbar for success (API response)
           this.showSuccess(response.message || 'Registration successful! Please check your email for verification code');
         
-          setTimeout(() => {
-            this.router.navigate(['/verify-otp'], { 
-              queryParams: { 
-                email: registerRequest.email,
-                userType: registerRequest.role,
-                message: 'Registration successful! Please check your email for verification code.'
-              }
-            });
-          }, 2000);
+          this.router.navigate(['/auth/verify-otp'], { 
+            queryParams: { 
+              email: registerRequest.email,
+              userType: registerRequest.role
+            },
+            state: { 
+              message: 'Registration successful! Please check your email for verification code.'
+            }
+          });
         } else {
           this.handleApiError(response.message || 'Registration failed. Please try again.');
         }
@@ -264,7 +261,6 @@ export class RegistrationComponent implements OnInit {
       }
     }
     
-    // ONLY show snackbar for API errors
     this.showError(errorMessage);
   }
 
@@ -287,7 +283,7 @@ export class RegistrationComponent implements OnInit {
   }
 
   navigateToLogin(): void { 
-    this.router.navigate(['/login']); 
+    this.router.navigate(['/auth/login']); 
   }
   
   navigateToTerms(): void { 

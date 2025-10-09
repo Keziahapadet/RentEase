@@ -21,16 +21,6 @@ export class PropertyService {
   constructor(private http: HttpClient, private authService: AuthService) {}
 
   getCurrentUserProfile(): Observable<ApiResponse> {
-    const currentUser = this.authService.getCurrentUser();
-    
-    if (currentUser) {
-      return of({
-        success: true,
-        message: 'Using local user data',
-        user: currentUser
-      } as ApiResponse);
-    }
-
     const httpOptions = { headers: this.createHeaders() };
 
     return this.http.get<ApiResponse>(
@@ -99,7 +89,7 @@ export class PropertyService {
 
   uploadProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
-    formData.append('picture', file);
+    formData.append('file', file);
     
     const headers = this.authService.getAuthHeaders(false);
 
@@ -119,7 +109,7 @@ export class PropertyService {
 
   updateProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
-    formData.append('picture', file);
+    formData.append('file', file);
     
     const headers = this.authService.getAuthHeaders(false);
 

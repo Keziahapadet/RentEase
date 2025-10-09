@@ -73,7 +73,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         this.email = (params['email'] || '').trim().toLowerCase();
         this.verificationType = params['type'] || 'email_verification';
         
-      
         this.userType = params['userType'] || params['usertype'] || params['role'] || params['user_type'] || '';
         
         console.log('OTP Component - User Type:', this.userType);
@@ -113,7 +112,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   private getUserTypeDisplay(): string {
     if (!this.userType) return 'User';
     
-   
     const normalized = this.userType.toLowerCase().trim();
     const displayMap: { [key: string]: string } = {
       'landlord': 'Landlord',
@@ -121,7 +119,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       'caretaker': 'Caretaker',
       'business': 'Business',
       'admin': 'Admin',
-      
     };
     
     return displayMap[normalized] || this.userType.charAt(0).toUpperCase() + this.userType.slice(1);
@@ -182,12 +179,10 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     console.log('Verification Type:', this.verificationType);
     console.log('API Response:', response);
     
-  
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
       if (this.verificationType === 'password_reset') {
-      
         sessionStorage.setItem('resetEmail', this.email);
         sessionStorage.setItem('otpVerified', 'true');
         console.log('Navigating to reset-password with email:', this.email);
@@ -195,10 +190,8 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
           queryParams: { email: this.email } 
         });
       } else if (this.verificationType === 'email_verification') {
-       
         await this.handleEmailVerificationSuccess(response);
       } else {
-       
         this.router.navigate(['/login']);
       }
     } catch (navigationError) {
@@ -209,7 +202,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private async handleEmailVerificationSuccess(response: any) {
-  
     let finalUserType = this.userType;
     
     if (!finalUserType && response.user?.role) {
@@ -229,7 +221,29 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
+    // Check if we have authentication data in the response
+    const hasAuthData = response.token || response.user;
     
+    if (!hasAuthData) {
+      console.log('No authentication data in response - redirecting to login');
+      this.showMessage('Email verified successfully! Please login to continue.', 'success');
+      
+      // Store verification success in session storage for login page
+      sessionStorage.setItem('emailVerified', 'true');
+      sessionStorage.setItem('verifiedEmail', this.email);
+      sessionStorage.setItem('verifiedUserType', finalUserType);
+      
+      this.router.navigate(['/login'], {
+        queryParams: {
+          email: this.email,
+          userType: finalUserType,
+          message: 'Email verified successfully! Please login.'
+        }
+      });
+      return;
+    }
+
+    // If we have auth data, proceed with auto-login
     const userData = {
       email: this.email,
       userType: finalUserType,
@@ -237,22 +251,30 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       ...response.user
     };
     
+    // Store authentication data
+    if (response.token) {
+      sessionStorage.setItem('authToken', response.token);
+      localStorage.setItem('authToken', response.token); // Also store in localStorage
+    }
+    
     sessionStorage.setItem('currentUser', JSON.stringify(userData));
-    sessionStorage.setItem('authToken', response.token || '');
     sessionStorage.setItem('isAuthenticated', 'true');
+    
+    // Also store in localStorage for persistence
+    localStorage.setItem('currentUser', JSON.stringify(userData));
+    localStorage.setItem('isAuthenticated', 'true');
 
     console.log('Stored user data:', userData);
+    console.log('Auth token stored:', !!response.token);
 
     const dashboardRoute = this.getDashboardRoute(finalUserType);
     console.log('Attempting to navigate to dashboard:', dashboardRoute);
 
- 
     this.router.navigate([dashboardRoute]).then(success => {
       if (success) {
         console.log('Successfully navigated to:', dashboardRoute);
       } else {
         console.error('Failed to navigate to dashboard:', dashboardRoute);
-     
         this.tryAlternativeNavigation(finalUserType);
       }
     }).catch(error => {
@@ -262,19 +284,16 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private getDashboardRoute(userType: string): string {
-  
     const normalizedUserType = userType.toLowerCase().trim();
     
     console.log('Determining dashboard route for user type:', normalizedUserType, 'Original:', userType);
 
-   
     const routeMap: { [key: string]: string } = {
       'landlord': '/landlord-dashboard/home',
       'tenant': '/tenant-dashboard/dashboard', 
       'caretaker': '/caretaker-dashboard',
       'business': '/business-dashboard',
       'admin': '/admin-dashboard',
-    
     };
 
     const route = routeMap[normalizedUserType] || '/tenant-dashboard/dashboard';
@@ -287,7 +306,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     const normalizedUserType = userType.toLowerCase().trim();
     
     console.log('Trying alternative navigation for:', normalizedUserType);
-
 
     if (normalizedUserType === 'landlord' || normalizedUserType === 'property_owner' || normalizedUserType === 'property owner') {
       console.log('Trying alternative landlord navigation...');

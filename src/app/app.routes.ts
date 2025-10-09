@@ -30,25 +30,37 @@ import { ProfileViewComponent } from './components/dashboard/landlord/landlord-d
 import { ProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
 import { OtpVerificationComponent } from './components/auth/otp-verification/otp-verification.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
+import { authGuard } from './guards/auth.guard';
+import { authRedirectGuard } from './guards/auth-redirect.guard';
+import { landlordGuard } from './guards/landlord.guard';
+import { tenantGuard } from './guards/tenant.guard';
+import { AccessDeniedComponent } from './components/access-denied/access-denied.component';
 
 export const routes: Routes = [
- 
   { path: '', component: HomeComponent, pathMatch: 'full' },
-  { path: 'registration', component: RegistrationComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'verify-otp', component: VerifyOtpComponent },
-  {path: 'otp-verification',component :OtpVerificationComponent},
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  {path : 'reset-password',component:ResetPasswordComponent},
+  
+  {
+    path: 'auth',
+    canActivate: [authRedirectGuard],
+    children: [
+      { path: 'registration', component: RegistrationComponent },
+      { path: 'login', component: LoginComponent },
+      { path: 'verify-otp', component: VerifyOtpComponent },
+      { path: 'otp-verification', component: OtpVerificationComponent },
+      { path: 'forgot-password', component: ForgotPasswordComponent },
+      { path: 'reset-password', component: ResetPasswordComponent }
+    ]
+  },
+
   { path: 'pricing', component: PricingComponent },
   { path: 'contact', component: ContactComponent },
   { path: 'about', component: AboutComponent },
   { path: 'terms', component: TermsComponent },
   { path: 'privacy', component: PrivacyComponent },
 
-
   {
     path: 'tenant-dashboard',
+    canActivate: [authGuard, tenantGuard],
     component: TenantDashboardComponent,
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -64,9 +76,9 @@ export const routes: Routes = [
     ]
   },
 
-
   {
     path: 'landlord-dashboard',
+    canActivate: [authGuard, landlordGuard],
     component: LandlordDashboardComponent,
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -76,7 +88,6 @@ export const routes: Routes = [
       { path: 'profile/view', component: ProfileViewComponent },
       { path: 'profile/edit', component: ProfileEditComponent },
       
-   
       { path: 'property', redirectTo: 'property/list', pathMatch: 'full' },
       { path: 'property/create', component: PropertyCreateComponent },
       { path: 'property/list', component: PropertyListComponent },
@@ -85,15 +96,15 @@ export const routes: Routes = [
       
       { path: 'property/:propertyId/unit/create', component: PropertyCreateComponent },
       
-     
       { path: 'financials', component: FinancialsComponent },
       { path: 'financials/invoices', component: InvoicesComponent },
       { path: 'financials/payments', component: PaymentComponent },
       
-
       { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' }
     ]
   },
+
+  { path: 'access-denied', component: AccessDeniedComponent },
 
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
   { path: 'tenant', redirectTo: '/tenant-dashboard' },

@@ -41,7 +41,6 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   returnUrl: string = '/dashboard';
   
-  // Field errors
   emailError: string = '';
   passwordError: string = '';
 
@@ -57,7 +56,6 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  // Helper method for email validation
   isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -80,7 +78,6 @@ export class LoginComponent implements OnInit {
     this.passwordError = '';
     let isValid = true;
 
-    // Email validation - ONLY set field errors
     if (!this.loginData.email.trim()) {
       this.emailError = 'Email is required';
       isValid = false;
@@ -89,7 +86,6 @@ export class LoginComponent implements OnInit {
       isValid = false;
     }
 
-    // Password validation - ONLY set field errors
     if (!this.loginData.password) {
       this.passwordError = 'Password is required';
       isValid = false;
@@ -113,32 +109,31 @@ export class LoginComponent implements OnInit {
     
     this.authService.login(loginRequest).subscribe({
       next: (response: AuthResponse) => {
+        this.isLoading = false;
         console.log('Login response:', response);
         
-        setTimeout(() => {
-          const user = this.authService.getCurrentUser();
-          console.log('Current user after login:', user);
-          
-          let userRole: string | undefined;
-          
-          if (user && user.role) {
-            userRole = user.role;
-          } else if (response.role) {
-            userRole = response.role;
-          } else if (response.user?.role) {
-            userRole = response.user.role;
-          }
-          
-          console.log('Determined user role:', userRole);
-          
-          if (userRole) {
-            this.showSnackbar('Login successful!', 'success');
-            this.redirectBasedOnRole(userRole);
-          } else {
-            this.showSnackbar('Login successful! Redirecting to dashboard...', 'success');
-            this.router.navigate(['/dashboard']);
-          }
-        }, 100);
+        const user = this.authService.getCurrentUser();
+        console.log('Current user after login:', user);
+        
+        let userRole: string | undefined;
+        
+        if (user?.role) {
+          userRole = user.role;
+        } else if (response.role) {
+          userRole = response.role;
+        } else if (response.user?.role) {
+          userRole = response.user.role;
+        }
+        
+        console.log('Determined user role:', userRole);
+        
+        if (userRole) {
+          this.showSnackbar('Login successful!', 'success');
+          this.redirectBasedOnRole(userRole);
+        } else {
+          this.showSnackbar('Login successful!', 'success');
+          this.router.navigate(['/dashboard']);
+        }
       },
       error: (error) => {
         this.isLoading = false;
@@ -184,7 +179,6 @@ export class LoginComponent implements OnInit {
       errorMessage = error.message;
     }
     
-    // ONLY show snackbar for API errors
     this.showSnackbar(errorMessage, 'error');
     this.loginData.password = '';
   }
@@ -197,24 +191,20 @@ export class LoginComponent implements OnInit {
     const roleMap: { [key: string]: string } = {
       'LANDLORD': '/landlord-dashboard/home',
       'TENANT': '/tenant-dashboard/home', 
-      'BUSINESS': '/business-dashboard',
-      'CARETAKER': '/caretaker-dashboard',
-      'ADMIN': '/admin-dashboard'
+      'BUSINESS': '/business-dashboard/home',
+      'CARETAKER': '/caretaker-dashboard/home',
+      'ADMIN': '/admin-dashboard/home'
     };
 
-    if (roleMap[normalizedRole]) {
-      const dashboardRoute = roleMap[normalizedRole];
-      console.log(`Redirecting to: ${dashboardRoute}`);
-      this.router.navigate([dashboardRoute]).then(success => {
-        if (!success) {
-          console.warn(`Failed to navigate to ${dashboardRoute}, falling back to /dashboard`);
-          this.router.navigate(['/dashboard']);
-        }
-      });
-    } else {
-      console.warn(`Unknown role: ${userRole}, redirecting to default dashboard`);
-      this.router.navigate(['/dashboard']);
-    }
+    const dashboardRoute = roleMap[normalizedRole] || '/dashboard';
+    
+    console.log(`Redirecting to: ${dashboardRoute}`);
+    this.router.navigate([dashboardRoute]).then(success => {
+      if (!success) {
+        console.error(`Failed to navigate to ${dashboardRoute}`);
+        this.router.navigate(['/dashboard']);
+      }
+    });
   }
 
   private redirectToDashboard(): void {
@@ -230,12 +220,12 @@ export class LoginComponent implements OnInit {
 
   navigateToForgotPassword(): void {
     if (this.isLoading) return;
-    this.router.navigate(['/forgot-password']);
+    this.router.navigate(['/auth/forgot-password']);
   }
 
   navigateToRegister(): void {
     if (this.isLoading) return;
-    this.router.navigate(['/registration']);
+    this.router.navigate(['/auth/registration']);
   }
 
   onKeyPress(event: KeyboardEvent): void {
