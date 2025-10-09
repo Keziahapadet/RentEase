@@ -76,32 +76,39 @@ mat-form-field {
   }
 }
 
+/* FIXED: Add form-options styling */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+}
+
+/* FIXED: Proper forgot password link styling */
 .forgot-password-link {
-  text-align: center;
-  margin-top: 15px;
+  color: #3b82f6;
+  cursor: pointer;
+  text-decoration: none;
   font-size: 14px;
+  font-weight: 500;
 
-  a {
-    color: #3b82f6;
-    cursor: pointer;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
+  &:hover {
+    text-decoration: underline;
   }
 }
 
+/* FIXED: Proper register link styling */
 .register-link {
   color: #374151;
   font-size: 14px;
   text-align: center;
   margin: 15px 0 0 0;
 
-  a {
+  .register-now {
     color: #3b82f6;
     text-decoration: none;
     font-weight: 500;
+    cursor: pointer;
 
     &:hover {
       text-decoration: underline;
@@ -152,81 +159,82 @@ mat-form-field {
   }
 }
 
+// Angular Material Overrides
+::ng-deep {
+  .mat-form-field {
+    font-family: inherit;
+    width: 100%;
+  }
 
-::ng-deep .mat-form-field {
-  font-family: inherit;
-  width: 100%;
+  .mat-form-field .mat-form-field-outline {
+    border-radius: 0.5rem;
+    border-color: #e5e7eb;
+  }
+
+  .mat-form-field.mat-focused .mat-form-field-outline-thick {
+    border-color: #3b82f6;
+    border-width: 2px;
+  }
+
+  .mat-form-field-label {
+    color: #374151;
+    font-size: 14px;
+  }
+
+  .mat-form-field.mat-focused .mat-form-field-label {
+    color: #3b82f6;
+  }
+
+  .mat-input-element {
+    color: #1f2937;
+    font-size: 16px;
+  }
+
+  .mat-input-element::placeholder {
+    color: #9ca3af;
+  }
+
+  .mat-raised-button {
+    border-radius: 0.5rem;
+    text-transform: none;
+    letter-spacing: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .mat-raised-button.mat-primary {
+    background-color: #3b82f6;
+  }
+
+  .mat-raised-button.mat-primary:hover {
+    background-color: #2563eb;
+  }
+
+  .mat-raised-button:disabled {
+    background-color: #9ca3af !important;
+    color: #ffffff !important;
+    cursor: not-allowed;
+  }
+
+  .mat-raised-button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  // Snackbar Styling
+  .snackbar-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .snackbar-error {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+    font-weight: 500;
+    font-size: 15px;
+  }
 }
-
-::ng-deep .mat-form-field .mat-form-field-outline {
-  border-radius: 0.5rem;
-  border-color: #e5e7eb;
-}
-
-::ng-deep .mat-form-field.mat-focused .mat-form-field-outline-thick {
-  border-color: #3b82f6;
-  border-width: 2px;
-}
-
-::ng-deep .mat-form-field-label {
-  color: #374151;
-  font-size: 14px;
-}
-
-::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
-  color: #3b82f6;
-}
-
-::ng-deep .mat-input-element {
-  color: #1f2937;
-  font-size: 16px;
-}
-
-::ng-deep .mat-input-element::placeholder {
-  color: #9ca3af;
-}
-
-::ng-deep .mat-raised-button {
-  border-radius: 0.5rem;
-  text-transform: none;
-  letter-spacing: 0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-::ng-deep .mat-raised-button.mat-primary {
-  background-color: #3b82f6;
-}
-
-::ng-deep .mat-raised-button.mat-primary:hover {
-  background-color: #2563eb;
-}
-
-::ng-deep .mat-raised-button:disabled {
-  background-color: #9ca3af !important;
-  color: #ffffff !important;
-  cursor: not-allowed;
-}
-
-::ng-deep .mat-raised-button:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Snackbar Styling */
-::ng-deep .snackbar-success {
-  background-color: #10b981 !important;
-  color: #ffffff !important;
-  font-weight: 500;
-  font-size: 15px;
-}
-
-::ng-deep .snackbar-error {
-  background-color: #ef4444 !important;
-  color: #ffffff !important;
-  font-weight: 500;
-  font-size: 15px;
-}
-
 
 @media (max-width: 600px) {
   .login-card {
@@ -252,6 +260,12 @@ mat-form-field {
   .alert-success {
     font-size: 0.85rem;
     padding: 10px;
+  }
+
+  .form-options {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
   }
 
   .forgot-password-link,
