@@ -59,7 +59,7 @@ export class PropertyService {
           this.updateLocalUserData(response.user);
         }
       }),
-      catchError(this.handleError)
+      catchError(this.handleProfileError)
     );
   }
 
@@ -69,7 +69,7 @@ export class PropertyService {
     return this.http.get<ApiResponse>(
       `${this.apiUrl}/api/profile/${userId}`,
       httpOptions
-    ).pipe(catchError(this.handleError));
+    ).pipe(catchError(this.handleProfileError));
   }
 
   getProfilePicture(): Observable<ProfilePictureResponse> {
@@ -93,14 +93,18 @@ export class PropertyService {
           localStorage.setItem('profileImage', response.pictureUrl);
         }
       }),
-      catchError(this.handleError)
+      catchError(this.handleProfileError)
     );
   }
 
   uploadProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
     formData.append('picture', file);
-    const headers = this.createHeaders().delete('Content-Type');
+    
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/api/profile/upload-picture`,
@@ -112,14 +116,18 @@ export class PropertyService {
           localStorage.removeItem('profileImage');
         }
       }),
-      catchError(this.handleError)
+      catchError(this.handleProfileError)
     );
   }
 
   updateProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
     formData.append('picture', file);
-    const headers = this.createHeaders().delete('Content-Type');
+    
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
     return this.http.put<ApiResponse>(
       `${this.apiUrl}/api/profile/update-picture`,
@@ -131,7 +139,7 @@ export class PropertyService {
           localStorage.removeItem('profileImage');
         }
       }),
-      catchError(this.handleError)
+      catchError(this.handleProfileError)
     );
   }
 
@@ -147,7 +155,7 @@ export class PropertyService {
           localStorage.removeItem('profileImage');
         }
       }),
-      catchError(this.handleError)
+      catchError(this.handleProfileError)
     );
   }
 
@@ -327,6 +335,55 @@ export class PropertyService {
   private createHeaders(): HttpHeaders {
     return this.authService.getAuthHeaders();
   }
+
+  private handleProfileError = (error: HttpErrorResponse): Observable<never> => {
+    let errorMessage = 'Profile operation failed';
+
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = error.error.message;
+    } else {
+      switch (error.status) {
+        case 0:
+          errorMessage = 'Network error. Please check your internet connection.';
+          break;
+        case 401:
+          errorMessage = 'Unable to update profile. Please check your authentication.';
+          break;
+        case 403:
+          errorMessage = 'You do not have permission to perform this action.';
+          break;
+        case 404:
+          errorMessage = 'Profile endpoint not found.';
+          break;
+        case 409:
+          errorMessage = error.error?.message || 'A resource with this information already exists.';
+          break;
+        case 413:
+          errorMessage = 'File is too large. Please try a smaller image.';
+          break;
+        case 415:
+          errorMessage = 'Unsupported file type. Please use JPEG or PNG.';
+          break;
+        case 422:
+          errorMessage = error.error?.message || 'Validation error. Please check your input.';
+          break;
+        case 500:
+          errorMessage = 'Server error. Please try again later.';
+          break;
+        case 503:
+          errorMessage = 'Service temporarily unavailable. Please try again later.';
+          break;
+        default:
+          errorMessage = error.error?.message || error.message || `Error Code: ${error.status}`;
+      }
+    }
+
+    return throwError(() => ({
+      status: error.status,
+      message: errorMessage,
+      error: error.error
+    }));
+  };
 
   private handleError = (error: HttpErrorResponse): Observable<never> => {
     let errorMessage = 'An unexpected error occurred';

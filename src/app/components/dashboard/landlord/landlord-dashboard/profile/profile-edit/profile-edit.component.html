@@ -17,48 +17,51 @@
       <mat-card-header>
         <div class="profile-header">
           <div class="profile-image-section">
-            <div class="image-loading" *ngIf="isUploadingPhoto">
-              <mat-spinner diameter="40"></mat-spinner>
+            <div class="image-loading" *ngIf="isUploadingPhoto || isDeletingPhoto">
+              <mat-spinner diameter="50"></mat-spinner>
             </div>
             <img 
               [src]="profileImage" 
               alt="Profile" 
               class="profile-image-large"
-              [class.loading]="isUploadingPhoto">
+              [class.loading]="isUploadingPhoto || isDeletingPhoto">
             <div class="profile-image-overlay">
               <button 
                 mat-icon-button 
                 class="change-photo-btn" 
                 (click)="changePhoto()" 
-                [disabled]="isUploadingPhoto"
-                matTooltip="Upload Photo">
-                <mat-icon>upload</mat-icon>
+                [disabled]="isUploadingPhoto || isDeletingPhoto"
+                matTooltip="Upload Photo"
+                matTooltipPosition="left">
+                <mat-icon>cloud_upload</mat-icon>
               </button>
               <button 
                 mat-icon-button 
                 class="camera-btn" 
                 (click)="startCamera()" 
-                [disabled]="isUploadingPhoto"
-                matTooltip="Take Photo">
+                [disabled]="isUploadingPhoto || isDeletingPhoto"
+                matTooltip="Take Photo"
+                matTooltipPosition="left">
                 <mat-icon>photo_camera</mat-icon>
               </button>
-             
               <button 
                 mat-icon-button 
                 class="delete-photo-btn" 
                 (click)="deletePhoto()" 
-                [disabled]="isUploadingPhoto || !profileImage || profileImage.includes('data:image/svg+xml')"
-                matTooltip="Delete Photo">
-                <mat-icon>delete</mat-icon>
+                [disabled]="isUploadingPhoto || isDeletingPhoto || !profileImage || isDefaultAvatar()"
+                matTooltip="Delete Photo"
+                matTooltipPosition="left">
+                <mat-icon>delete_forever</mat-icon>
               </button>
             </div>
           </div>
           <div class="profile-basic-info">
-            <h2>Update Your Profile</h2>
-            <p class="instruction">Upload a photo or take a new one with your camera</p>
-            <p class="instruction">Click the delete button to remove your current photo</p>
-            <p class="upload-info" *ngIf="isUploadingPhoto">Processing image...</p>
-            <p class="delete-info" *ngIf="isUploadingPhoto && isDeletingPhoto">Deleting photo...</p>
+            <h2>Update Your Profile Picture</h2>
+            <p class="instruction">Click upload to choose a photo from your device</p>
+            <p class="instruction">Click camera to take a new photo instantly</p>
+            <p class="instruction">Click delete to remove your current photo</p>
+            <p class="upload-info" *ngIf="isUploadingPhoto && !isDeletingPhoto">Processing your image...</p>
+            <p class="delete-info" *ngIf="isDeletingPhoto">Removing photo...</p>
           </div>
         </div>
       </mat-card-header>
@@ -131,10 +134,10 @@
     </mat-card>
   </div>
 
-  <div *ngIf="isCameraActive" class="camera-overlay">
-    <div class="camera-container">
+  <div *ngIf="isCameraActive" class="camera-overlay" (click)="stopCamera()">
+    <div class="camera-container" (click)="$event.stopPropagation()">
       <div class="camera-header">
-        <h3>Take a Photo</h3>
+        <h3>Capture Your Photo</h3>
         <button mat-icon-button class="close-camera" (click)="stopCamera()">
           <mat-icon>close</mat-icon>
         </button>
@@ -144,9 +147,9 @@
       <canvas #cameraCanvas id="cameraCanvas" style="display: none"></canvas>
       
       <div class="camera-controls">
-        <button mat-raised-button class="capture-btn" (click)="capturePhoto()">
-          <mat-icon>camera</mat-icon>
-          Capture
+        <button mat-raised-button class="capture-btn" (click)="capturePhoto()" [disabled]="isUploadingPhoto">
+          <mat-icon>camera_alt</mat-icon>
+          {{ isUploadingPhoto ? 'Processing...' : 'Capture Photo' }}
         </button>
       </div>
     </div>
