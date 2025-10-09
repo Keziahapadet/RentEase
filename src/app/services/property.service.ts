@@ -89,15 +89,9 @@ export class PropertyService {
       });
     }
 
-    const httpOptions = { 
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      })
-    };
-
     return this.http.get<ProfilePictureResponse>(
       `${this.apiUrl}/api/profile/picture`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(
       tap(response => {
         if (response.success && response.pictureUrl) {
@@ -191,16 +185,9 @@ export class PropertyService {
       }));
     }
 
-    const httpOptions = { 
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      })
-    };
-
     return this.http.delete<ApiResponse>(
       `${this.apiUrl}/api/profile/delete-picture`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(
       tap(response => {
         if (response.success) {
@@ -212,7 +199,6 @@ export class PropertyService {
   }
 
   createProperty(request: PropertyRequest): Observable<PropertyResponse> {
-    const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
       name: request.name.trim(),
       location: request.location.trim(),
@@ -224,16 +210,14 @@ export class PropertyService {
     return this.http.post<PropertyResponse>(
       `${this.apiUrl}/api/landlord/properties`,
       backendRequest,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   getProperties(): Observable<Property[]> {
-    const httpOptions = { headers: this.createHeaders() };
-
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties`, 
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(
       map(response => {
         if (Array.isArray(response)) {
@@ -252,11 +236,9 @@ export class PropertyService {
   }
 
   getPropertyById(propertyId: string): Observable<Property> {
-    const httpOptions = { headers: this.createHeaders() };
-
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(
       map(response => {
         if (response?.data) {
@@ -271,7 +253,6 @@ export class PropertyService {
   }
 
   updateProperty(propertyId: string, request: PropertyRequest): Observable<PropertyResponse> {
-    const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
       name: request.name.trim(),
       location: request.location.trim(),
@@ -283,25 +264,21 @@ export class PropertyService {
     return this.http.put<PropertyResponse>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
       backendRequest,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   deleteProperty(propertyId: string): Observable<PropertyResponse> {
-    const httpOptions = { headers: this.createHeaders() };
-
     return this.http.delete<PropertyResponse>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   getUnitsByPropertyId(propertyId: string): Observable<Unit[]> {
-    const httpOptions = { headers: this.createHeaders() };
-
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(
       map(response => {
         if (Array.isArray(response)) {
@@ -324,7 +301,6 @@ export class PropertyService {
   }
 
   createUnit(propertyId: string, unit: any): Observable<any> {
-    const httpOptions = { headers: this.createHeaders() };
     const unitData = {
       unitNumber: unit.unitNumber.trim(),
       unitType: unit.unitType,
@@ -336,12 +312,11 @@ export class PropertyService {
     return this.http.post<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units`,
       unitData,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   updateUnit(propertyId: string, unitId: string, unit: Unit): Observable<Unit> {
-    const httpOptions = { headers: this.createHeaders() };
     const unitData = {
       unitNumber: unit.unitNumber?.trim(),
       unitType: unit.unitType,
@@ -353,50 +328,47 @@ export class PropertyService {
     return this.http.put<Unit>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units/${unitId}`,
       unitData,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   deleteUnit(propertyId: string, unitId: string): Observable<void> {
-    const httpOptions = { headers: this.createHeaders() };
-
     return this.http.delete<void>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units/${unitId}`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   getDashboardStats(): Observable<any> {
-    const httpOptions = { headers: this.createHeaders() };
-
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/dashboard/stats`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   getPropertyStats(propertyId: string): Observable<any> {
-    const httpOptions = { headers: this.createHeaders() };
-
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/stats`,
-      httpOptions
+      { headers: this.createHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
   inviteTenant(request: InviteTenantRequest): Observable<any> {
-    const headers = this.createHeaders();
-    return this.http.post(`${this.apiUrl}/api/invitations/tenant`, request, { headers }).pipe(catchError(this.handleError));
+    return this.http.post(`${this.apiUrl}/api/invitations/tenant`, request, { 
+      headers: this.createHeaders() 
+    }).pipe(catchError(this.handleError));
   }
 
   inviteCaretaker(request: InviteCaretakerRequest): Observable<any> {
-    const headers = this.createHeaders();
-    return this.http.post(`${this.apiUrl}/api/invitations/caretaker`, request, { headers }).pipe(catchError(this.handleError));
+    return this.http.post(`${this.apiUrl}/api/invitations/caretaker`, request, { 
+      headers: this.createHeaders() 
+    }).pipe(catchError(this.handleError));
   }
 
   acceptInvitation(request: AcceptInvitationRequest): Observable<any> {
-    const headers = this.createHeaders();
-    return this.http.post(`${this.apiUrl}/api/invitations/accept`, request, { headers }).pipe(catchError(this.handleError));
+    return this.http.post(`${this.apiUrl}/api/invitations/accept`, request, { 
+      headers: this.createHeaders() 
+    }).pipe(catchError(this.handleError));
   }
 
   private generateDefaultAvatar(): string {

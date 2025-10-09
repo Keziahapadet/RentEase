@@ -63,7 +63,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUserData();
-    this.propertyService.testProfilePictureEndpoints();
   }
 
   ngOnDestroy(): void {
