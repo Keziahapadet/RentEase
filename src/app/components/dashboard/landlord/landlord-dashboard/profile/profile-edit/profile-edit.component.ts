@@ -86,6 +86,8 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.propertyService.getCurrentUserProfile().subscribe({
       next: (response: ApiResponse) => {
         this.isLoadingUserData = false;
+        console.log('Profile data loaded:', response);
+        
         if (response.success && response.user) {
           this.user = {
             ...response.user,
@@ -96,12 +98,13 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.populateForm();
           this.loadProfilePicture();
         } else {
-          this.snackBar.open('Failed to load profile data from server', 'Close', { duration: 3000 });
+          this.snackBar.open(response.message || 'Failed to load profile data from server', 'Close', { duration: 3000 });
           this.loadUserDataFromLocalStorage();
         }
       },
       error: (error: any) => {
         this.isLoadingUserData = false;
+        console.error('Error loading profile:', error);
         
         if (error.status === 401 || error.status === 403) {
           this.snackBar.open('Authentication failed. Please log in again.', 'Login', { 
@@ -111,7 +114,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           });
           this.router.navigate(['/auth/login']);
         } else {
-          this.snackBar.open('Error loading profile data from server', 'Close', { duration: 3000 });
+          this.snackBar.open('Error loading profile data from server. Using local data.', 'Close', { duration: 3000 });
           this.loadUserDataFromLocalStorage();
         }
       }
@@ -138,6 +141,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   private loadProfilePicture(): void {
     this.propertyService.getProfilePicture().subscribe({
       next: (response) => {
+        console.log('Profile picture loaded:', response);
         if (response.success && response.pictureUrl) {
           this.profileImage = response.pictureUrl;
           localStorage.setItem('profileImage', response.pictureUrl);
@@ -146,6 +150,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         }
       },
       error: (error: any) => {
+        console.error('Error loading profile picture:', error);
         const cachedImage = localStorage.getItem('profileImage');
         if (cachedImage) {
           this.profileImage = cachedImage;
@@ -244,15 +249,16 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       uploadMethod.subscribe({
         next: (response: ApiResponse) => {
           this.isUploadingPhoto = false;
+          console.log('Photo upload response:', response);
           
           if (response.success) {
-            setTimeout(() => {
-              this.loadProfilePicture();
-            }, 500);
-            
             this.snackBar.open('Profile photo updated successfully!', 'Close', { 
               duration: 2000
             });
+            // Reload the profile picture
+            setTimeout(() => {
+              this.loadProfilePicture();
+            }, 500);
           } else {
             this.snackBar.open(response.message || 'Failed to upload photo', 'Close', { 
               duration: 3000
@@ -261,6 +267,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         },
         error: (error: any) => {
           this.isUploadingPhoto = false;
+          console.error('Photo upload error:', error);
           
           let errorMessage = 'Failed to upload profile photo';
           if (error.status === 401) {
@@ -421,15 +428,15 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.propertyService.updateProfilePicture(file).subscribe({
       next: (response: ApiResponse) => {
         this.isUploadingPhoto = false;
+        console.log('Capture photo response:', response);
         
         if (response.success) {
-          setTimeout(() => {
-            this.loadProfilePicture();
-          }, 500);
-          
           this.snackBar.open('Photo captured successfully!', 'Close', { 
             duration: 2000
           });
+          setTimeout(() => {
+            this.loadProfilePicture();
+          }, 500);
           this.stopCamera();
         } else {
           this.snackBar.open(response.message || 'Failed to update photo', 'Close', { 
@@ -439,6 +446,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isUploadingPhoto = false;
+        console.error('Capture photo error:', error);
         
         this.snackBar.open(
           error.message || 'Failed to upload captured photo', 
@@ -462,6 +470,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.propertyService.deleteProfilePicture().subscribe({
       next: (response: ApiResponse) => {
         this.isDeletingPhoto = false;
+        console.log('Delete photo response:', response);
         if (response.success) {
           this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
           localStorage.removeItem('profileImage');
@@ -476,6 +485,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isDeletingPhoto = false;
+        console.error('Delete photo error:', error);
         this.snackBar.open('Failed to remove profile photo', 'Close', { 
           duration: 3000
         });
@@ -509,6 +519,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
     this.authService.updatePhoneNumber(updatePhoneRequest).subscribe({
       next: (response: ApiResponse) => {
+        console.log('Update phone response:', response);
         if (response.success) {
           this.updateUserProfile();
         } else {
@@ -522,6 +533,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isSubmitting = false;
+        console.error('Update phone error:', error);
         this.snackBar.open(
           error.message || 'Failed to update phone number',
           'Close',
@@ -543,6 +555,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.propertyService.updateUserProfile(updatedUserData).subscribe({
       next: (response: ApiResponse) => {
         this.isSubmitting = false;
+        console.log('Update profile response:', response);
         if (response.success && response.user) {
           this.snackBar.open('Profile updated successfully!', 'Close', { 
             duration: 2000
@@ -563,6 +576,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isSubmitting = false;
+        console.error('Update profile error:', error);
         this.snackBar.open(
           'Failed to update profile. Please try again.',
           'Close',

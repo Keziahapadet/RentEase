@@ -20,27 +20,55 @@ export class PropertyService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
+  // FIXED: Profile methods with correct endpoints and error handling
   getCurrentUserProfile(): Observable<ApiResponse> {
-    const httpOptions = { headers: this.createHeaders() };
+    const token = this.authService.getToken();
+    if (!token) {
+      return throwError(() => ({ 
+        status: 401, 
+        message: 'No authentication token found' 
+      }));
+    }
+
+    const httpOptions = { 
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      })
+    };
 
     return this.http.get<ApiResponse>(
-      `${this.apiUrl}/api/profile`,
+      `${this.apiUrl}/api/auth/profile`,
       httpOptions
     ).pipe(
       tap(response => {
+        console.log('Profile response:', response);
         if (response.success && response.user) {
           this.updateLocalUserData(response.user);
         }
       }),
-      catchError(this.handleError)
+      catchError(this.handleProfileError)
     );
   }
 
   updateUserProfile(profileData: any): Observable<ApiResponse> {
-    const httpOptions = { headers: this.createHeaders() };
+    const token = this.authService.getToken();
+    if (!token) {
+      return throwError(() => ({ 
+        status: 401, 
+        message: 'No authentication token found' 
+      }));
+    }
+
+    const httpOptions = { 
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      })
+    };
 
     return this.http.put<ApiResponse>(
-      `${this.apiUrl}/api/profile`,
+      `${this.apiUrl}/api/auth/profile`,
       profileData,
       httpOptions
     ).pipe(
@@ -54,17 +82,31 @@ export class PropertyService {
   }
 
   getUserProfileById(userId: string): Observable<ApiResponse> {
-    const httpOptions = { headers: this.createHeaders() };
+    const token = this.authService.getToken();
+    if (!token) {
+      return throwError(() => ({ 
+        status: 401, 
+        message: 'No authentication token found' 
+      }));
+    }
+
+    const httpOptions = { 
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      })
+    };
 
     return this.http.get<ApiResponse>(
-      `${this.apiUrl}/api/profile/${userId}`,
+      `${this.apiUrl}/api/auth/profile/${userId}`,
       httpOptions
     ).pipe(catchError(this.handleProfileError));
   }
 
+  // FIXED: Profile Picture Methods
   getProfilePicture(): Observable<ProfilePictureResponse> {
     const cachedImage = localStorage.getItem('profileImage');
-    if (cachedImage) {
+    if (cachedImage && !cachedImage.includes('svg+xml')) {
       return of({
         success: true,
         pictureUrl: cachedImage,
@@ -72,26 +114,57 @@ export class PropertyService {
       } as ProfilePictureResponse);
     }
 
-    const httpOptions = { headers: this.createHeaders() };
+    const token = this.authService.getToken();
+    if (!token) {
+      return of({
+        success: false,
+        pictureUrl: this.generateDefaultAvatar(),
+        message: 'No token available'
+      });
+    }
+
+    const httpOptions = { 
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      })
+    };
 
     return this.http.get<ProfilePictureResponse>(
       `${this.apiUrl}/api/profile/picture`,
       httpOptions
     ).pipe(
       tap(response => {
+        console.log('Profile picture response:', response);
         if (response.success && response.pictureUrl) {
           localStorage.setItem('profileImage', response.pictureUrl);
         }
       }),
-      catchError(this.handleProfileError)
+      catchError(error => {
+        console.error('Error loading profile picture:', error);
+        return of({
+          success: false,
+          pictureUrl: this.generateDefaultAvatar(),
+          message: 'Using default avatar'
+        });
+      })
     );
   }
 
   uploadProfilePicture(file: File): Observable<ApiResponse> {
+    const token = this.authService.getToken();
+    if (!token) {
+      return throwError(() => ({ 
+        status: 401, 
+        message: 'No authentication token found' 
+      }));
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     
-    const headers = this.authService.getAuthHeaders(false);
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/api/profile/upload-picture`,
@@ -99,8 +172,10 @@ export class PropertyService {
       { headers }
     ).pipe(
       tap(response => {
+        console.log('Upload response:', response);
         if (response.success) {
           localStorage.removeItem('profileImage');
+          this.getProfilePicture().subscribe();
         }
       }),
       catchError(this.handleProfileError)
@@ -108,10 +183,20 @@ export class PropertyService {
   }
 
   updateProfilePicture(file: File): Observable<ApiResponse> {
+    const token = this.authService.getToken();
+    if (!token) {
+      return throwError(() => ({ 
+        status: 401, 
+        message: 'No authentication token found' 
+      }));
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     
-    const headers = this.authService.getAuthHeaders(false);
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
     return this.http.put<ApiResponse>(
       `${this.apiUrl}/api/profile/update-picture`,
@@ -119,8 +204,10 @@ export class PropertyService {
       { headers }
     ).pipe(
       tap(response => {
+        console.log('Update picture response:', response);
         if (response.success) {
           localStorage.removeItem('profileImage');
+          this.getProfilePicture().subscribe();
         }
       }),
       catchError(this.handleProfileError)
@@ -128,13 +215,27 @@ export class PropertyService {
   }
 
   deleteProfilePicture(): Observable<ApiResponse> {
-    const httpOptions = { headers: this.createHeaders() };
+    const token = this.authService.getToken();
+    if (!token) {
+      return throwError(() => ({ 
+        status: 401, 
+        message: 'No authentication token found' 
+      }));
+    }
+
+    const httpOptions = { 
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      })
+    };
 
     return this.http.delete<ApiResponse>(
       `${this.apiUrl}/api/profile/delete-picture`,
       httpOptions
     ).pipe(
       tap(response => {
+        console.log('Delete picture response:', response);
         if (response.success) {
           localStorage.removeItem('profileImage');
         }
@@ -143,6 +244,21 @@ export class PropertyService {
     );
   }
 
+  private generateDefaultAvatar(): string {
+    const name = 'User';
+    const initials = 'US';
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'];
+    const color = colors[initials.charCodeAt(0) % colors.length];
+    
+    return `data:image/svg+xml;base64,${btoa(`
+      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="${color}" rx="100"/>
+        <text x="100" y="125" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="80" font-weight="bold">${initials}</text>
+      </svg>
+    `)}`;
+  }
+
+  // Property Management Methods
   createProperty(request: PropertyRequest): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
@@ -317,49 +433,31 @@ export class PropertyService {
   }
 
   private createHeaders(): HttpHeaders {
-    return this.authService.getAuthHeaders();
+    const token = this.authService.getToken();
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+    
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
   }
 
   private handleProfileError = (error: HttpErrorResponse): Observable<never> => {
+    console.error('Profile Error:', error);
+    
     let errorMessage = 'Profile operation failed';
-
-    if (error.error instanceof ErrorEvent) {
+    
+    if (error.status === 401) {
+      errorMessage = 'Authentication failed. Please log in again.';
+      this.authService.logout();
+    } else if (error.status === 404) {
+      errorMessage = 'Profile endpoint not found. Please check the API.';
+    } else if (error.error?.message) {
       errorMessage = error.error.message;
-    } else {
-      switch (error.status) {
-        case 0:
-          errorMessage = 'Network error. Please check your internet connection.';
-          break;
-        case 401:
-          errorMessage = 'Authentication failed. Your session may have expired. Please try logging out and back in.';
-          break;
-        case 403:
-          errorMessage = 'You do not have permission to perform this action.';
-          break;
-        case 404:
-          errorMessage = 'Profile endpoint not found.';
-          break;
-        case 409:
-          errorMessage = error.error?.message || 'A resource with this information already exists.';
-          break;
-        case 413:
-          errorMessage = 'File is too large. Please try a smaller image (max 10MB).';
-          break;
-        case 415:
-          errorMessage = 'Unsupported file type. Please use JPEG, PNG, or WebP.';
-          break;
-        case 422:
-          errorMessage = error.error?.message || 'Validation error. Please check your input.';
-          break;
-        case 500:
-          errorMessage = 'Server error. Please try again later.';
-          break;
-        case 503:
-          errorMessage = 'Service temporarily unavailable. Please try again later.';
-          break;
-        default:
-          errorMessage = error.error?.message || error.message || `Error Code: ${error.status}`;
-      }
+    } else if (error.message) {
+      errorMessage = error.message;
     }
 
     return throwError(() => ({
@@ -370,39 +468,17 @@ export class PropertyService {
   };
 
   private handleError = (error: HttpErrorResponse): Observable<never> => {
+    console.error('API Error:', error);
+    
     let errorMessage = 'An unexpected error occurred';
-
-    if (error.error instanceof ErrorEvent) {
+    
+    if (error.status === 401) {
+      errorMessage = 'Authentication failed. Please log in again.';
+      this.authService.logout();
+    } else if (error.error?.message) {
       errorMessage = error.error.message;
-    } else {
-      switch (error.status) {
-        case 0:
-          errorMessage = 'Network error. Please check your internet connection.';
-          break;
-        case 401:
-          errorMessage = 'Authentication failed. Please log in again.';
-          break;
-        case 403:
-          errorMessage = 'You do not have permission to perform this action.';
-          break;
-        case 404:
-          errorMessage = 'The requested resource was not found.';
-          break;
-        case 409:
-          errorMessage = error.error?.message || 'A resource with this information already exists.';
-          break;
-        case 422:
-          errorMessage = error.error?.message || 'Validation error. Please check your input.';
-          break;
-        case 500:
-          errorMessage = 'Server error. Please try again later.';
-          break;
-        case 503:
-          errorMessage = 'Service temporarily unavailable. Please try again later.';
-          break;
-        default:
-          errorMessage = error.error?.message || error.message || `Error Code: ${error.status}`;
-      }
+    } else if (error.message) {
+      errorMessage = error.message;
     }
 
     return throwError(() => ({
