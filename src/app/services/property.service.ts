@@ -101,10 +101,7 @@ export class PropertyService {
     const formData = new FormData();
     formData.append('picture', file);
     
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    const headers = this.authService.getAuthHeaders(false);
 
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/api/profile/upload-picture`,
@@ -124,10 +121,7 @@ export class PropertyService {
     const formData = new FormData();
     formData.append('picture', file);
     
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    const headers = this.authService.getAuthHeaders(false);
 
     return this.http.put<ApiResponse>(
       `${this.apiUrl}/api/profile/update-picture`,
@@ -347,7 +341,8 @@ export class PropertyService {
           errorMessage = 'Network error. Please check your internet connection.';
           break;
         case 401:
-          errorMessage = 'Unable to update profile. Please check your authentication.';
+          errorMessage = 'Session expired. Please log in again.';
+          this.authService.logout();
           break;
         case 403:
           errorMessage = 'You do not have permission to perform this action.';

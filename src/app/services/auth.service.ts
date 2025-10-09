@@ -193,7 +193,7 @@ export class AuthService {
             const isPermanent = !!localStorage.getItem('userData');
             this.setInStorage('userData', JSON.stringify(updatedUser), isPermanent);
             this.currentUserSubject.next(updatedUser);
-            console.log('✓ Phone number updated:', request.newPhoneNumber);
+            console.log('Phone number updated:', request.newPhoneNumber);
           }
         }
       }),
@@ -252,7 +252,23 @@ export class AuthService {
     );
   }
 
-  getToken(): string | null { return this.getFromStorage('authToken'); }
+  getToken(): string | null { 
+    const token = this.getFromStorage('authToken');
+    if (!token) return null;
+    
+    let cleanToken = token.trim();
+    if (cleanToken.startsWith('"') && cleanToken.endsWith('"')) {
+      cleanToken = cleanToken.slice(1, -1);
+    }
+    if (cleanToken.startsWith("'") && cleanToken.endsWith("'")) {
+      cleanToken = cleanToken.slice(1, -1);
+    }
+    if (cleanToken.startsWith('Bearer ')) {
+      cleanToken = cleanToken.substring(7);
+    }
+    
+    return cleanToken;
+  }
 
   getCurrentUser(): User | null {
     const userData = this.getFromStorage('userData');
@@ -264,41 +280,25 @@ export class AuthService {
     return this.hasValidToken();
   }
 
-  
-  getAuthHeaders(): HttpHeaders {
+  getAuthHeaders(includeContentType: boolean = true): HttpHeaders {
     const token = this.getToken();
     
-    console.log(' DEBUG - Creating auth headers:');
-    console.log('Token exists:', !!token);
-    console.log('Token value:', token);
-    
     if (!token) {
-      console.warn(' No token available for auth headers');
-      return new HttpHeaders({ 'Content-Type': 'application/json' });
+      console.warn('No token available for auth headers');
+      return new HttpHeaders(
+        includeContentType ? { 'Content-Type': 'application/json' } : {}
+      );
     }
 
-    
-    let cleanToken = token.trim();
-    
-    
-    if (cleanToken.startsWith('"') && cleanToken.endsWith('"')) {
-      cleanToken = cleanToken.slice(1, -1);
-    }
-    if (cleanToken.startsWith("'") && cleanToken.endsWith("'")) {
-      cleanToken = cleanToken.slice(1, -1);
+    const headers: { [key: string]: string } = {
+      'Authorization': `Bearer ${token}`
+    };
+
+    if (includeContentType) {
+      headers['Content-Type'] = 'application/json';
     }
     
-  
-    if (!cleanToken.startsWith('Bearer ')) {
-      cleanToken = `Bearer ${cleanToken}`;
-    }
-    
-    console.log(' Final token for headers:', cleanToken);
-    
-    return new HttpHeaders({ 
-      'Authorization': cleanToken,
-      'Content-Type': 'application/json' 
-    });
+    return new HttpHeaders(headers);
   }
 
   hasRole(role: UserRole | string): boolean {
@@ -363,25 +363,22 @@ export class AuthService {
         this.clearPendingVerification();
       }
       
-      console.log(' Auth state updated successfully:', user.email);
+      console.log('Auth state updated successfully:', user.email);
     }
   }
 
   private hasValidToken(): boolean {
     const token = this.getToken();
     if (!token) {
-      console.log(' No token found');
       return false;
     }
     
     try {
-      
       const tokenParts = token.split('.');
       if (tokenParts.length !== 3) {
-        console.warn(' Invalid token structure');
+        console.warn('Invalid token structure');
         return false;
       }
-      
       
       const payload = tokenParts[1];
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
@@ -389,30 +386,21 @@ export class AuthService {
       const decodedPayload = atob(paddedBase64);
       const payloadObj = JSON.parse(decodedPayload);
       
-     
       if (!payloadObj.exp) {
-        console.warn(' Token has no expiration - assuming valid');
         return true;
       }
       
       const currentTime = Math.floor(Date.now() / 1000);
       const isValid = payloadObj.exp > currentTime;
       
-      console.log(`Token validation:`, {
-        expires: new Date(payloadObj.exp * 1000),
-        current: new Date(currentTime * 1000),
-        isValid: isValid
-      });
-      
       if (!isValid) {
-        console.log(' Token expired');
-        return false;
+        console.log('Token expired');
       }
       
-      return true;
+      return isValid;
       
     } catch (error) {
-      console.error(' Token validation error:', error);
+      console.error('Token validation error:', error);
       return false;
     }
   }
@@ -421,20 +409,13 @@ export class AuthService {
     const user = this.getCurrentUser();
     const token = this.getToken();
     
-    console.log(' Initializing auth state:', {
-      hasUser: !!user,
-      hasToken: !!token,
-      userEmail: user?.email
-    });
-    
     let isAuthenticated = false;
     
     if (user && token) {
       isAuthenticated = this.hasValidToken();
-      console.log(' Token validation result:', isAuthenticated);
       
       if (!isAuthenticated) {
-        console.warn(' Token invalid during initialization - clearing storage');
+        console.warn('Token invalid during initialization - clearing storage');
         this.clearAllStorage();
         this.currentUserSubject.next(null);
         this.isAuthenticatedSubject.next(false);
@@ -442,7 +423,7 @@ export class AuthService {
       }
     } else {
       if (user && !token) {
-        console.warn(' Inconsistent state: user data but no token');
+        console.warn('Inconsistent state: user data but no token');
         this.clearAllStorage();
       }
       isAuthenticated = false;
