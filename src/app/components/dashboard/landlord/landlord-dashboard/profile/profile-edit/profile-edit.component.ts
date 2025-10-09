@@ -102,7 +102,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     const token = this.authService.getToken();
     
     if (!currentUser || !token) {
-      console.error('No user or token found, redirecting to login');
+      console.error('❌ No user or token found, redirecting to login');
       this.snackBar.open('Please log in to continue', 'Close', { 
         duration: 3000 
       });
@@ -127,7 +127,8 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.loadProfilePicture();
           this.updateLocalUserData(response.user);
         } else {
-          this.snackBar.open('Failed to load profile data', 'Close', { duration: 3000 });
+          console.warn('⚠️ API response unsuccessful, loading from local storage');
+          this.snackBar.open('Failed to load profile data from server', 'Close', { duration: 3000 });
           this.loadUserDataFromLocalStorage();
         }
       },
@@ -136,6 +137,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         console.error('❌ Error loading user data from API:', error);
         
         if (error.status === 401 || error.status === 403) {
+          console.error('🔐 Authentication error, redirecting to login');
           this.snackBar.open('Authentication failed. Please log in again.', 'Login', { 
             duration: 5000 
           }).onAction().subscribe(() => {
@@ -143,7 +145,8 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           });
           this.router.navigate(['/auth/login']);
         } else {
-          this.snackBar.open('Error loading profile data', 'Close', { duration: 3000 });
+          console.warn('⚠️ Network or server error, loading from local storage');
+          this.snackBar.open('Error loading profile data from server', 'Close', { duration: 3000 });
           this.loadUserDataFromLocalStorage();
         }
       }
