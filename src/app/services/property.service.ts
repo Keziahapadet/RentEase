@@ -20,18 +20,61 @@ export class PropertyService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  
+  // UPDATED: Enhanced debugging and token validation
   getCurrentUserProfile(): Observable<ApiResponse> {
+    // Validate token first
+    const token = this.authService.getToken();
+    if (!this.isValidToken(token)) {
+      console.error('❌ Invalid token, redirecting to login');
+      this.authService.logout();
+      return throwError(() => new Error('Invalid token'));
+    }
+
     const httpOptions = { headers: this.createHeaders() };
-    console.log('PropertyService - Fetching user profile data');
+    
+    console.log('🔐 PropertyService - Profile Request Debug:');
+    console.log('Endpoint:', `${this.apiUrl}/api/profile`);
+    console.log('Headers:', httpOptions.headers);
 
     return this.http.get<ApiResponse>(
       `${this.apiUrl}/api/profile`,
       httpOptions
     ).pipe(
-      tap(response => console.log('User profile response:', response)),
+      tap(response => console.log('✅ User profile API response:', response)),
       catchError(this.handleError)
     );
+  }
+
+  // NEW: Token validation method
+  private isValidToken(token: string | null): boolean {
+    if (!token) {
+      console.log('❌ No token found');
+      return false;
+    }
+
+    try {
+      // Check if token is a valid JWT format
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) {
+        console.log('❌ Invalid token structure');
+        return false;
+      }
+
+      // Try to decode the payload to check expiration
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      if (payload.exp && payload.exp < currentTime) {
+        console.log('❌ Token expired');
+        return false;
+      }
+
+      console.log('✅ Token is valid');
+      return true;
+    } catch (error) {
+      console.log('❌ Token validation error:', error);
+      return false;
+    }
   }
 
   updateUserProfile(profileData: any): Observable<ApiResponse> {
@@ -48,7 +91,6 @@ export class PropertyService {
     );
   }
 
- 
   getUserProfileById(userId: string): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log(`PropertyService - Fetching user profile for ID: ${userId}`);
@@ -62,7 +104,6 @@ export class PropertyService {
     );
   }
 
- 
   getProfilePicture(): Observable<ProfilePictureResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log('PropertyService - Fetching profile picture');
@@ -75,7 +116,6 @@ export class PropertyService {
       catchError(this.handleError)
     );
   }
-
 
   uploadProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
@@ -95,7 +135,6 @@ export class PropertyService {
     );
   }
 
- 
   updateProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
     formData.append('picture', file);
@@ -127,7 +166,6 @@ export class PropertyService {
     );
   }
 
-  
   createProperty(request: PropertyRequest): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
@@ -197,7 +235,6 @@ export class PropertyService {
     );
   }
 
- 
   updateProperty(propertyId: string, request: PropertyRequest): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
@@ -220,7 +257,6 @@ export class PropertyService {
     );
   }
 
- 
   deleteProperty(propertyId: string): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     console.log(`PropertyService - Deleting property: ${propertyId}`);
@@ -233,7 +269,6 @@ export class PropertyService {
       catchError(this.handleError)
     );
   }
-
 
   getUnitsByPropertyId(propertyId: string): Observable<Unit[]> {
     const httpOptions = { headers: this.createHeaders() };
@@ -268,7 +303,6 @@ export class PropertyService {
     );
   }
 
- 
   getPropertyUnits(propertyId: string): Observable<Unit[]> {
     return this.getUnitsByPropertyId(propertyId);
   }
@@ -296,7 +330,6 @@ export class PropertyService {
     );
   }
 
-  
   updateUnit(propertyId: string, unitId: string, unit: Unit): Observable<Unit> {
     const httpOptions = { headers: this.createHeaders() };
 
@@ -333,7 +366,6 @@ export class PropertyService {
     );
   }
 
- 
   getDashboardStats(): Observable<any> {
     const httpOptions = { headers: this.createHeaders() };
     console.log('PropertyService - Fetching dashboard statistics');
@@ -347,7 +379,6 @@ export class PropertyService {
     );
   }
 
-  
   getPropertyStats(propertyId: string): Observable<any> {
     const httpOptions = { headers: this.createHeaders() };
     console.log(`PropertyService - Fetching stats for property: ${propertyId}`);
@@ -361,14 +392,12 @@ export class PropertyService {
     );
   }
 
-
   private createHeaders(): HttpHeaders {
     return this.authService.getAuthHeaders();
   }
 
- 
   private handleError = (error: HttpErrorResponse): Observable<never> => {
-    console.error('PropertyService Error:', error);
+    console.error('🔴 PropertyService Error:', error);
     console.error('Error Status:', error.status);
     console.error('Error Message:', error.message);
     console.error('Error Body:', error.error);
@@ -382,18 +411,16 @@ export class PropertyService {
         case 0:
           errorMessage = 'Network error. Please check your internet connection.';
           break;
-        case 400:
-          errorMessage = error.error?.message || 'Bad request. Please check your input.';
-          break;
         case 401:
           errorMessage = 'Authentication failed. Please log in again.';
-          
+          console.log('🔄 401 Error - Token might be invalid or endpoint wrong');
           break;
         case 403:
           errorMessage = 'You do not have permission to perform this action.';
           break;
         case 404:
           errorMessage = 'The requested resource was not found.';
+          console.log('🔍 404 Error - Endpoint might not exist');
           break;
         case 409:
           errorMessage = error.error?.message || 'A resource with this information already exists.';
@@ -419,13 +446,11 @@ export class PropertyService {
     }));
   };
 
- 
   canManageProperties(): boolean {
     const userRole = this.authService.getCurrentUser()?.role || '';
     const allowedRoles = ['landlord', 'admin', 'caretaker'];
     return allowedRoles.includes(userRole.toLowerCase());
   }
-
 
   validatePropertyData(data: any): string[] {
     const errors: string[] = [];
@@ -461,7 +486,6 @@ export class PropertyService {
     return errors;
   }
 
- 
   validateUnitData(unit: any): string[] {
     const errors: string[] = [];
 
@@ -494,7 +518,6 @@ export class PropertyService {
     return errors;
   }
 
- 
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -502,7 +525,6 @@ export class PropertyService {
     }).format(amount);
   }
 
-  
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
