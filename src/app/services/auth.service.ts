@@ -264,14 +264,41 @@ export class AuthService {
     return this.hasValidToken();
   }
 
+  // UPDATED: Enhanced getAuthHeaders with better token handling
   getAuthHeaders(): HttpHeaders {
     const token = this.getToken();
-    return token
-      ? new HttpHeaders({ 
-          'Authorization': `Bearer ${token}`, 
-          'Content-Type': 'application/json' 
-        })
-      : new HttpHeaders({ 'Content-Type': 'application/json' });
+    
+    console.log('🔐 DEBUG - Creating auth headers:');
+    console.log('Token exists:', !!token);
+    console.log('Token value:', token);
+    
+    if (!token) {
+      console.warn('❌ No token available for auth headers');
+      return new HttpHeaders({ 'Content-Type': 'application/json' });
+    }
+
+    // Clean the token - remove any quotes or extra spaces
+    let cleanToken = token.trim();
+    
+    // Remove surrounding quotes if present
+    if (cleanToken.startsWith('"') && cleanToken.endsWith('"')) {
+      cleanToken = cleanToken.slice(1, -1);
+    }
+    if (cleanToken.startsWith("'") && cleanToken.endsWith("'")) {
+      cleanToken = cleanToken.slice(1, -1);
+    }
+    
+    // Ensure Bearer prefix
+    if (!cleanToken.startsWith('Bearer ')) {
+      cleanToken = `Bearer ${cleanToken}`;
+    }
+    
+    console.log('🔐 Final token for headers:', cleanToken);
+    
+    return new HttpHeaders({ 
+      'Authorization': cleanToken,
+      'Content-Type': 'application/json' 
+    });
   }
 
   hasRole(role: UserRole | string): boolean {
@@ -369,7 +396,7 @@ export class AuthService {
       }
       
       const currentTime = Math.floor(Date.now() / 1000);
-      const isValid = payloadObj.exp > currentTime; // FIXED: Remove the +30
+      const isValid = payloadObj.exp > currentTime;
       
       console.log(`🔐 Token validation:`, {
         expires: new Date(payloadObj.exp * 1000),
@@ -379,7 +406,6 @@ export class AuthService {
       
       if (!isValid) {
         console.log('❌ Token expired');
-        // Don't clear storage here - let the component handle it gracefully
         return false;
       }
       
