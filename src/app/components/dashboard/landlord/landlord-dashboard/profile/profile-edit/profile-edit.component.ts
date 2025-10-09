@@ -634,4 +634,4 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   get fullName() { return this.profileForm.get('fullName'); }
   get email() { return this.profileForm.get('email'); }
   get phoneNumber() { return this.profileForm.get('phoneNumber'); }
-  get bio() { return this.profileForm.get('bio'); }
+  get bio() { return this.profileForm.get('bio'); }}
