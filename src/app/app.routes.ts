@@ -41,7 +41,7 @@ export const routes: Routes = [
   
   {
     path: 'auth',
-    canActivate: [authRedirectGuard],
+    // canActivate: [authRedirectGuard],
     children: [
       { path: 'registration', component: RegistrationComponent },
       { path: 'login', component: LoginComponent },
