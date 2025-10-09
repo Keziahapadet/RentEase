@@ -1,5 +1,5 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse, HttpEvent, HttpInterceptor, HttpHandler, HttpRequest } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -73,12 +73,11 @@ export class AuthService {
 
   private clearAllStorage(): void {
     if (!this.isBrowser) return;
-    const keys = ['authToken', 'refreshToken', 'userData'];
+    const keys = ['authToken', 'refreshToken', 'userData', 'profileImage'];
     keys.forEach(key => this.removeFromStorage(key));
   }
 
   clearCorruptedStorage(): void {
-    console.log('Clearing corrupted storage...');
     this.clearAllStorage();
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
@@ -103,7 +102,6 @@ export class AuthService {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
       tap(res => {
-        console.log('Registration response:', res);
         if (res.success && res.user) {
           const tempUser = {
             ...res.user,
@@ -114,7 +112,6 @@ export class AuthService {
             sessionStorage.setItem('pendingUser', JSON.stringify(tempUser));
             sessionStorage.setItem('pendingEmail', normalizedData.email);
           }
-          console.log('User registered, needs verification');
         }
       }),
       catchError(this.handleError)
@@ -138,7 +135,6 @@ export class AuthService {
   }
 
   verifyPasswordResetOtp(request: VerifyPasswordResetOtpRequest): Observable<ApiResponse> {
-    console.log('=== VERIFY PASSWORD RESET OTP ===', request);
     const normalizedRequest = {
       email: request.email.trim().toLowerCase(),
       otpCode: request.otpCode.toString().trim()
@@ -148,10 +144,7 @@ export class AuthService {
       `${this.apiUrl}/verify-reset-otp`,
       normalizedRequest,
       { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
-    ).pipe(
-      tap(res => console.log('=== OTP VERIFICATION SUCCESS ===', res)),
-      catchError(this.handlePasswordResetError)
-    );
+    ).pipe(catchError(this.handlePasswordResetError));
   }
 
   resetPassword(request: ResetPasswordRequest): Observable<ApiResponse> {
@@ -193,7 +186,6 @@ export class AuthService {
             const isPermanent = !!localStorage.getItem('userData');
             this.setInStorage('userData', JSON.stringify(updatedUser), isPermanent);
             this.currentUserSubject.next(updatedUser);
-            console.log('Phone number updated:', request.newPhoneNumber);
           }
         }
       }),
@@ -202,18 +194,13 @@ export class AuthService {
   }
 
   sendOtp(request: OtpRequest): Observable<OtpResponse> {
-    console.log('=== SEND OTP REQUEST ===', request);
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
     return this.http.post<OtpResponse>(`${this.apiUrl}/send-otp`, cleanRequest, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(
-      tap(res => console.log('=== OTP SENT SUCCESSFULLY ===', res)),
-      catchError(err => this.handleError(err))
-    );
+    }).pipe(catchError(err => this.handleError(err)));
   }
 
   verifyOtp(request: OtpVerifyRequest): Observable<OtpResponse> {
-    console.log('=== VERIFY OTP REQUEST ===', request);
     const cleanRequest = {
       email: request.email.trim().toLowerCase(),
       otpCode: request.otpCode.toString().trim().toUpperCase(),
@@ -223,7 +210,6 @@ export class AuthService {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
       tap(res => {
-        console.log('=== VERIFY OTP SUCCESS ===', res);
         if (res.success && res.token) {
           this.handleAuthSuccess({
             token: res.token,
@@ -242,17 +228,13 @@ export class AuthService {
   }
 
   resendOtp(request: OtpRequest): Observable<OtpResponse> {
-    console.log('=== RESEND OTP REQUEST ===', request);
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
     return this.http.post<OtpResponse>(`${this.apiUrl}/resend-otp`, cleanRequest, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(
-      tap(res => console.log('=== OTP RESENT SUCCESSFULLY ===', res)),
-      catchError(err => this.handleError(err))
-    );
+    }).pipe(catchError(err => this.handleError(err)));
   }
 
-  getToken(): string | null { 
+  getToken(): string | null {
     const token = this.getFromStorage('authToken');
     if (!token) return null;
     
@@ -264,7 +246,7 @@ export class AuthService {
       cleanToken = cleanToken.slice(1, -1);
     }
     if (cleanToken.startsWith('Bearer ')) {
-      cleanToken = cleanToken.substring(7);
+      cleanToken = cleanToken.substring(7).trim();
     }
     
     return cleanToken;
@@ -273,7 +255,12 @@ export class AuthService {
   getCurrentUser(): User | null {
     const userData = this.getFromStorage('userData');
     if (!userData) return null;
-    try { return JSON.parse(userData); } catch { this.removeFromStorage('userData'); return null; }
+    try { 
+      return JSON.parse(userData); 
+    } catch { 
+      this.removeFromStorage('userData'); 
+      return null; 
+    }
   }
 
   isAuthenticated(): boolean { 
@@ -284,7 +271,6 @@ export class AuthService {
     const token = this.getToken();
     
     if (!token) {
-      console.warn('No token available for auth headers');
       return new HttpHeaders(
         includeContentType ? { 'Content-Type': 'application/json' } : {}
       );
@@ -350,8 +336,11 @@ export class AuthService {
     }
 
     if (token) {
-      this.setInStorage('authToken', token, rememberMe);
-      console.log('Token saved successfully');
+      let cleanToken = token.trim();
+      if (cleanToken.startsWith('Bearer ')) {
+        cleanToken = cleanToken.substring(7).trim();
+      }
+      this.setInStorage('authToken', cleanToken, rememberMe);
     }
 
     if (user) {
@@ -362,23 +351,16 @@ export class AuthService {
       if (user.verified || user.emailVerified) {
         this.clearPendingVerification();
       }
-      
-      console.log('Auth state updated successfully:', user.email);
     }
   }
 
   private hasValidToken(): boolean {
     const token = this.getToken();
-    if (!token) {
-      return false;
-    }
+    if (!token) return false;
     
     try {
       const tokenParts = token.split('.');
-      if (tokenParts.length !== 3) {
-        console.warn('Invalid token structure');
-        return false;
-      }
+      if (tokenParts.length !== 3) return false;
       
       const payload = tokenParts[1];
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
@@ -386,21 +368,12 @@ export class AuthService {
       const decodedPayload = atob(paddedBase64);
       const payloadObj = JSON.parse(decodedPayload);
       
-      if (!payloadObj.exp) {
-        return true;
-      }
+      if (!payloadObj.exp) return true;
       
       const currentTime = Math.floor(Date.now() / 1000);
-      const isValid = payloadObj.exp > currentTime;
+      return payloadObj.exp > currentTime;
       
-      if (!isValid) {
-        console.log('Token expired');
-      }
-      
-      return isValid;
-      
-    } catch (error) {
-      console.error('Token validation error:', error);
+    } catch {
       return false;
     }
   }
@@ -415,7 +388,6 @@ export class AuthService {
       isAuthenticated = this.hasValidToken();
       
       if (!isAuthenticated) {
-        console.warn('Token invalid during initialization - clearing storage');
         this.clearAllStorage();
         this.currentUserSubject.next(null);
         this.isAuthenticatedSubject.next(false);
@@ -423,7 +395,6 @@ export class AuthService {
       }
     } else {
       if (user && !token) {
-        console.warn('Inconsistent state: user data but no token');
         this.clearAllStorage();
       }
       isAuthenticated = false;
@@ -431,11 +402,6 @@ export class AuthService {
     
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(isAuthenticated);
-    
-    console.log('Auth state initialized:', { 
-      user: user?.email, 
-      isAuthenticated 
-    });
   }
 
   private handlePasswordResetError = (error: HttpErrorResponse): Observable<never> => {
@@ -457,7 +423,6 @@ export class AuthService {
       message = error.error.message;
     }
     
-    console.error('Password Reset OTP Error:', error);
     return throwError(() => new Error(message));
   };
 
@@ -471,7 +436,6 @@ export class AuthService {
     else if (error.status >= 500) message = 'Server error during OTP operation.';
     else if (error.error?.message) message = error.error.message;
     
-    console.error('OTP Error:', error);
     return throwError(() => new Error(message));
   };
 
@@ -494,20 +458,6 @@ export class AuthService {
       }
     }
     
-    console.error('AuthService Error:', error);
     return throwError(() => new Error(message));
   };
-
-  getDebugInfo(): any {
-    return {
-      apiUrl: this.apiUrl,
-      currentUser: this.getCurrentUser(),
-      isAuthenticated: this.isAuthenticated(),
-      hasToken: !!this.getToken(),
-      tokenValid: this.hasValidToken(),
-      pendingUser: this.isBrowser ? sessionStorage.getItem('pendingUser') : null,
-      pendingEmail: this.isBrowser ? sessionStorage.getItem('pendingEmail') : null,
-      timestamp: new Date().toISOString()
-    };
-  }
 }

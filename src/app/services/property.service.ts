@@ -341,8 +341,7 @@ export class PropertyService {
           errorMessage = 'Network error. Please check your internet connection.';
           break;
         case 401:
-          errorMessage = 'Session expired. Please log in again.';
-          this.authService.logout();
+          errorMessage = 'Authentication failed. Your session may have expired. Please try logging out and back in.';
           break;
         case 403:
           errorMessage = 'You do not have permission to perform this action.';
@@ -354,10 +353,10 @@ export class PropertyService {
           errorMessage = error.error?.message || 'A resource with this information already exists.';
           break;
         case 413:
-          errorMessage = 'File is too large. Please try a smaller image.';
+          errorMessage = 'File is too large. Please try a smaller image (max 10MB).';
           break;
         case 415:
-          errorMessage = 'Unsupported file type. Please use JPEG or PNG.';
+          errorMessage = 'Unsupported file type. Please use JPEG, PNG, or WebP.';
           break;
         case 422:
           errorMessage = error.error?.message || 'Validation error. Please check your input.';

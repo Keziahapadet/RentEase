@@ -225,6 +225,19 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const token = this.authService.getToken();
+    const user = this.authService.getCurrentUser();
+    
+    if (!token || !user) {
+      this.snackBar.open('Please log in again to upload images', 'Login', { 
+        duration: 5000,
+        panelClass: ['error-snackbar']
+      }).onAction().subscribe(() => {
+        this.authService.logout();
+      });
+      return;
+    }
+
     this.isUploadingPhoto = true;
 
     this.compressImage(file, 800, 0.8).then(compressedFile => {
@@ -257,7 +270,10 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.isUploadingPhoto = false;
           
           let errorMessage = 'Failed to upload profile photo';
-          if (error.status === 413) {
+          if (error.status === 401) {
+            errorMessage = 'Session expired. Please log in again to upload photos.';
+            setTimeout(() => this.authService.logout(), 2000);
+          } else if (error.status === 413) {
             errorMessage = 'Image file is too large. Please try a smaller image.';
           } else if (error.status === 415) {
             errorMessage = 'Unsupported image format. Please use JPEG or PNG.';
@@ -619,4 +635,3 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   get email() { return this.profileForm.get('email'); }
   get phoneNumber() { return this.profileForm.get('phoneNumber'); }
   get bio() { return this.profileForm.get('bio'); }
-}
