@@ -63,6 +63,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUserData();
+    this.propertyService.testProfilePictureEndpoints();
   }
 
   ngOnDestroy(): void {
@@ -249,7 +250,9 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.isUploadingPhoto = false;
           
           let errorMessage = 'Failed to upload profile photo';
-          if (error.status === 401) {
+          if (error.status === 500) {
+            errorMessage = 'Server error - profile picture feature temporarily unavailable';
+          } else if (error.status === 401) {
             errorMessage = 'Session expired';
             setTimeout(() => this.authService.logout(), 2000);
           } else if (error.status === 413) {

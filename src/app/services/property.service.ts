@@ -400,13 +400,26 @@ export class PropertyService {
   }
 
   private handleProfileError = (error: HttpErrorResponse): Observable<never> => {
+    console.error('Profile Picture Error Details:', {
+      status: error.status,
+      statusText: error.statusText,
+      url: error.url,
+      error: error.error
+    });
+    
     let errorMessage = 'Profile picture operation failed';
     
-    if (error.status === 401) {
+    if (error.status === 500) {
+      if (error.error && typeof error.error === 'object') {
+        errorMessage = error.error.message || 'Server error processing profile picture';
+      } else if (typeof error.error === 'string') {
+        errorMessage = error.error;
+      } else {
+        errorMessage = 'Server error - please try again later';
+      }
+    } else if (error.status === 401) {
       errorMessage = 'Authentication failed';
       this.authService.logout();
-    } else if (error.status === 404) {
-      errorMessage = 'Profile picture not found';
     } else if (error.status === 413) {
       errorMessage = 'Image file is too large';
     } else if (error.status === 415) {
@@ -447,5 +460,20 @@ export class PropertyService {
     if ((this.authService as any).currentUserSubject) {
       (this.authService as any).currentUserSubject.next(user);
     }
+  }
+
+  testProfilePictureEndpoints(): void {
+    const token = this.authService.getToken();
+    if (!token) {
+      console.error('No token available for testing');
+      return;
+    }
+
+    console.log('Testing profile picture endpoints...');
+    
+    this.getProfilePicture().subscribe({
+      next: (response) => console.log('GET /api/profile/picture:', response),
+      error: (error) => console.error('GET /api/profile/picture failed:', error)
+    });
   }
 }
