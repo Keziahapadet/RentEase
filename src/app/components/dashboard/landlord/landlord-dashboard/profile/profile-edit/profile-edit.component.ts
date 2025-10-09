@@ -62,6 +62,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.debugAuthState();
     this.loadUserDataFromApi();
   }
 
@@ -69,14 +70,53 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.stopCamera();
   }
 
+  private debugAuthState(): void {
+    console.log('🔐 PROFILE EDIT - AUTH DEBUG:');
+    console.log('Current User:', this.authService.getCurrentUser());
+    console.log('Token:', this.authService.getToken());
+    console.log('Is Authenticated:', this.authService.isAuthenticated());
+    
+    // Check if we're immediately failing
+    const token = this.authService.getToken();
+    const user = this.authService.getCurrentUser();
+    
+    if (!token) {
+      console.error('❌ IMMEDIATE FAIL: No token found');
+    }
+    if (!user) {
+      console.error('❌ IMMEDIATE FAIL: No user found');
+    }
+    if (!token || !user) {
+      console.error('❌ Authentication failed - redirecting to login');
+      this.snackBar.open('Please log in to continue', 'Close', { duration: 3000 });
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    
+    console.log('✅ Auth check passed - proceeding with API call');
+  }
+
   private loadUserDataFromApi(): void {
+    // Check if user is authenticated first
+    const currentUser = this.authService.getCurrentUser();
+    const token = this.authService.getToken();
+    
+    if (!currentUser || !token) {
+      console.error('No user or token found, redirecting to login');
+      this.snackBar.open('Please log in to continue', 'Close', { 
+        duration: 3000 
+      });
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
     this.isLoadingUserData = true;
 
     this.propertyService.getCurrentUserProfile().subscribe({
       next: (response: ApiResponse) => {
         this.isLoadingUserData = false;
         if (response.success && response.user) {
-          console.log(' User data loaded from API for editing:', response.user);
+          console.log('✅ User data loaded from API for editing:', response.user);
           this.user = {
             ...response.user,
             bio: (response.user as any).bio || '' 
@@ -93,14 +133,15 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isLoadingUserData = false;
-        console.error('Error loading user data from API:', error);
+        console.error('❌ Error loading user data from API:', error);
         
-        if (error.status === 401) {
-          this.snackBar.open('Session expired. Please log in again.', 'Login', { 
+        if (error.status === 401 || error.status === 403) {
+          this.snackBar.open('Authentication failed. Please log in again.', 'Login', { 
             duration: 5000 
           }).onAction().subscribe(() => {
             this.authService.logout();
           });
+          this.router.navigate(['/auth/login']);
         } else {
           this.snackBar.open('Error loading profile data', 'Close', { duration: 3000 });
           this.loadUserDataFromLocalStorage();
@@ -122,7 +163,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       this.populateForm();
       this.loadProfilePicture();
       
-      console.log(' Loaded user from local storage for editing:', this.user);
+      console.log('⚠️ Loaded user from local storage for editing:', this.user);
     } else {
       console.warn('No user data available');
       this.router.navigate(['/auth/login']);
@@ -135,21 +176,21 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         if (response.success && response.pictureUrl) {
           this.profileImage = response.pictureUrl;
           localStorage.setItem('profileImage', response.pictureUrl);
-          console.log(' Profile picture loaded from API');
+          console.log('✅ Profile picture loaded from API');
         } else {
           this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
           console.log('Using generated avatar');
         }
       },
       error: (error: any) => {
-        console.error(' Error loading profile picture:', error);
+        console.error('❌ Error loading profile picture:', error);
         const cachedImage = localStorage.getItem('profileImage');
         if (cachedImage) {
           this.profileImage = cachedImage;
           console.log('Using cached profile picture');
         } else {
           this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
-          console.log(' Using generated avatar (fallback)');
+          console.log('Using generated avatar (fallback)');
         }
       }
     });
@@ -206,7 +247,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     const file = event.target.files[0];
     if (!file) return;
 
-  
     if (!file.type.startsWith('image/')) {
       this.snackBar.open('Please select an image file', 'Close', { 
         duration: 3000,
@@ -215,7 +255,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       return;
     }
 
-  
     if (file.size > 10 * 1024 * 1024) {
       this.snackBar.open('Image size must be less than 10MB', 'Close', { 
         duration: 3000,
@@ -232,7 +271,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
           this.isUploadingPhoto = false;
           if (response.success) {
             this.loadProfilePicture();
-            this.snackBar.open('Profile photo updated successfully! ', 'Close', { 
+            this.snackBar.open('Profile photo updated successfully!', 'Close', { 
               duration: 2000,
               panelClass: ['success-snackbar']
             });
@@ -246,7 +285,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         },
         error: (error: any) => {
           this.isUploadingPhoto = false;
-          console.error(' Upload error:', error);
+          console.error('❌ Upload error:', error);
           this.snackBar.open('Failed to upload profile photo', 'Close', { 
             duration: 3000,
             panelClass: ['error-snackbar']
@@ -265,7 +304,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
   private compressImage(file: File, maxWidth = 800, quality = 0.8): Promise<File> {
     return new Promise((resolve, reject) => {
-     
       if (file.size < 500 * 1024) {
         resolve(file);
         return;
@@ -279,7 +317,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         let width = img.width;
         let height = img.height;
 
-        
         if (width > height && width > maxWidth) {
           height = Math.round((height * maxWidth) / width);
           width = maxWidth;
@@ -300,7 +337,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
                 type: 'image/jpeg',
                 lastModified: Date.now()
               });
-              console.log(` Image compressed: ${(file.size / 1024).toFixed(2)}KB → ${(compressedFile.size / 1024).toFixed(2)}KB`);
+              console.log(`✅ Image compressed: ${(file.size / 1024).toFixed(2)}KB → ${(compressedFile.size / 1024).toFixed(2)}KB`);
               resolve(compressedFile);
             } else {
               reject(new Error('Image compression failed'));
@@ -334,12 +371,12 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         
         if (this.videoElement && this.stream) {
           this.videoElement.srcObject = this.stream;
-          console.log(' Camera started successfully');
+          console.log('✅ Camera started successfully');
         }
       }, 100);
       
     } catch (error) {
-      console.error(' Error accessing camera:', error);
+      console.error('❌ Error accessing camera:', error);
       this.snackBar.open('Unable to access camera. Please check permissions.', 'Close', { 
         duration: 4000,
         panelClass: ['error-snackbar']
@@ -363,13 +400,13 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
   capturePhoto(): void {
     if (!this.videoElement || !this.canvasElement) {
-      console.error(' Video or canvas element not found');
+      console.error('❌ Video or canvas element not found');
       return;
     }
 
     const context = this.canvasElement.getContext('2d');
     if (!context) {
-      console.error(' Could not get canvas context');
+      console.error('❌ Could not get canvas context');
       return;
     }
 
@@ -377,7 +414,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     let width = this.videoElement.videoWidth;
     let height = this.videoElement.videoHeight;
 
-  
     if (width > height && width > maxDimension) {
       height = Math.round((height * maxDimension) / width);
       width = maxDimension;
@@ -396,7 +432,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         const file = new File([blob], `profile-capture-${Date.now()}.jpg`, { 
           type: 'image/jpeg' 
         });
-        console.log(' Photo captured:', (blob.size / 1024).toFixed(2), 'KB');
+        console.log('✅ Photo captured:', (blob.size / 1024).toFixed(2), 'KB');
         this.uploadCapturedPhoto(file);
       }
     }, 'image/jpeg', 0.85);
@@ -425,7 +461,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isUploadingPhoto = false;
-        console.error(' Upload error:', error);
+        console.error('❌ Upload error:', error);
         this.snackBar.open('Failed to upload captured photo', 'Close', { 
           duration: 3000,
           panelClass: ['error-snackbar']
@@ -464,7 +500,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isDeletingPhoto = false;
-        console.error('Delete error:', error);
+        console.error('❌ Delete error:', error);
         this.snackBar.open('Failed to remove profile photo', 'Close', { 
           duration: 3000,
           panelClass: ['error-snackbar']
@@ -506,7 +542,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.authService.updatePhoneNumber(updatePhoneRequest).subscribe({
       next: (response: ApiResponse) => {
         if (response.success) {
-          console.log(' Phone number updated');
+          console.log('✅ Phone number updated');
           this.updateUserProfile();
         } else {
           this.isSubmitting = false;
@@ -518,7 +554,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         }
       },
       error: (error: any) => {
-        console.error(' Update phone error:', error);
+        console.error('❌ Update phone error:', error);
         this.isSubmitting = false;
         this.snackBar.open(
           error.message || 'Failed to update phone number',
@@ -552,7 +588,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
         }
       },
       error: (error: any) => {
-        console.error('Update profile error:', error);
+        console.error('❌ Update profile error:', error);
         this.isSubmitting = false;
         this.snackBar.open(
           'Failed to update profile. Please try again.',
@@ -566,7 +602,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   private handleSuccess(updatedUser: User): void {
     this.updateLocalUserData(updatedUser);
     
-    this.snackBar.open('Profile updated successfully! ', 'Close', { 
+    this.snackBar.open('Profile updated successfully!', 'Close', { 
       duration: 2000,
       panelClass: ['success-snackbar']
     });
@@ -583,7 +619,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     const isPermanent = !!localStorage.getItem('userData');
     const storage = isPermanent ? localStorage : sessionStorage;
     storage.setItem('userData', JSON.stringify(user));
-    console.log(' User data updated in local storage:', user);
+    console.log('✅ User data updated in local storage:', user);
     
     if ((this.authService as any).currentUserSubject) {
       (this.authService as any).currentUserSubject.next(user);
@@ -608,7 +644,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     return this.profileImage?.includes('data:image/svg+xml') || false;
   }
 
- 
   get fullName() { return this.profileForm.get('fullName'); }
   get email() { return this.profileForm.get('email'); }
   get phoneNumber() { return this.profileForm.get('phoneNumber'); }
