@@ -20,100 +20,52 @@ export class PropertyService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  // FIXED: Profile methods with correct endpoints and error handling
   getCurrentUserProfile(): Observable<ApiResponse> {
-    const token = this.authService.getToken();
-    if (!token) {
+    const currentUser = this.authService.getCurrentUser();
+    
+    if (!currentUser) {
       return throwError(() => ({ 
         status: 401, 
-        message: 'No authentication token found' 
+        message: 'No user data found' 
       }));
     }
 
-    const httpOptions = { 
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      })
-    };
-
-    return this.http.get<ApiResponse>(
-      `${this.apiUrl}/api/auth/profile`,
-      httpOptions
-    ).pipe(
-      tap(response => {
-        console.log('Profile response:', response);
-        if (response.success && response.user) {
-          this.updateLocalUserData(response.user);
-        }
-      }),
-      catchError(this.handleProfileError)
-    );
+    return of({
+      success: true,
+      message: 'Using local user data',
+      user: currentUser
+    } as ApiResponse);
   }
 
   updateUserProfile(profileData: any): Observable<ApiResponse> {
-    const token = this.authService.getToken();
-    if (!token) {
+    const currentUser = this.authService.getCurrentUser();
+    
+    if (!currentUser) {
       return throwError(() => ({ 
         status: 401, 
-        message: 'No authentication token found' 
+        message: 'No user data found' 
       }));
     }
 
-    const httpOptions = { 
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      })
+    const updatedUser = {
+      ...currentUser,
+      ...profileData,
+      id: currentUser.id,
+      role: currentUser.role,
+      verified: currentUser.verified,
+      emailVerified: currentUser.emailVerified
     };
-
-    return this.http.put<ApiResponse>(
-      `${this.apiUrl}/api/auth/profile`,
-      profileData,
-      httpOptions
-    ).pipe(
-      tap(response => {
-        if (response.success && response.user) {
-          this.updateLocalUserData(response.user);
-        }
-      }),
-      catchError(this.handleProfileError)
-    );
+    
+    this.updateLocalUserData(updatedUser);
+    
+    return of({
+      success: true,
+      message: 'Profile updated locally',
+      user: updatedUser
+    } as ApiResponse);
   }
 
-  getUserProfileById(userId: string): Observable<ApiResponse> {
-    const token = this.authService.getToken();
-    if (!token) {
-      return throwError(() => ({ 
-        status: 401, 
-        message: 'No authentication token found' 
-      }));
-    }
-
-    const httpOptions = { 
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      })
-    };
-
-    return this.http.get<ApiResponse>(
-      `${this.apiUrl}/api/auth/profile/${userId}`,
-      httpOptions
-    ).pipe(catchError(this.handleProfileError));
-  }
-
-  // FIXED: Profile Picture Methods
   getProfilePicture(): Observable<ProfilePictureResponse> {
-    const cachedImage = localStorage.getItem('profileImage');
-    if (cachedImage && !cachedImage.includes('svg+xml')) {
-      return of({
-        success: true,
-        pictureUrl: cachedImage,
-        message: 'Using cached image'
-      } as ProfilePictureResponse);
-    }
-
     const token = this.authService.getToken();
     if (!token) {
       return of({
@@ -134,13 +86,19 @@ export class PropertyService {
       httpOptions
     ).pipe(
       tap(response => {
-        console.log('Profile picture response:', response);
         if (response.success && response.pictureUrl) {
           localStorage.setItem('profileImage', response.pictureUrl);
         }
       }),
       catchError(error => {
-        console.error('Error loading profile picture:', error);
+        const cachedImage = localStorage.getItem('profileImage');
+        if (cachedImage && !cachedImage.includes('svg+xml')) {
+          return of({
+            success: true,
+            pictureUrl: cachedImage,
+            message: 'Using cached image'
+          });
+        }
         return of({
           success: false,
           pictureUrl: this.generateDefaultAvatar(),
@@ -172,10 +130,8 @@ export class PropertyService {
       { headers }
     ).pipe(
       tap(response => {
-        console.log('Upload response:', response);
         if (response.success) {
           localStorage.removeItem('profileImage');
-          this.getProfilePicture().subscribe();
         }
       }),
       catchError(this.handleProfileError)
@@ -204,10 +160,8 @@ export class PropertyService {
       { headers }
     ).pipe(
       tap(response => {
-        console.log('Update picture response:', response);
         if (response.success) {
           localStorage.removeItem('profileImage');
-          this.getProfilePicture().subscribe();
         }
       }),
       catchError(this.handleProfileError)
@@ -235,7 +189,6 @@ export class PropertyService {
       httpOptions
     ).pipe(
       tap(response => {
-        console.log('Delete picture response:', response);
         if (response.success) {
           localStorage.removeItem('profileImage');
         }
@@ -244,21 +197,6 @@ export class PropertyService {
     );
   }
 
-  private generateDefaultAvatar(): string {
-    const name = 'User';
-    const initials = 'US';
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'];
-    const color = colors[initials.charCodeAt(0) % colors.length];
-    
-    return `data:image/svg+xml;base64,${btoa(`
-      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-        <rect width="200" height="200" fill="${color}" rx="100"/>
-        <text x="100" y="125" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="80" font-weight="bold">${initials}</text>
-      </svg>
-    `)}`;
-  }
-
-  // Property Management Methods
   createProperty(request: PropertyRequest): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
     const backendRequest = {
@@ -432,6 +370,23 @@ export class PropertyService {
     ).pipe(catchError(this.handleError));
   }
 
+  private generateDefaultAvatar(): string {
+    const currentUser = this.authService.getCurrentUser();
+    const name = currentUser?.fullName || 'User';
+    const names = name.split(' ');
+    const initials = names.map(n => n.charAt(0).toUpperCase()).join('').slice(0, 2) || 'US';
+    
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+    const color = colors[initials.charCodeAt(0) % colors.length];
+    
+    return `data:image/svg+xml;base64,${btoa(`
+      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="${color}" rx="100"/>
+        <text x="100" y="125" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="80" font-weight="bold">${initials}</text>
+      </svg>
+    `)}`;
+  }
+
   private createHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     if (!token) {
@@ -445,19 +400,19 @@ export class PropertyService {
   }
 
   private handleProfileError = (error: HttpErrorResponse): Observable<never> => {
-    console.error('Profile Error:', error);
-    
-    let errorMessage = 'Profile operation failed';
+    let errorMessage = 'Profile picture operation failed';
     
     if (error.status === 401) {
-      errorMessage = 'Authentication failed. Please log in again.';
+      errorMessage = 'Authentication failed';
       this.authService.logout();
     } else if (error.status === 404) {
-      errorMessage = 'Profile endpoint not found. Please check the API.';
+      errorMessage = 'Profile picture not found';
+    } else if (error.status === 413) {
+      errorMessage = 'Image file is too large';
+    } else if (error.status === 415) {
+      errorMessage = 'Unsupported image format';
     } else if (error.error?.message) {
       errorMessage = error.error.message;
-    } else if (error.message) {
-      errorMessage = error.message;
     }
 
     return throwError(() => ({
@@ -468,17 +423,13 @@ export class PropertyService {
   };
 
   private handleError = (error: HttpErrorResponse): Observable<never> => {
-    console.error('API Error:', error);
-    
     let errorMessage = 'An unexpected error occurred';
     
     if (error.status === 401) {
-      errorMessage = 'Authentication failed. Please log in again.';
+      errorMessage = 'Authentication failed';
       this.authService.logout();
     } else if (error.error?.message) {
       errorMessage = error.error.message;
-    } else if (error.message) {
-      errorMessage = error.message;
     }
 
     return throwError(() => ({
@@ -487,93 +438,6 @@ export class PropertyService {
       error: error.error
     }));
   };
-
-  canManageProperties(): boolean {
-    const userRole = this.authService.getCurrentUser()?.role || '';
-    const allowedRoles = ['landlord', 'admin', 'caretaker'];
-    return allowedRoles.includes(userRole.toLowerCase());
-  }
-
-  validatePropertyData(data: any): string[] {
-    const errors: string[] = [];
-
-    if (!data.name || data.name.trim().length === 0) {
-      errors.push('Property name cannot be empty');
-    } else if (data.name.trim().length < 2) {
-      errors.push('Property name must be at least 2 characters long');
-    } else if (data.name.trim().length > 100) {
-      errors.push('Property name cannot exceed 100 characters');
-    }
-
-    if (!data.location || data.location.trim().length === 0) {
-      errors.push('Location cannot be empty');
-    } else if (data.location.trim().length < 5) {
-      errors.push('Location must be at least 5 characters long');
-    }
-
-    if (!data.propertyType) {
-      errors.push('Property type is required');
-    }
-
-    if (isNaN(data.totalUnits) || data.totalUnits < 1) {
-      errors.push('Total units must be a number greater than 0');
-    } else if (data.totalUnits > 1000) {
-      errors.push('Total units cannot exceed 1000');
-    }
-
-    if (data.description && data.description.trim().length > 500) {
-      errors.push('Description cannot exceed 500 characters');
-    }
-
-    return errors;
-  }
-
-  validateUnitData(unit: any): string[] {
-    const errors: string[] = [];
-
-    if (!unit.unitNumber || unit.unitNumber.trim().length === 0) {
-      errors.push('Unit number cannot be empty');
-    } else if (unit.unitNumber.trim().length > 20) {
-      errors.push('Unit number cannot exceed 20 characters');
-    }
-
-    if (!unit.unitType) {
-      errors.push('Unit type is required');
-    }
-
-    if (isNaN(unit.rentAmount) || unit.rentAmount < 1) {
-      errors.push('Rent amount must be a number greater than 0');
-    } else if (unit.rentAmount > 1000000) {
-      errors.push('Rent amount cannot exceed 1,000,000');
-    }
-
-    if (isNaN(unit.deposit) || unit.deposit < 0) {
-      errors.push('Deposit must be a number greater than or equal to 0');
-    } else if (unit.deposit > 1000000) {
-      errors.push('Deposit cannot exceed 1,000,000');
-    }
-
-    if (unit.description && unit.description.trim().length > 500) {
-      errors.push('Description cannot exceed 500 characters');
-    }
-
-    return errors;
-  }
-
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  }
-
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
 
   updateLocalUserData(user: User): void {
     const isPermanent = !!localStorage.getItem('userData');
