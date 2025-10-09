@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Router, ActivatedRoute ,RouterLink} from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,7 +25,7 @@ import { LoginRequest, UserRole, AuthResponse } from '../../../services/auth-int
     MatCheckboxModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    RouterLink
+  
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']

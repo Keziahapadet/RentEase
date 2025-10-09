@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router,RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -33,7 +33,7 @@ import {
     MatSelectModule,
     MatCheckboxModule,
     MatSnackBarModule,
-    RouterLink
+    
   ],
   encapsulation: ViewEncapsulation.None
 })

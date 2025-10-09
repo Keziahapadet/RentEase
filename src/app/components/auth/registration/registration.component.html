@@ -1,3 +1,4 @@
+
 <div class="register-page">
   <div class="register-card">
     <div class="logo-title">
@@ -6,7 +7,7 @@
     </div>
     <form (ngSubmit)="onSubmit()" #registrationForm="ngForm" novalidate>
       
-      <!-- Role Field -->
+     
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Role</mat-label>
         <mat-select 
@@ -24,7 +25,6 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Full Name Field -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Full Name</mat-label>
         <input 
@@ -42,7 +42,7 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Email Field -->
+  
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email</mat-label>
         <input 
@@ -60,7 +60,7 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Phone Number Field -->
+  
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Phone Number</mat-label>
         <input 
@@ -77,7 +77,7 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Password Field -->
+   
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
         <input 
@@ -103,7 +103,7 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Confirm Password Field -->
+
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Confirm Password</mat-label>
         <input 
@@ -129,8 +129,6 @@
           Passwords do not match
         </mat-error>
       </mat-form-field>
-
-      <!-- Business Access Code Field -->
       <mat-form-field *ngIf="showBusinessAccessCode()" appearance="outline" class="full-width">
         <mat-label>Business Access Code</mat-label>
         <input 
@@ -145,8 +143,6 @@
           Business access code is required
         </mat-error>
       </mat-form-field>
-
-      <!-- Terms Agreement -->
       <div class="terms-container">
         <mat-checkbox 
           [(ngModel)]="agreedToTerms" 
@@ -163,22 +159,19 @@
         </div>
       </div>
 
-      <!-- Submit Button -->
       <button 
         mat-raised-button 
         color="primary" 
         class="full-width submit-btn" 
         type="submit" 
-        [disabled]="isLoading || !isFormValid">
+        [disabled]="isLoading || !registrationForm.valid || !agreedToTerms || !passwordsMatch()">
         <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
         {{ isLoading ? 'Creating Account...' : 'Create Account' }}
       </button>
     </form>
-
-    <!-- Login Link -->
     <p class="login-link">
       Already have an account? 
-      <a [routerLink]="['/auth/login']" class="clickable-text">Login</a>
+      <a class="clickable-text" (click)="navigateToLogin()">Login</a>
     </p>
   </div>
 </div>
