@@ -31,28 +31,21 @@ import { ProfileEditComponent } from './components/dashboard/landlord/landlord-d
 import { OtpVerificationComponent } from './components/auth/otp-verification/otp-verification.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 
-
 export const routes: Routes = [
+ 
   { path: '', component: HomeComponent, pathMatch: 'full' },
-  
-  {
-    path: 'auth',
-  
-    children: [
-      { path: 'registration', component: RegistrationComponent },
-      { path: 'login', component: LoginComponent },
-      { path: 'verify-otp', component: VerifyOtpComponent },
-      { path: 'otp-verification', component: OtpVerificationComponent },
-      { path: 'forgot-password', component: ForgotPasswordComponent },
-      { path: 'reset-password', component: ResetPasswordComponent }
-    ]
-  },
-
+  { path: 'registration', component: RegistrationComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'verify-otp', component: VerifyOtpComponent },
+  {path: 'otp-verification',component :OtpVerificationComponent},
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  {path : 'reset-password',component:ResetPasswordComponent},
   { path: 'pricing', component: PricingComponent },
   { path: 'contact', component: ContactComponent },
   { path: 'about', component: AboutComponent },
   { path: 'terms', component: TermsComponent },
   { path: 'privacy', component: PrivacyComponent },
+
 
   {
     path: 'tenant-dashboard',
@@ -71,6 +64,7 @@ export const routes: Routes = [
     ]
   },
 
+
   {
     path: 'landlord-dashboard',
     component: LandlordDashboardComponent,
@@ -82,6 +76,7 @@ export const routes: Routes = [
       { path: 'profile/view', component: ProfileViewComponent },
       { path: 'profile/edit', component: ProfileEditComponent },
       
+   
       { path: 'property', redirectTo: 'property/list', pathMatch: 'full' },
       { path: 'property/create', component: PropertyCreateComponent },
       { path: 'property/list', component: PropertyListComponent },
@@ -90,15 +85,15 @@ export const routes: Routes = [
       
       { path: 'property/:propertyId/unit/create', component: PropertyCreateComponent },
       
+     
       { path: 'financials', component: FinancialsComponent },
       { path: 'financials/invoices', component: InvoicesComponent },
       { path: 'financials/payments', component: PaymentComponent },
       
+
       { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' }
     ]
   },
-
- 
 
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
   { path: 'tenant', redirectTo: '/tenant-dashboard' },
