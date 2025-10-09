@@ -137,7 +137,6 @@ export class AuthService {
     ).pipe(catchError(this.handleError));
   }
 
-  
   verifyPasswordResetOtp(request: VerifyPasswordResetOtpRequest): Observable<ApiResponse> {
     console.log('=== VERIFY PASSWORD RESET OTP ===', request);
     const normalizedRequest = {
@@ -155,13 +154,11 @@ export class AuthService {
     );
   }
 
- 
   resetPassword(request: ResetPasswordRequest): Observable<ApiResponse> {
     const normalizedRequest = {
       email: request.email.trim().toLowerCase(),
       otpCode: request.otpCode.toString().trim(),
       newPassword: request.newPassword,
-      
     };
     
     return this.http.post<ApiResponse>(
@@ -171,7 +168,6 @@ export class AuthService {
     ).pipe(catchError(this.handleError));
   }
 
- 
   changePassword(request: ChangePasswordRequest): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/change-password`,
@@ -180,7 +176,6 @@ export class AuthService {
     ).pipe(catchError(this.handleError));
   }
 
- 
   updatePhoneNumber(request: UpdatePhoneRequest): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/update-phone`,
@@ -229,7 +224,6 @@ export class AuthService {
     }).pipe(
       tap(res => {
         console.log('=== VERIFY OTP SUCCESS ===', res);
-       
         if (res.success && res.token) {
           this.handleAuthSuccess({
             token: res.token,
@@ -330,7 +324,7 @@ export class AuthService {
 
     if (token) {
       this.setInStorage('authToken', token, rememberMe);
-      console.log(' Token saved successfully');
+      console.log('🔐 Token saved successfully');
     }
 
     if (user) {
@@ -342,85 +336,98 @@ export class AuthService {
         this.clearPendingVerification();
       }
       
-      console.log('✓ Auth state updated successfully:', user.email);
+      console.log('✅ Auth state updated successfully:', user.email);
     }
   }
 
   private hasValidToken(): boolean {
     const token = this.getToken();
     if (!token) {
-      console.log(' No token found');
+      console.log('🔐 No token found');
       return false;
     }
     
     try {
-     
+      // Basic token structure validation
       const tokenParts = token.split('.');
       if (tokenParts.length !== 3) {
-        console.warn('Invalid token structure - expected 3 parts, got:', tokenParts.length);
-        this.clearCorruptedStorage();
+        console.warn('❌ Invalid token structure');
         return false;
       }
       
-    
+      // Decode payload
       const payload = tokenParts[1];
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-      
-     
       const paddedBase64 = base64 + '='.repeat((4 - base64.length % 4) % 4);
-      
       const decodedPayload = atob(paddedBase64);
       const payloadObj = JSON.parse(decodedPayload);
       
-      
+      // Check expiration
       if (!payloadObj.exp) {
-        console.warn(' Token has no expiration - assuming valid');
+        console.warn('⚠️ Token has no expiration - assuming valid');
         return true;
       }
       
-     
       const currentTime = Math.floor(Date.now() / 1000);
-      const isValid = payloadObj.exp > (currentTime + 30);
+      const isValid = payloadObj.exp > currentTime; // FIXED: Remove the +30
+      
+      console.log(`🔐 Token validation:`, {
+        expires: new Date(payloadObj.exp * 1000),
+        current: new Date(currentTime * 1000),
+        isValid: isValid
+      });
       
       if (!isValid) {
-        console.log(' Token expired at:', new Date(payloadObj.exp * 1000));
-        this.clearCorruptedStorage();
+        console.log('❌ Token expired');
+        // Don't clear storage here - let the component handle it gracefully
         return false;
       }
       
-      console.log(' Token valid until:', new Date(payloadObj.exp * 1000));
       return true;
       
     } catch (error) {
-      console.error('Token validation error:', error);
-      this.clearCorruptedStorage();
+      console.error('❌ Token validation error:', error);
       return false;
     }
   }
 
   private initializeAuthState(): void {
-    let user = this.getCurrentUser();
+    const user = this.getCurrentUser();
     const token = this.getToken();
     
-   
+    console.log('🔐 Initializing auth state:', {
+      hasUser: !!user,
+      hasToken: !!token,
+      userEmail: user?.email
+    });
+    
     let isAuthenticated = false;
+    
     if (user && token) {
       isAuthenticated = this.hasValidToken();
-    } else {
-     
-      if (user && !token) {
-        console.log('User data exists but no token - clearing storage');
+      console.log('🔐 Token validation result:', isAuthenticated);
+      
+      if (!isAuthenticated) {
+        console.warn('⚠️ Token invalid during initialization - clearing storage');
         this.clearAllStorage();
-        user = null;
+        this.currentUserSubject.next(null);
+        this.isAuthenticatedSubject.next(false);
+        return;
+      }
+    } else {
+      // Clear if we have inconsistent state
+      if (user && !token) {
+        console.warn('⚠️ Inconsistent state: user data but no token');
+        this.clearAllStorage();
       }
       isAuthenticated = false;
     }
     
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(isAuthenticated);
-    console.log('Auth state initialized:', { 
+    
+    console.log('✅ Auth state initialized:', { 
       user: user?.email, 
-      hasToken: !!token,
       isAuthenticated 
     });
   }
