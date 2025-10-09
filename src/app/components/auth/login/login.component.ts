@@ -221,12 +221,12 @@ export class LoginComponent implements OnInit {
 
   navigateToForgotPassword(): void {
     if (this.isLoading) return;
-    this.router.navigate(['/auth/forgot-password']);
+    this.router.navigate(['/forgot-password']);
   }
 
   navigateToRegister(): void {
     if (this.isLoading) return;
-    this.router.navigate(['/auth/registration']);
+    this.router.navigate(['/registration']);
   }
 
   onKeyPress(event: KeyboardEvent): void {

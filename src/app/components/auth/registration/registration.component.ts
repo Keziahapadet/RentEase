@@ -207,7 +207,7 @@ export class RegistrationComponent implements OnInit {
           
           this.showSuccess(response.message || 'Registration successful! Please check your email for verification code');
         
-          this.router.navigate(['/auth/verify-otp'], { 
+          this.router.navigate(['/verify-otp'], { 
             queryParams: { 
               email: registerRequest.email,
               userType: registerRequest.role
@@ -284,7 +284,7 @@ export class RegistrationComponent implements OnInit {
   }
 
   navigateToLogin(): void { 
-    this.router.navigate(['/auth/login']); 
+    this.router.navigate(['/login']); 
   }
   
   navigateToTerms(): void { 
