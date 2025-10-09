@@ -6,7 +6,6 @@ export interface ProfilePictureResponse {
   pictureUrl?: string;
 }
 
-
 export interface Unit {
   id: string | number;
   unitNumber: string;
@@ -14,7 +13,7 @@ export interface Unit {
   rentAmount: number;
   deposit: number;
   description?: string;
- status?: "occupied" | "vacant" | "maintenance" | "reserved" | "";
+  status?: "occupied" | "vacant" | "maintenance" | "reserved" | "";
   tenant?: {
     id?: string;
     name?: string;
@@ -112,4 +111,39 @@ export interface PaginatedResponse<T> {
 export interface SearchResponse<T> extends PaginatedResponse<T> {
   query: string;
   filters?: Record<string, any>;
+}
+
+export interface InviteDialogData {
+  type: string;
+  propertyId: string;
+  propertyName: string;
+  availableUnits: any[];
+}
+
+export interface InviteTenantRequest {
+  tenantEmail: string;
+  unitId: number;
+}
+
+export interface InviteCaretakerRequest {
+  caretakerEmail: string;
+  propertyId: number;
+}
+
+export interface AcceptInvitationRequest {
+  invitationToken: string;
+}
+
+export interface InvitationResponse {
+  success: boolean;
+  message: string;
+  invitation?: {
+    id: string;
+    email: string;
+    role: string;
+    status: string;
+    expiresAt: string;
+    propertyId?: string;
+    unitId?: string;
+  };
 }

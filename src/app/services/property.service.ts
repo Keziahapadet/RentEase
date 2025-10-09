@@ -12,6 +12,20 @@ import {
 } from './dashboard-interface';
 import { ApiResponse, User } from './auth-interfaces';
 
+export interface InviteTenantRequest {
+  tenantEmail: string;
+  unitId: number;
+}
+
+export interface InviteCaretakerRequest {
+  caretakerEmail: string;
+  propertyId: number;
+}
+
+export interface AcceptInvitationRequest {
+  invitationToken: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -370,6 +384,21 @@ export class PropertyService {
     ).pipe(catchError(this.handleError));
   }
 
+  inviteTenant(request: InviteTenantRequest): Observable<any> {
+    const headers = this.createHeaders();
+    return this.http.post(`${this.apiUrl}/api/invitations/tenant`, request, { headers }).pipe(catchError(this.handleError));
+  }
+
+  inviteCaretaker(request: InviteCaretakerRequest): Observable<any> {
+    const headers = this.createHeaders();
+    return this.http.post(`${this.apiUrl}/api/invitations/caretaker`, request, { headers }).pipe(catchError(this.handleError));
+  }
+
+  acceptInvitation(request: AcceptInvitationRequest): Observable<any> {
+    const headers = this.createHeaders();
+    return this.http.post(`${this.apiUrl}/api/invitations/accept`, request, { headers }).pipe(catchError(this.handleError));
+  }
+
   private generateDefaultAvatar(): string {
     const currentUser = this.authService.getCurrentUser();
     const name = currentUser?.fullName || 'User';
@@ -400,23 +429,10 @@ export class PropertyService {
   }
 
   private handleProfileError = (error: HttpErrorResponse): Observable<never> => {
-    console.error('Profile Picture Error Details:', {
-      status: error.status,
-      statusText: error.statusText,
-      url: error.url,
-      error: error.error
-    });
-    
     let errorMessage = 'Profile picture operation failed';
     
     if (error.status === 500) {
-      if (error.error && typeof error.error === 'object') {
-        errorMessage = error.error.message || 'Server error processing profile picture';
-      } else if (typeof error.error === 'string') {
-        errorMessage = error.error;
-      } else {
-        errorMessage = 'Server error - please try again later';
-      }
+      errorMessage = 'Server error - profile picture feature temporarily unavailable';
     } else if (error.status === 401) {
       errorMessage = 'Authentication failed';
       this.authService.logout();

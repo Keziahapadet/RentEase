@@ -8,20 +8,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { InviteDialogData } from '../../../../../services/dashboard-interface';
 
-export interface InviteDialogData {
-  type: string;
-  propertyId: string;
-  propertyName: string;
-  availableUnits: any[];
-}
-
-export interface InviteFormData {
-  email: string;
-  message: string;
-  propertyId: string;
-  unitId?: string;
-}
 
 @Component({
   selector: 'app-invite-dialog',
@@ -61,8 +49,7 @@ export class InviteDialogComponent implements OnInit {
 
   private createForm(): FormGroup {
     const formConfig: any = {
-      email: ['', [Validators.required, Validators.email]],
-      message: ['']
+      email: ['', [Validators.required, Validators.email]]
     };
 
     if (this.data.type === 'tenant') {
@@ -76,10 +63,19 @@ export class InviteDialogComponent implements OnInit {
     if (this.inviteForm.valid) {
       this.loading = true;
       
-      const formData: InviteFormData = {
-        ...this.inviteForm.value,
-        propertyId: this.data.propertyId
-      };
+      let formData: any;
+      
+      if (this.data.type === 'tenant') {
+        formData = {
+          tenantEmail: this.inviteForm.value.email,
+          unitId: parseInt(this.inviteForm.value.unitId)
+        };
+      } else {
+        formData = {
+          caretakerEmail: this.inviteForm.value.email,
+          propertyId: parseInt(this.data.propertyId)
+        };
+      }
       
       this.dialogRef.close(formData);
     } else {
