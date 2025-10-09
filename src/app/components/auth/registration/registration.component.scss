@@ -1,213 +1,219 @@
+
 .register-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: #ffffff; 
   padding: 20px;
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
 
-.register-card {
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
-  width: 100%;
-  max-width: 480px;
-  animation: slideIn 0.6s ease-out;
-  border: 1px solid #e0e0e0;
-}
-
-.logo-title {
-  text-align: center;
-  margin-bottom: 30px;
-
-  img {
-    height: 60px;
-    width: auto;
-    margin-bottom: 15px;
-    transition: transform 0.3s ease;
-
-    &:hover {
-      transform: scale(1.05);
-    }
-  }
-
-  h2 {
-    color: #2c3e50;
-    font-weight: 600;
-    font-size: 28px;
-    margin: 0;
-    letter-spacing: -0.5px;
-  }
-}
-
-.full-width {
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.terms-container {
-  margin: 25px 0;
-}
-
-.clickable-text {
-  color: #667eea;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border-bottom: 1px solid transparent;
-
-  &:hover {
-    color: #5a67d8;
-    border-bottom-color: #5a67d8;
-  }
-}
-
-.submit-btn {
-  height: 50px;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  border-radius: 12px;
-  margin-top: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s ease;
-
-  &:not(:disabled) {
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-
-    &:active {
-      transform: translateY(-1px);
-    }
-  }
-
-  &:disabled {
-    background: #bdc3c7;
-    box-shadow: none;
-    cursor: not-allowed;
-  }
-
-  .mat-icon {
-    margin-right: 8px;
-    animation: spin 1s linear infinite;
-  }
-}
-
-.login-link {
-  text-align: center;
-  margin-top: 25px;
-  color: #7f8c8d;
-  font-size: 14px;
-}
-
-// Angular Material Overrides
-::ng-deep {
-  .mat-mdc-form-field {
+  .register-card {
+    background: #ffffff; 
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    padding: 40px;
     width: 100%;
-    
-    .mat-mdc-text-field-wrapper {
-      border-radius: 12px;
-      transition: all 0.3s ease;
-      background: #fff;
+    max-width: 480px;
+    animation: slideIn 0.6s ease-out;
+    border: 1px solid #e0e0e0;
 
-      &:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    @media (max-width: 768px) {
+      padding: 30px 20px;
+      margin: 10px;
+      border-radius: 16px;
+    }
+
+  
+    .logo-title {
+      text-align: center;
+      margin-bottom: 30px;
+
+      img {
+        height: 60px;
+        width: auto;
+        margin-bottom: 15px;
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: scale(1.05);
+        }
       }
-    }
 
-    .mat-mdc-form-field-focus-overlay {
-      border-radius: 12px;
-    }
-
-    .mat-mdc-input-element {
-      color: #2c3e50;
-      font-size: 16px;
-      
-      &::placeholder {
-        color: #7f8c8d;
-        opacity: 0.8;
-      }
-    }
-
-    .mat-mdc-floating-label {
-      color: #7f8c8d;
-      font-weight: 500;
-    }
-
-    &.mat-focused {
-      .mat-mdc-floating-label {
-        color: #667eea;
-      }
-    }
-  }
-
-  .mat-mdc-select {
-    .mat-mdc-select-trigger {
-      .mat-mdc-select-value {
+      h2 {
         color: #2c3e50;
+        font-weight: 600;
+        font-size: 28px;
+        margin: 0;
+        letter-spacing: -0.5px;
+
+        @media (max-width: 768px) {
+          font-size: 24px;
+        }
+      }
+    }
+
+  
+    form {
+      .full-width {
+        width: 100%;
+        margin-bottom: 20px;
+
+  
+        .mat-mdc-form-field {
+          .mat-mdc-text-field-wrapper {
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: #fff;
+
+            &:hover {
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+          }
+
+          .mat-mdc-form-field-focus-overlay {
+            border-radius: 12px;
+          }
+
+          .mat-mdc-input-element {
+            color: #2c3e50;
+            font-size: 16px;
+            
+            &::placeholder {
+              color: #7f8c8d;
+              opacity: 0.8;
+            }
+          }
+
+          .mat-mdc-floating-label {
+            color: #7f8c8d;
+            font-weight: 500;
+          }
+
+          &.mat-focused {
+            .mat-mdc-floating-label {
+              color: #667eea;
+            }
+          }
+        }
+
+        .mat-mdc-select {
+          .mat-mdc-select-trigger {
+            .mat-mdc-select-value {
+              color: #2c3e50;
+              font-size: 16px;
+            }
+          }
+        }
+      }
+
+      .mat-mdc-icon-button {
+        color: #7f8c8d;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: #667eea;
+        }
+      }
+
+      .terms-container {
+        margin: 25px 0;
+        
+        .mat-mdc-checkbox {
+          .mat-mdc-checkbox-frame {
+            border-radius: 4px;
+            border-color: #bdc3c7;
+          }
+
+          .mat-mdc-checkbox-background {
+            border-radius: 4px;
+          }
+
+          &.mat-mdc-checkbox-checked {
+            .mat-mdc-checkbox-background {
+              background-color: #667eea;
+              border-color: #667eea;
+            }
+          }
+        }
+
+        .mat-mdc-checkbox-label {
+          color: #2c3e50;
+          font-size: 14px;
+          line-height: 1.4;
+        }
+
+        .clickable-text {
+          color: #667eea;
+          font-weight: 600;
+          cursor: pointer;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          border-bottom: 1px solid transparent;
+
+          &:hover {
+            color: #5a67d8;
+            border-bottom-color: #5a67d8;
+          }
+        }
+      }
+
+     
+      .submit-btn {
+        height: 50px;
         font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border-radius: 12px;
+        margin-top: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+
+        &:not(:disabled) {
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+          }
+
+          &:active {
+            transform: translateY(-1px);
+          }
+        }
+
+        &:disabled {
+          background: #bdc3c7;
+          box-shadow: none;
+          cursor: not-allowed;
+        }
+
+        .mat-icon {
+          margin-right: 8px;
+          animation: spin 1s linear infinite;
+        }
       }
     }
-  }
 
-  .mat-mdc-icon-button {
-    color: #7f8c8d;
-    transition: color 0.3s ease;
+    .login-link {
+      text-align: center;
+      margin-top: 25px;
+      color: #7f8c8d;
+      font-size: 14px;
 
-    &:hover {
-      color: #667eea;
-    }
-  }
+      .clickable-text {
+        color: #667eea;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-bottom: 1px solid transparent;
 
-  .mat-mdc-checkbox {
-    .mat-mdc-checkbox-frame {
-      border-radius: 4px;
-      border-color: #bdc3c7;
-    }
-
-    .mat-mdc-checkbox-background {
-      border-radius: 4px;
-    }
-
-    &.mat-mdc-checkbox-checked {
-      .mat-mdc-checkbox-background {
-        background-color: #667eea;
-        border-color: #667eea;
+        &:hover {
+          color: #5a67d8;
+          border-bottom-color: #5a67d8;
+        }
       }
     }
-  }
-
-  .mat-mdc-checkbox-label {
-    color: #2c3e50;
-    font-size: 14px;
-    line-height: 1.4;
-  }
-
-  .snackbar-success {
-    background-color: #27ae60 !important;
-    color: #ffffff !important;
-    font-weight: 500;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
-  }
-
-  .snackbar-error {
-    background-color: #e74c3c !important;
-    color: #ffffff !important;
-    font-weight: 500;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
-  }
-
-  .mat-mdc-snack-bar-container .mdc-snackbar__surface {
-    border-radius: 8px !important;
   }
 }
 
@@ -231,47 +237,77 @@
   }
 }
 
-@media (max-width: 768px) {
-  .register-card {
-    padding: 30px 20px;
-    margin: 10px;
-    border-radius: 16px;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  .logo-title {
-    h2 {
-      font-size: 24px;
+.register-page {
+  &.loading {
+    .register-card {
+      opacity: 0.8;
+      pointer-events: none;
     }
+  }
+}
+
+.snackbar-success {
+  background-color: #27ae60 !important; 
+  color: #ffffff !important;
+  font-weight: 500;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+}
+
+.snackbar-error {
+  background-color: #e74c3c !important; 
+  color: #ffffff !important;
+  font-weight: 500;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+}
+
+.mat-mdc-snack-bar-container {
+  .mdc-snackbar__surface {
+    border-radius: 8px !important;
   }
 }
 
 @media (max-width: 480px) {
   .register-page {
     padding: 10px;
-  }
-  
-  .register-card {
-    padding: 25px 15px;
     
-    .logo-title {
-      margin-bottom: 25px;
+    .register-card {
+      padding: 25px 15px;
       
-      img {
-        height: 50px;
+      .logo-title {
+        margin-bottom: 25px;
+        
+        img {
+          height: 50px;
+        }
+        
+        h2 {
+          font-size: 22px;
+        }
       }
       
-      h2 {
-        font-size: 22px;
+      form {
+        .full-width {
+          margin-bottom: 15px;
+        }
+        
+        .submit-btn {
+          height: 45px;
+          font-size: 15px;
+        }
       }
-    }
-    
-    .full-width {
-      margin-bottom: 15px;
-    }
-    
-    .submit-btn {
-      height: 45px;
-      font-size: 15px;
     }
   }
 }

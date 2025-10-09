@@ -30,18 +30,14 @@ import { ProfileViewComponent } from './components/dashboard/landlord/landlord-d
 import { ProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
 import { OtpVerificationComponent } from './components/auth/otp-verification/otp-verification.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
-import { authGuard } from './guards/auth.guard';
-import { authRedirectGuard } from './guards/auth-redirect.guard';
-import { landlordGuard } from './guards/landlord.guard';
-import { tenantGuard } from './guards/tenant.guard';
-import { AccessDeniedComponent } from './components/access-denied/access-denied.component';
+
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
   
   {
     path: 'auth',
-    // canActivate: [authRedirectGuard],
+  
     children: [
       { path: 'registration', component: RegistrationComponent },
       { path: 'login', component: LoginComponent },
@@ -60,7 +56,6 @@ export const routes: Routes = [
 
   {
     path: 'tenant-dashboard',
-    canActivate: [authGuard, tenantGuard],
     component: TenantDashboardComponent,
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -78,7 +73,6 @@ export const routes: Routes = [
 
   {
     path: 'landlord-dashboard',
-    canActivate: [authGuard, landlordGuard],
     component: LandlordDashboardComponent,
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -104,7 +98,7 @@ export const routes: Routes = [
     ]
   },
 
-  { path: 'access-denied', component: AccessDeniedComponent },
+ 
 
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
   { path: 'tenant', redirectTo: '/tenant-dashboard' },
