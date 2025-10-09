@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { 
@@ -20,99 +20,79 @@ export class PropertyService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  // UPDATED: Enhanced debugging and token validation
   getCurrentUserProfile(): Observable<ApiResponse> {
-    // Validate token first
-    const token = this.authService.getToken();
-    if (!this.isValidToken(token)) {
-      console.error('❌ Invalid token, redirecting to login');
-      this.authService.logout();
-      return throwError(() => new Error('Invalid token'));
+    const currentUser = this.authService.getCurrentUser();
+    
+    if (currentUser) {
+      return of({
+        success: true,
+        message: 'Using local user data',
+        user: currentUser
+      } as ApiResponse);
     }
 
     const httpOptions = { headers: this.createHeaders() };
-    
-    console.log('🔐 PropertyService - Profile Request Debug:');
-    console.log('Endpoint:', `${this.apiUrl}/api/profile`);
-    console.log('Headers:', httpOptions.headers);
 
     return this.http.get<ApiResponse>(
       `${this.apiUrl}/api/profile`,
       httpOptions
     ).pipe(
-      tap(response => console.log('✅ User profile API response:', response)),
+      tap(response => {
+        if (response.success && response.user) {
+          this.updateLocalUserData(response.user);
+        }
+      }),
       catchError(this.handleError)
     );
   }
 
-  // NEW: Token validation method
-  private isValidToken(token: string | null): boolean {
-    if (!token) {
-      console.log('❌ No token found');
-      return false;
-    }
-
-    try {
-      // Check if token is a valid JWT format
-      const tokenParts = token.split('.');
-      if (tokenParts.length !== 3) {
-        console.log('❌ Invalid token structure');
-        return false;
-      }
-
-      // Try to decode the payload to check expiration
-      const payload = JSON.parse(atob(tokenParts[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      
-      if (payload.exp && payload.exp < currentTime) {
-        console.log('❌ Token expired');
-        return false;
-      }
-
-      console.log('✅ Token is valid');
-      return true;
-    } catch (error) {
-      console.log('❌ Token validation error:', error);
-      return false;
-    }
-  }
-
   updateUserProfile(profileData: any): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log('PropertyService - Updating user profile:', profileData);
 
     return this.http.put<ApiResponse>(
       `${this.apiUrl}/api/profile`,
       profileData,
       httpOptions
     ).pipe(
-      tap(response => console.log('Update profile response:', response)),
+      tap(response => {
+        if (response.success && response.user) {
+          this.updateLocalUserData(response.user);
+        }
+      }),
       catchError(this.handleError)
     );
   }
 
   getUserProfileById(userId: string): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log(`PropertyService - Fetching user profile for ID: ${userId}`);
 
     return this.http.get<ApiResponse>(
       `${this.apiUrl}/api/profile/${userId}`,
       httpOptions
-    ).pipe(
-      tap(response => console.log('User profile by ID response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   getProfilePicture(): Observable<ProfilePictureResponse> {
+    const cachedImage = localStorage.getItem('profileImage');
+    if (cachedImage) {
+      return of({
+        success: true,
+        pictureUrl: cachedImage,
+        message: 'Using cached image'
+      } as ProfilePictureResponse);
+    }
+
     const httpOptions = { headers: this.createHeaders() };
-    console.log('PropertyService - Fetching profile picture');
 
     return this.http.get<ProfilePictureResponse>(
       `${this.apiUrl}/api/profile/picture`,
       httpOptions
     ).pipe(
-      tap(response => console.log('Profile picture response:', response)),
+      tap(response => {
+        if (response.success && response.pictureUrl) {
+          localStorage.setItem('profileImage', response.pictureUrl);
+        }
+      }),
       catchError(this.handleError)
     );
   }
@@ -120,17 +100,18 @@ export class PropertyService {
   uploadProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
     formData.append('picture', file);
-
     const headers = this.createHeaders().delete('Content-Type');
-
-    console.log('PropertyService - Uploading profile picture');
 
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/api/profile/upload-picture`,
       formData,
       { headers }
     ).pipe(
-      tap(response => console.log('Profile picture upload response:', response)),
+      tap(response => {
+        if (response.success) {
+          localStorage.removeItem('profileImage');
+        }
+      }),
       catchError(this.handleError)
     );
   }
@@ -138,30 +119,34 @@ export class PropertyService {
   updateProfilePicture(file: File): Observable<ApiResponse> {
     const formData = new FormData();
     formData.append('picture', file);
-
     const headers = this.createHeaders().delete('Content-Type');
-
-    console.log('PropertyService - Updating profile picture');
 
     return this.http.put<ApiResponse>(
       `${this.apiUrl}/api/profile/update-picture`,
       formData,
       { headers }
     ).pipe(
-      tap(response => console.log('Profile picture update response:', response)),
+      tap(response => {
+        if (response.success) {
+          localStorage.removeItem('profileImage');
+        }
+      }),
       catchError(this.handleError)
     );
   }
 
   deleteProfilePicture(): Observable<ApiResponse> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log('PropertyService - Deleting profile picture');
 
     return this.http.delete<ApiResponse>(
       `${this.apiUrl}/api/profile/delete-picture`,
       httpOptions
     ).pipe(
-      tap(response => console.log('Profile picture delete response:', response)),
+      tap(response => {
+        if (response.success) {
+          localStorage.removeItem('profileImage');
+        }
+      }),
       catchError(this.handleError)
     );
   }
@@ -176,27 +161,20 @@ export class PropertyService {
       description: request.description?.trim() || ''
     };
 
-    console.log('PropertyService - Creating property:', backendRequest);
-
     return this.http.post<PropertyResponse>(
       `${this.apiUrl}/api/landlord/properties`,
       backendRequest,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Create property response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   getProperties(): Observable<Property[]> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log('PropertyService - Fetching properties');
 
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties`, 
       httpOptions
     ).pipe(
-      tap(response => console.log('Raw properties response:', response)),
       map(response => {
         if (Array.isArray(response)) {
           return response;
@@ -207,7 +185,6 @@ export class PropertyService {
         } else if (response?.content && Array.isArray(response.content)) {
           return response.content;
         }
-        console.warn('Unexpected properties response format:', response);
         return [];
       }),
       catchError(this.handleError)
@@ -216,13 +193,11 @@ export class PropertyService {
 
   getPropertyById(propertyId: string): Observable<Property> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log(`PropertyService - Fetching property: ${propertyId}`);
 
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
       httpOptions
     ).pipe(
-      tap(response => console.log('Raw property response:', response)),
       map(response => {
         if (response?.data) {
           return response.data;
@@ -244,62 +219,43 @@ export class PropertyService {
       totalUnits: Number(request.totalUnits),
       description: request.description?.trim() || ''
     };
-    
-    console.log(`PropertyService - Updating property ${propertyId}:`, backendRequest);
 
     return this.http.put<PropertyResponse>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
       backendRequest,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Update property response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   deleteProperty(propertyId: string): Observable<PropertyResponse> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log(`PropertyService - Deleting property: ${propertyId}`);
 
     return this.http.delete<PropertyResponse>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Delete property response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   getUnitsByPropertyId(propertyId: string): Observable<Unit[]> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log(`PropertyService - Fetching units for property: ${propertyId}`);
-    
+
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units`,
       httpOptions
     ).pipe(
-      tap(response => console.log('Raw units response:', response)),
       map(response => {
         if (Array.isArray(response)) {
-          console.log('Units are in array format');
           return response;
         } else if (response?.data && Array.isArray(response.data)) {
-          console.log('Units are in response.data');
           return response.data;
         } else if (response?.units && Array.isArray(response.units)) {
-          console.log('Units are in response.units');
           return response.units;
         } else if (response?.content && Array.isArray(response.content)) {
-          console.log('Units are in response.content');
           return response.content;
         }
-        console.warn('Unexpected units response format:', response);
         return [];
       }),
-      catchError((error) => {
-        console.error('Error fetching units:', error);
-        return this.handleError(error);
-      })
+      catchError(this.handleError)
     );
   }
 
@@ -309,7 +265,6 @@ export class PropertyService {
 
   createUnit(propertyId: string, unit: any): Observable<any> {
     const httpOptions = { headers: this.createHeaders() };
-
     const unitData = {
       unitNumber: unit.unitNumber.trim(),
       unitType: unit.unitType,
@@ -318,21 +273,15 @@ export class PropertyService {
       description: unit.description?.trim() || ''
     };
 
-    console.log(`PropertyService - Creating unit for property ${propertyId}:`, unitData);
-
     return this.http.post<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units`,
       unitData,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Unit created response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   updateUnit(propertyId: string, unitId: string, unit: Unit): Observable<Unit> {
     const httpOptions = { headers: this.createHeaders() };
-
     const unitData = {
       unitNumber: unit.unitNumber?.trim(),
       unitType: unit.unitType,
@@ -341,55 +290,38 @@ export class PropertyService {
       description: unit.description?.trim() || ''
     };
 
-    console.log(`PropertyService - Updating unit ${unitId} for property ${propertyId}:`, unitData);
-
     return this.http.put<Unit>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units/${unitId}`,
       unitData,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Update unit response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   deleteUnit(propertyId: string, unitId: string): Observable<void> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log(`PropertyService - Deleting unit ${unitId} from property ${propertyId}`);
 
     return this.http.delete<void>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units/${unitId}`,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Delete unit response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   getDashboardStats(): Observable<any> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log('PropertyService - Fetching dashboard statistics');
 
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/dashboard/stats`,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Dashboard stats response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   getPropertyStats(propertyId: string): Observable<any> {
     const httpOptions = { headers: this.createHeaders() };
-    console.log(`PropertyService - Fetching stats for property: ${propertyId}`);
 
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/stats`,
       httpOptions
-    ).pipe(
-      tap(response => console.log('Property stats response:', response)),
-      catchError(this.handleError)
-    );
+    ).pipe(catchError(this.handleError));
   }
 
   private createHeaders(): HttpHeaders {
@@ -397,11 +329,6 @@ export class PropertyService {
   }
 
   private handleError = (error: HttpErrorResponse): Observable<never> => {
-    console.error('🔴 PropertyService Error:', error);
-    console.error('Error Status:', error.status);
-    console.error('Error Message:', error.message);
-    console.error('Error Body:', error.error);
-
     let errorMessage = 'An unexpected error occurred';
 
     if (error.error instanceof ErrorEvent) {
@@ -413,14 +340,12 @@ export class PropertyService {
           break;
         case 401:
           errorMessage = 'Authentication failed. Please log in again.';
-          console.log('🔄 401 Error - Token might be invalid or endpoint wrong');
           break;
         case 403:
           errorMessage = 'You do not have permission to perform this action.';
           break;
         case 404:
           errorMessage = 'The requested resource was not found.';
-          console.log('🔍 404 Error - Endpoint might not exist');
           break;
         case 409:
           errorMessage = error.error?.message || 'A resource with this information already exists.';
@@ -537,7 +462,6 @@ export class PropertyService {
     const isPermanent = !!localStorage.getItem('userData');
     const storage = isPermanent ? localStorage : sessionStorage;
     storage.setItem('userData', JSON.stringify(user));
-    console.log('User data updated in local storage via PropertyService:', user);
    
     if ((this.authService as any).currentUserSubject) {
       (this.authService as any).currentUserSubject.next(user);
