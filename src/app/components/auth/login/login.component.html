@@ -15,7 +15,9 @@
           name="email"
           placeholder="Enter your email"
           (input)="onEmailInput()"
+          (blur)="onEmailBlur()"
           required
+          [disabled]="isLoading"
         />
         <mat-icon matSuffix>email</mat-icon>
       
@@ -25,9 +27,6 @@
         
         <mat-error *ngIf="!emailError && loginForm.submitted && !loginData.email.trim()">
           Email is required
-        </mat-error>
-        <mat-error *ngIf="!emailError && loginForm.submitted && loginData.email.trim() && validateEmail(loginData.email)">
-          Invalid email format
         </mat-error>
       </mat-form-field>
 
@@ -40,7 +39,10 @@
           name="password"
           placeholder="Enter your password"
           (input)="onPasswordInput()"
+          (blur)="onPasswordBlur()"
           required
+          minlength="6"
+          [disabled]="isLoading"
         />
         <button 
           mat-icon-button 
@@ -48,6 +50,7 @@
           (click)="togglePasswordVisibility()"
           [attr.aria-label]="'Toggle password visibility'"
           type="button"
+          [disabled]="isLoading"
         >
           <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
@@ -65,10 +68,17 @@
       </mat-form-field>
 
       <div class="form-options">
-        <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe" color="primary">
+        <mat-checkbox 
+          [(ngModel)]="rememberMe" 
+          name="rememberMe" 
+          color="primary"
+          [disabled]="isLoading">
           Remember me
         </mat-checkbox>
-        <a (click)="navigateToForgotPassword()" class="forgot-password-link">
+        <a 
+          (click)="navigateToForgotPassword()" 
+          class="forgot-password-link"
+          [class.disabled]="isLoading">
           Forgot Password?
         </a>
       </div>
@@ -78,16 +88,24 @@
         color="primary"
         class="full-width submit-btn"
         type="submit"
-        [disabled]="isLoading"
+        [disabled]="isLoading || !isFormValid"
       >
-        {{ isLoading ? 'Signing In...' : 'Sign In' }}
-        <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+        <span *ngIf="isLoading" class="button-loading">
+          <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+          Signing In...
+        </span>
+        <span *ngIf="!isLoading">Sign In</span>
       </button>
     </form>
 
     <div class="register-link">
       <p>Don't have an account? 
-        <a (click)="navigateToRegister()" class="register-now">Register Now</a>
+        <a 
+          (click)="navigateToRegister()" 
+          class="register-now"
+          [class.disabled]="isLoading">
+          Register Now
+        </a>
       </p>
     </div>
   </div>

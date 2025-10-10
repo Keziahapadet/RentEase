@@ -74,7 +74,7 @@ export class LoginComponent implements OnInit {
     }
     
     if (!email.includes('.')) {
-      return 'Email needs .com ';
+      return 'Email needs domain (e.g., .com)';
     }
     
     if (!emailRegex.test(email)) {
@@ -85,25 +85,46 @@ export class LoginComponent implements OnInit {
   }
 
   togglePasswordVisibility(): void {
+    if (this.isLoading) return;
     this.showPassword = !this.showPassword;
   }
 
   onEmailInput(): void {
+    if (this.isLoading) return;
+    this.emailError = '';
+  }
+
+  onEmailBlur(): void {
+    if (this.isLoading) return;
     const email = this.loginData.email;
     if (email) {
       this.emailError = this.validateEmail(email);
-    } else {
-      this.emailError = '';
     }
   }
 
   onPasswordInput(): void {
+    if (this.isLoading) return;
     this.passwordError = '';
   }
 
+  onPasswordBlur(): void {
+    if (this.isLoading) return;
+    const password = this.loginData.password;
+    if (password && password.length < 6) {
+      this.passwordError = 'Password must be at least 6 characters';
+    }
+  }
+
   validateForm(): boolean {
-    this.emailError = this.validateEmail(this.loginData.email);
+  
+    this.emailError = '';
     this.passwordError = '';
+    
+   
+    const emailError = this.validateEmail(this.loginData.email);
+    if (emailError) {
+      this.emailError = emailError;
+    }
     
     if (!this.loginData.password) {
       this.passwordError = 'Password is required';
@@ -115,6 +136,8 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.isLoading) return;
+    
     if (!this.validateForm()) return;
     
     this.isLoading = true;

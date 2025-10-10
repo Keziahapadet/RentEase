@@ -25,7 +25,6 @@ import { ForgotPasswordRequest, ApiResponse } from '../../../services/auth-inter
     MatCardModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-   
   ],
   templateUrl: './forgot-password.html',
   styleUrls: ['./forgot-password.scss']
@@ -89,7 +88,7 @@ export class ForgotPasswordComponent implements OnDestroy {
           );
 
           setTimeout(() => {
-           this.router.navigate(['/otp-verification'], {
+            this.router.navigate(['/otp-verificationreset-password'], {
               queryParams: { 
                 email: this.email?.value.trim().toLowerCase(),
                 type: 'password_reset'  

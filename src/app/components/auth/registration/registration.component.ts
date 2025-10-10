@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -33,6 +34,7 @@ import {
     MatSelectModule,
     MatCheckboxModule,
     MatSnackBarModule,
+      MatProgressSpinnerModule
   ],
   encapsulation: ViewEncapsulation.None
 })
@@ -47,7 +49,8 @@ export class RegistrationComponent implements OnInit {
     email: '',
     phoneNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    accessCode: ''
   };
 
   availableRoles = [
@@ -83,7 +86,8 @@ export class RegistrationComponent implements OnInit {
       email: '',
       phoneNumber: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      accessCode: ''
     };
     this.agreedToTerms = false;
     this.clearAllErrors();
@@ -131,6 +135,24 @@ export class RegistrationComponent implements OnInit {
       this.fieldErrors.email = this.validateEmail(this.formData.email);
     } else {
       this.fieldErrors.email = '';
+    }
+  }
+
+  onPasswordInput(): void {
+    this.fieldErrors.password = '';
+    this.checkPasswordMatch();
+  }
+
+  onConfirmPasswordInput(): void {
+    this.fieldErrors.confirmPassword = '';
+    this.checkPasswordMatch();
+  }
+
+  checkPasswordMatch(): void {
+    if (this.formData.confirmPassword && !this.passwordsMatch()) {
+      this.fieldErrors.confirmPassword = 'Passwords do not match';
+    } else {
+      this.fieldErrors.confirmPassword = '';
     }
   }
 
@@ -277,6 +299,8 @@ export class RegistrationComponent implements OnInit {
       } else {
         errorMessage = error.error.message;
       }
+    } else if (error?.message) {
+      errorMessage = error.message;
     }
     
     this.showError(errorMessage);
