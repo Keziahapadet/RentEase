@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://rentease-2-ltfl.onrender.com/api'
+  apiUrl: 'http://10.20.33.70:8080/api'
 };

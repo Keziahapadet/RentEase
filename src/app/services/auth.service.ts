@@ -122,7 +122,7 @@ export class AuthService {
     this.clearAllStorage();
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 
   requestPasswordReset(request: ForgotPasswordRequest): Observable<ApiResponse> {
@@ -197,13 +197,13 @@ export class AuthService {
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
     return this.http.post<OtpResponse>(`${this.apiUrl}/send-otp`, cleanRequest, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(catchError(err => this.handleError(err)));
+    }).pipe(catchError(this.handleError));
   }
 
   verifyOtp(request: OtpVerifyRequest): Observable<OtpResponse> {
     const cleanRequest = {
       email: request.email.trim().toLowerCase(),
-      otpCode: request.otpCode.toString().trim().toUpperCase(),
+      otpCode: request.otpCode.toString().trim(),
       type: request.type
     };
     return this.http.post<OtpResponse>(`${this.apiUrl}/verify-otp`, cleanRequest, {
@@ -223,7 +223,7 @@ export class AuthService {
           }, false);
         }
       }),
-      catchError(err => this.handleOtpError(err))
+      catchError(this.handleOtpError)
     );
   }
 
@@ -231,7 +231,7 @@ export class AuthService {
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
     return this.http.post<OtpResponse>(`${this.apiUrl}/resend-otp`, cleanRequest, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(catchError(err => this.handleError(err)));
+    }).pipe(catchError(this.handleError));
   }
 
   getToken(): string | null {

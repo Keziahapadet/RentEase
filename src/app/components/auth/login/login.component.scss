@@ -63,32 +63,70 @@ mat-form-field {
   width: 100%;
 }
 
-.submit-btn {
-  margin-top: 25px;
-  padding: 14px;
-  font-weight: 600;
-  font-size: 16px;
-  border-radius: 10px;
-  transition: background 0.3s ease, transform 0.2s ease;
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 20px 0;
+}
 
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
+.remember-me {
+  display: flex;
+  align-items: center;
+  
+  ::ng-deep .mat-checkbox-label {
+    font-size: 14px;
+    color: #374151;
   }
 }
 
 .forgot-password-link {
-  text-align: center;
-  margin-top: 15px;
   font-size: 14px;
-
+  
   a {
     color: #3b82f6;
     cursor: pointer;
     text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 5px 8px;
+    border-radius: 4px;
+    position: relative;
 
     &:hover {
+      color: #2563eb;
+      background-color: #f3f4f6;
       text-decoration: underline;
+      transform: translateY(-1px);
     }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+
+    &:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 1px;
+    }
+  }
+}
+
+.submit-btn {
+  margin-top: 10px;
+  padding: 14px;
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 }
 
@@ -96,15 +134,53 @@ mat-form-field {
   color: #374151;
   font-size: 14px;
   text-align: center;
-  margin: 15px 0 0 0;
+  margin: 25px 0 0 0;
 
-  a {
+  p {
+    margin: 0;
+  }
+
+  .register-now {
     color: #3b82f6;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 
     &:hover {
+      color: #2563eb;
+      background-color: #f3f4f6;
       text-decoration: underline;
+      transform: translateY(-1px);
+     
+      &::after {
+        content: '→';
+        opacity: 1;
+        transform: translateX(2px);
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 1px;
+    }
+
+  
+    &::after {
+      content: '→';
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: all 0.3s ease;
     }
   }
 }
@@ -152,7 +228,6 @@ mat-form-field {
   }
 }
 
-
 ::ng-deep .mat-form-field {
   font-family: inherit;
   width: 100%;
@@ -186,6 +261,14 @@ mat-form-field {
   color: #9ca3af;
 }
 
+::ng-deep .mat-checkbox .mat-checkbox-frame {
+  border-color: #d1d5db;
+}
+
+::ng-deep .mat-checkbox-checked .mat-checkbox-background {
+  background-color: #3b82f6;
+}
+
 ::ng-deep .mat-raised-button {
   border-radius: 0.5rem;
   text-transform: none;
@@ -212,7 +295,7 @@ mat-form-field {
   outline-offset: 2px;
 }
 
-/* Snackbar Styling */
+
 ::ng-deep .snackbar-success {
   background-color: #10b981 !important;
   color: #ffffff !important;
@@ -226,7 +309,6 @@ mat-form-field {
   font-weight: 500;
   font-size: 15px;
 }
-
 
 @media (max-width: 600px) {
   .login-card {
@@ -243,6 +325,12 @@ mat-form-field {
     }
   }
 
+  .form-options {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
   .submit-btn {
     padding: 12px;
     font-size: 0.95rem;
@@ -257,5 +345,10 @@ mat-form-field {
   .forgot-password-link,
   .register-link {
     font-size: 0.85rem;
+  }
+
+  .forgot-password-link a,
+  .register-now {
+    padding: 3px 6px;
   }
 }

@@ -37,8 +37,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   canResend = true;
 
   email = '';
-  verificationType: 'email_verification' | 'password_reset' | '2fa' | 'phone_verification' = 'email_verification';
-  userType = ''; 
+  userType = '';
 
   pageTitle = 'Verify Your Account';
   infoText = 'We\'ve sent a 7-character verification code to your email';
@@ -71,42 +70,23 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     this.subscription.add(
       this.route.queryParams.subscribe(params => {
         this.email = (params['email'] || '').trim().toLowerCase();
-        this.verificationType = params['type'] || 'email_verification';
-        
-        this.userType = params['userType'] || params['usertype'] || params['role'] || params['user_type'] || '';
-        
-        console.log('OTP Component - User Type:', this.userType);
-        console.log('OTP Component - Email:', this.email);
-        console.log('OTP Component - Verification Type:', this.verificationType);
-        console.log('All query params:', params);
+        this.userType = params['userType'] || '';
 
         if (!this.email) {
           this.showMessage('No email found. Please restart the process.', 'error');
-          setTimeout(() => this.navigateToStart(), 3000);
+          setTimeout(() => this.router.navigate(['/registration']), 3000);
           return;
         }
 
-        this.updateUIBasedOnType();
+        this.updateUIText();
       })
     );
   }
 
-  private updateUIBasedOnType() {
+  private updateUIText() {
     const userTypeDisplay = this.getUserTypeDisplay();
-    
-    switch (this.verificationType) {
-      case 'email_verification':
-        this.pageTitle = `Verify Your ${userTypeDisplay} Account`;
-        this.infoText = `We've sent a 7-character code to complete your ${userTypeDisplay.toLowerCase()} registration`;
-        break;
-      case 'password_reset':
-        this.pageTitle = 'Reset Password Verification';
-        this.infoText = 'Enter the 7-character code sent to your email to reset your password';
-        break;
-      default:
-        this.pageTitle = 'Verify Your Account';
-        this.infoText = 'Enter the 7-character verification code';
-    }
+    this.pageTitle = `Verify Your ${userTypeDisplay} Account`;
+    this.infoText = `We've sent a 7-character code to complete your ${userTypeDisplay.toLowerCase()} registration`;
   }
 
   private getUserTypeDisplay(): string {
@@ -142,21 +122,18 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       const verifyRequest: OtpVerifyRequest = {
         email: this.email,
         otpCode: otpCode,
-        type: this.verificationType
+        type: 'email_verification'
       };
-
-      console.log('Sending OTP verification request:', verifyRequest);
 
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! 🎉', 'success');
+        this.showMessage('Verification successful! ', 'success');
         await this.handleSuccessfulVerification(response);
       } else {
         throw new Error(response.message || 'Verification failed');
       }
     } catch (error: any) {
-      console.error('OTP verification error:', error);
       this.handleVerificationError(error);
       this.shakeInputs();
       this.clearOtpInputs();
@@ -175,33 +152,8 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private async handleSuccessfulVerification(response: any) {
-    console.log('Verification successful - User Type:', this.userType);
-    console.log('Verification Type:', this.verificationType);
-    console.log('API Response:', response);
-    
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    try {
-      if (this.verificationType === 'password_reset') {
-        sessionStorage.setItem('resetEmail', this.email);
-        sessionStorage.setItem('otpVerified', 'true');
-        console.log('Navigating to reset-password with email:', this.email);
-        this.router.navigate(['/reset-password'], { 
-          queryParams: { email: this.email } 
-        });
-      } else if (this.verificationType === 'email_verification') {
-        await this.handleEmailVerificationSuccess(response);
-      } else {
-        this.router.navigate(['/login']);
-      }
-    } catch (navigationError) {
-      console.error('Navigation error:', navigationError);
-      this.showMessage('Navigation failed. Please login manually.', 'error');
-      this.router.navigate(['/login']);
-    }
-  }
-
-  private async handleEmailVerificationSuccess(response: any) {
     let finalUserType = this.userType;
     
     if (!finalUserType && response.user?.role) {
@@ -212,23 +164,11 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       finalUserType = response.role;
     }
 
-    console.log('Final user type for dashboard:', finalUserType);
-
-    if (!finalUserType) {
-      console.error('No user type found for dashboard navigation');
-      this.showMessage('User type not found. Please login manually.', 'error');
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    // Check if we have authentication data in the response
     const hasAuthData = response.token || response.user;
     
     if (!hasAuthData) {
-      console.log('No authentication data in response - redirecting to login');
       this.showMessage('Email verified successfully! Please login to continue.', 'success');
       
-      // Store verification success in session storage for login page
       sessionStorage.setItem('emailVerified', 'true');
       sessionStorage.setItem('verifiedEmail', this.email);
       sessionStorage.setItem('verifiedUserType', finalUserType);
@@ -243,7 +183,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
-    // If we have auth data, proceed with auto-login
     const userData = {
       email: this.email,
       userType: finalUserType,
@@ -251,34 +190,24 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       ...response.user
     };
     
-    // Store authentication data
     if (response.token) {
       sessionStorage.setItem('authToken', response.token);
-      localStorage.setItem('authToken', response.token); // Also store in localStorage
+      localStorage.setItem('authToken', response.token);
     }
     
     sessionStorage.setItem('currentUser', JSON.stringify(userData));
     sessionStorage.setItem('isAuthenticated', 'true');
     
-    // Also store in localStorage for persistence
     localStorage.setItem('currentUser', JSON.stringify(userData));
     localStorage.setItem('isAuthenticated', 'true');
 
-    console.log('Stored user data:', userData);
-    console.log('Auth token stored:', !!response.token);
-
     const dashboardRoute = this.getDashboardRoute(finalUserType);
-    console.log('Attempting to navigate to dashboard:', dashboardRoute);
 
     this.router.navigate([dashboardRoute]).then(success => {
-      if (success) {
-        console.log('Successfully navigated to:', dashboardRoute);
-      } else {
-        console.error('Failed to navigate to dashboard:', dashboardRoute);
+      if (!success) {
         this.tryAlternativeNavigation(finalUserType);
       }
     }).catch(error => {
-      console.error('Navigation error:', error);
       this.tryAlternativeNavigation(finalUserType);
     });
   }
@@ -286,8 +215,6 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   private getDashboardRoute(userType: string): string {
     const normalizedUserType = userType.toLowerCase().trim();
     
-    console.log('Determining dashboard route for user type:', normalizedUserType, 'Original:', userType);
-
     const routeMap: { [key: string]: string } = {
       'landlord': '/landlord-dashboard/home',
       'tenant': '/tenant-dashboard/dashboard', 
@@ -296,46 +223,33 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       'admin': '/admin-dashboard',
     };
 
-    const route = routeMap[normalizedUserType] || '/tenant-dashboard/dashboard';
-    
-    console.log('Selected route:', route);
-    return route;
+    return routeMap[normalizedUserType] || '/tenant-dashboard/dashboard';
   }
 
   private tryAlternativeNavigation(userType: string) {
     const normalizedUserType = userType.toLowerCase().trim();
     
-    console.log('Trying alternative navigation for:', normalizedUserType);
-
-    if (normalizedUserType === 'landlord' || normalizedUserType === 'property_owner' || normalizedUserType === 'property owner') {
-      console.log('Trying alternative landlord navigation...');
+    if (normalizedUserType === 'landlord') {
       const landlordRoutes = [
         '/landlord-dashboard',
         '/landlord-dashboard/home',
         '/landlord'
       ];
-      
       this.tryMultipleRoutes(landlordRoutes, 'Landlord dashboard');
-      
-    } else if (normalizedUserType === 'tenant' || normalizedUserType === 'renter') {
-      console.log('Trying alternative tenant navigation...');
+    } else if (normalizedUserType === 'tenant') {
       const tenantRoutes = [
         '/tenant-dashboard',
         '/tenant-dashboard/dashboard',
         '/tenant',
         '/dashboard'
       ];
-      
       this.tryMultipleRoutes(tenantRoutes, 'Tenant dashboard');
-      
     } else {
-      console.log('Trying generic dashboard navigation...');
       const genericRoutes = [
         '/dashboard',
         '/tenant-dashboard/dashboard',
         '/login'
       ];
-      
       this.tryMultipleRoutes(genericRoutes, 'Generic dashboard');
     }
   }
@@ -351,18 +265,13 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       }
       
       const route = routes[currentIndex];
-      console.log(`Trying route ${currentIndex + 1}/${routes.length}:`, route);
       
       this.router.navigate([route]).then(success => {
-        if (success) {
-          console.log(`Successfully navigated to ${routeType} via:`, route);
-        } else {
-          console.log(`Failed to navigate to:`, route);
+        if (!success) {
           currentIndex++;
           tryNextRoute();
         }
       }).catch(error => {
-        console.error(`Error navigating to ${route}:`, error);
         currentIndex++;
         tryNextRoute();
       });
@@ -397,7 +306,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     try {
       const resendRequest: OtpRequest = {
         email: this.email,
-        type: this.verificationType
+        type: 'email_verification'
       };
 
       const response = await firstValueFrom(this.authService.resendOtp(resendRequest));
@@ -517,18 +426,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   goBack() {
-    const routeMap: { [key: string]: string } = {
-      'password_reset': '/forgot-password',
-      'email_verification': '/registration',
-      '2fa': '/login',
-      'phone_verification': '/settings'
-    };
-    this.router.navigate([routeMap[this.verificationType] || '/login']);
-  }
-
-  private navigateToStart() {
-    const startRoute = this.verificationType === 'password_reset' ? '/forgot-password' : '/registration';
-    this.router.navigate([startRoute]);
+    this.router.navigate(['/registration']);
   }
 
   getResendText(): string {

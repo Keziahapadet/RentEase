@@ -6,7 +6,6 @@
     </div>
 
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
-      <!-- Email Field -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email Address</mat-label>
         <input
@@ -19,22 +18,19 @@
           required
         />
         <mat-icon matSuffix>email</mat-icon>
-        
-        <!-- Custom field error -->
+      
         <mat-error *ngIf="emailError">
           {{ emailError }}
         </mat-error>
         
-        <!-- Simplified fallback validation -->
         <mat-error *ngIf="!emailError && loginForm.submitted && !loginData.email.trim()">
           Email is required
         </mat-error>
-        <mat-error *ngIf="!emailError && loginForm.submitted && loginData.email.trim() && !isValidEmail(loginData.email)">
+        <mat-error *ngIf="!emailError && loginForm.submitted && loginData.email.trim() && validateEmail(loginData.email)">
           Invalid email format
         </mat-error>
       </mat-form-field>
 
-      <!-- Password Field -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
         <input
@@ -56,12 +52,10 @@
           <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
         
-        <!-- Custom field error -->
         <mat-error *ngIf="passwordError">
           {{ passwordError }}
         </mat-error>
         
-        <!-- Simplified fallback validation -->
         <mat-error *ngIf="!passwordError && loginForm.submitted && !loginData.password">
           Password is required
         </mat-error>
@@ -87,6 +81,7 @@
         [disabled]="isLoading"
       >
         {{ isLoading ? 'Signing In...' : 'Sign In' }}
+        <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
       </button>
     </form>
 

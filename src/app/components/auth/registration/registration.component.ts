@@ -33,7 +33,6 @@ import {
     MatSelectModule,
     MatCheckboxModule,
     MatSnackBarModule,
-    
   ],
   encapsulation: ViewEncapsulation.None
 })
@@ -74,7 +73,6 @@ export class RegistrationComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    console.log('RegistrationComponent initialized');
     this.resetForm();
   }
 
@@ -101,9 +99,39 @@ export class RegistrationComponent implements OnInit {
     this.fieldErrors[field] = '';
   }
 
+  validateEmail(email: string): string {
+    if (!email.trim()) {
+      return 'Email is required';
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email.includes('@')) {
+      return 'Email needs @ symbol';
+    }
+    
+    if (!email.includes('.')) {
+      return 'Email needs .com ';
+    }
+    
+    if (!emailRegex.test(email)) {
+      return 'Please check your email format';
+    }
+    
+    return '';
+  }
+
   togglePasswordVisibility(field: string): void {
     if (field === 'password') this.showPassword = !this.showPassword;
     else if (field === 'confirm') this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  onEmailInput(): void {
+    if (this.formData.email) {
+      this.fieldErrors.email = this.validateEmail(this.formData.email);
+    } else {
+      this.fieldErrors.email = '';
+    }
   }
 
   passwordsMatch(): boolean {
@@ -131,15 +159,10 @@ export class RegistrationComponent implements OnInit {
       isValid = false;
     }
 
-    if (!this.formData.email.trim()) {
-      this.fieldErrors.email = 'Email is required';
+    const emailError = this.validateEmail(this.formData.email);
+    if (emailError) {
+      this.fieldErrors.email = emailError;
       isValid = false;
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.formData.email)) {
-        this.fieldErrors.email = 'Invalid email format';
-        isValid = false;
-      }
     }
 
     if (!this.formData.phoneNumber.trim()) {
@@ -148,7 +171,7 @@ export class RegistrationComponent implements OnInit {
     } else {
       const phoneRegex = /^(\+254|0)[1-9]\d{8}$/;
       if (!phoneRegex.test(this.formData.phoneNumber.replace(/\s/g, ''))) {
-        this.fieldErrors.phoneNumber = 'Invalid phone number format';
+        this.fieldErrors.phoneNumber = 'Please enter a valid Kenyan phone number';
         isValid = false;
       }
     }
@@ -197,8 +220,6 @@ export class RegistrationComponent implements OnInit {
       accessCode: this.formData.accessCode
     };
 
-    console.log('Registering user with role:', registerRequest.role);
-
     this.authService.register(registerRequest).subscribe({
       next: (response: ApiResponse) => {
         this.isLoading = false;
@@ -211,9 +232,6 @@ export class RegistrationComponent implements OnInit {
             queryParams: { 
               email: registerRequest.email,
               userType: registerRequest.role
-            },
-            state: { 
-              message: 'Registration successful! Please check your email for verification code.'
             }
           });
         } else {
@@ -222,7 +240,6 @@ export class RegistrationComponent implements OnInit {
       },
       error: (error: any) => {
         this.isLoading = false;
-        console.error('Registration error:', error);
         this.handleApiError(error);
       }
     });

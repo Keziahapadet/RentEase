@@ -15,7 +15,7 @@ export interface User {
   phoneNumber?: string;
   role: UserRole | string;
   avatar?: string;
-  emailVerified?: boolean; 
+  emailVerified?: boolean;
   verified?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -76,7 +76,6 @@ export interface ResetPasswordRequest {
   email: string;
   otpCode: string;
   newPassword: string;
- 
 }
 
 export interface ChangePasswordRequest {
@@ -144,9 +143,9 @@ export type AuthenticationStatus = 'authenticated' | 'unauthenticated' | 'pendin
 
 export interface RegistrationFormData {
   role: string;
-  fullName: string;       
+  fullName: string;
   email: string;
-  phoneNumber: string;    
+  phoneNumber: string;
   password: string;
   confirmPassword: string;
   accessCode?: string;

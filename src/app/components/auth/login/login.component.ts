@@ -25,7 +25,6 @@ import { LoginRequest, UserRole, AuthResponse } from '../../../services/auth-int
     MatCheckboxModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-  
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -51,15 +50,38 @@ export class LoginComponent implements OnInit {
       return;
     }
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    
+    const resetMessage = this.route.snapshot.queryParams['resetMessage'];
+    if (resetMessage) {
+      this.showSnackbar(resetMessage, 'success');
+    }
+    
     const message = this.route.snapshot.queryParams['message'];
-    if (message) {
+    if (message && !resetMessage) {
       this.showSnackbar(message, 'success');
     }
   }
 
-  isValidEmail(email: string): boolean {
+  validateEmail(email: string): string {
+    if (!email.trim()) {
+      return 'Email is required';
+    }
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    
+    if (!email.includes('@')) {
+      return 'Email needs @ symbol';
+    }
+    
+    if (!email.includes('.')) {
+      return 'Email needs .com ';
+    }
+    
+    if (!emailRegex.test(email)) {
+      return 'Please check your email format';
+    }
+    
+    return '';
   }
 
   togglePasswordVisibility(): void {
@@ -67,7 +89,12 @@ export class LoginComponent implements OnInit {
   }
 
   onEmailInput(): void {
-    this.emailError = '';
+    const email = this.loginData.email;
+    if (email) {
+      this.emailError = this.validateEmail(email);
+    } else {
+      this.emailError = '';
+    }
   }
 
   onPasswordInput(): void {
@@ -75,27 +102,16 @@ export class LoginComponent implements OnInit {
   }
 
   validateForm(): boolean {
-    this.emailError = '';
+    this.emailError = this.validateEmail(this.loginData.email);
     this.passwordError = '';
-    let isValid = true;
-
-    if (!this.loginData.email.trim()) {
-      this.emailError = 'Email is required';
-      isValid = false;
-    } else if (!this.isValidEmail(this.loginData.email)) {
-      this.emailError = 'Invalid email format';
-      isValid = false;
-    }
-
+    
     if (!this.loginData.password) {
       this.passwordError = 'Password is required';
-      isValid = false;
     } else if (this.loginData.password.length < 6) {
       this.passwordError = 'Password must be at least 6 characters';
-      isValid = false;
     }
 
-    return isValid;
+    return !this.emailError && !this.passwordError;
   }
 
   onSubmit(): void {
@@ -111,10 +127,8 @@ export class LoginComponent implements OnInit {
     this.authService.login(loginRequest).subscribe({
       next: (response: AuthResponse) => {
         this.isLoading = false;
-        console.log('Login response:', response);
         
         const user = this.authService.getCurrentUser();
-        console.log('Current user after login:', user);
         
         let userRole: string | undefined;
         
@@ -126,8 +140,6 @@ export class LoginComponent implements OnInit {
           userRole = response.user.role;
         }
         
-        console.log('Determined user role:', userRole);
-        
         if (userRole) {
           this.showSnackbar('Login successful!', 'success');
           this.redirectBasedOnRole(userRole);
@@ -138,7 +150,6 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('Login error:', error);
         this.handleApiError(error);
       }
     });
@@ -185,8 +196,6 @@ export class LoginComponent implements OnInit {
   }
 
   private redirectBasedOnRole(userRole: string): void {
-    console.log('Redirecting based on role:', userRole);
-    
     const normalizedRole = userRole.toUpperCase().trim();
     
     const roleMap: { [key: string]: string } = {
@@ -199,10 +208,8 @@ export class LoginComponent implements OnInit {
 
     const dashboardRoute = roleMap[normalizedRole] || '/dashboard';
     
-    console.log(`Redirecting to: ${dashboardRoute}`);
     this.router.navigate([dashboardRoute]).then(success => {
       if (!success) {
-        console.error(`Failed to navigate to ${dashboardRoute}`);
         this.router.navigate(['/dashboard']);
       }
     });
@@ -210,7 +217,6 @@ export class LoginComponent implements OnInit {
 
   private redirectToDashboard(): void {
     const user = this.authService.getCurrentUser();
-    console.log('User from auth service:', user);
     
     if (user?.role) {
       this.redirectBasedOnRole(user.role);
@@ -240,7 +246,7 @@ export class LoginComponent implements OnInit {
       this.loginData.email.trim() !== '' &&
       this.loginData.password !== '' &&
       this.loginData.password.length >= 6 &&
-      this.isValidEmail(this.loginData.email)
+      !this.emailError
     );
   }
 

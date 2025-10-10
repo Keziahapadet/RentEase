@@ -63,18 +63,21 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.routeSub = this.route.queryParams.subscribe(params => {
-      this.email = params['email'] || '';
-      this.otpCode = params['otp'] || '';
+    this.email = sessionStorage.getItem('resetEmail') || '';
+    this.otpCode = sessionStorage.getItem('resetOtp') || '';
+    const isOtpVerified = sessionStorage.getItem('otpVerified') === 'true';
 
-      if (this.email.includes('%40')) {
-        this.email = decodeURIComponent(this.email);
-      }
+    if (!this.email || !this.otpCode || !isOtpVerified) {
+      this.showSnackBar('Invalid or expired reset session. Please request a new password reset.', 'error');
+      this.clearResetSession();
+      this.router.navigate(['/forgot-password']);
+      return;
+    }
 
-      if (!this.email || !this.otpCode) {
-        this.showSnackBar('Invalid or expired reset link. Please request a new one.', 'error');
-        this.router.navigate(['/forgot-password']);
-      }
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {},
+      replaceUrl: true
     });
   }
 
@@ -82,6 +85,34 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
     }
+  }
+
+  private clearResetSession() {
+    sessionStorage.removeItem('resetEmail');
+    sessionStorage.removeItem('resetOtp');
+    sessionStorage.removeItem('otpVerified');
+  }
+
+  validateEmail(email: string): string {
+    if (!email.trim()) {
+      return 'Email is required';
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email.includes('@')) {
+      return 'Email needs @ symbol';
+    }
+    
+    if (!email.includes('.')) {
+      return 'Email needs .com ';
+    }
+    
+    if (!emailRegex.test(email)) {
+      return 'Please check your email format';
+    }
+    
+    return '';
   }
 
   onPasswordInput(): void {
@@ -189,6 +220,12 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     this.passwordError = '';
     this.confirmPasswordError = '';
 
+    const emailError = this.validateEmail(this.email);
+    if (emailError) {
+      this.showSnackBar(emailError, 'error');
+      return;
+    }
+
     if (this.resetForm.get('newPassword')?.hasError('required')) {
       this.passwordError = 'Password is required';
       this.markFormGroupTouched();
@@ -231,11 +268,11 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         if (response.success) {
           this.showSnackBar(response.message || 'Password reset successful! Redirecting to login...', 'success');
+          this.clearResetSession();
           setTimeout(() => {
             this.router.navigate(['/login'], {
               queryParams: {
-                email: this.email,
-                message: 'Password reset successfully. Please login with your new password.'
+                resetMessage: 'Password reset successfully. Please login with your new password.'
               }
             });
           }, 2000);
