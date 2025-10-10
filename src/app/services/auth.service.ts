@@ -148,17 +148,37 @@ export class AuthService {
   }
 
   resetPassword(request: ResetPasswordRequest): Observable<ApiResponse> {
-    const normalizedRequest = {
+    const payload = {
       email: request.email.trim().toLowerCase(),
-      otpCode: request.otpCode.toString().trim(),
-      newPassword: request.newPassword,
+      otpCode: request.otpCode,
+      newPassword: request.newPassword
     };
+    
+    console.log(' RESET PASSWORD DEBUG - Payload:', JSON.stringify(payload, null, 2));
+    console.log(' OTP Code details - Type:', typeof payload.otpCode, 'Value:', payload.otpCode);
+    console.log(' Email:', payload.email);
+    console.log(' Password length:', payload.newPassword?.length);
     
     return this.http.post<ApiResponse>(
       `${this.apiUrl}/reset-password`,
-      normalizedRequest,
-      { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
-    ).pipe(catchError(this.handleError));
+      payload,
+      { 
+        headers: new HttpHeaders({ 
+          'Content-Type': 'application/json'
+        })
+      }
+    ).pipe(
+      tap(response => {
+        console.log(' RESET PASSWORD SUCCESS:', response);
+      }),
+      catchError(error => {
+        console.error(' RESET PASSWORD ERROR:', error);
+        console.error(' Error status:', error.status);
+        console.error(' Error message:', error.message);
+        console.error(' Error details:', error.error);
+        return this.handleError(error);
+      })
+    );
   }
 
   changePassword(request: ChangePasswordRequest): Observable<ApiResponse> {
@@ -200,32 +220,38 @@ export class AuthService {
     }).pipe(catchError(this.handleError));
   }
 
-  verifyOtp(request: OtpVerifyRequest): Observable<OtpResponse> {
-    const cleanRequest = {
-      email: request.email.trim().toLowerCase(),
-      otpCode: request.otpCode.toString().trim(),
-      type: request.type
-    };
-    return this.http.post<OtpResponse>(`${this.apiUrl}/verify-otp`, cleanRequest, {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(
-      tap(res => {
-        if (res.success && res.token) {
-          this.handleAuthSuccess({
-            token: res.token,
-            tokenType: 'Bearer',
-            userId: res.user?.id as number || 0,
-            fullName: res.user?.fullName || '',
-            email: res.user?.email || '',
-            role: res.user?.role || UserRole.TENANT,
-            verified: res.user?.verified || false,
-            user: res.user
-          }, false);
+ verifyOtp(request: OtpVerifyRequest): Observable<OtpResponse> {
+  const cleanRequest = {
+    email: request.email.trim().toLowerCase(),
+    otpCode: request.otpCode.toString().trim(),
+    type: request.type
+  };
+  return this.http.post<OtpResponse>(`${this.apiUrl}/verify-otp`, cleanRequest, {
+    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+  }).pipe(
+    tap(res => {
+      if (res.success && res.token) {
+       
+        if (!res.user?.role) {
+          console.error(' User role missing in OTP verification response');
+          throw new Error('User role not provided in verification response');
         }
-      }),
-      catchError(this.handleOtpError)
-    );
-  }
+        
+        this.handleAuthSuccess({
+          token: res.token,
+          tokenType: 'Bearer',
+          userId: res.user.id as number,
+          fullName: res.user.fullName || '',
+          email: res.user.email || '',
+          role: res.user.role, 
+          verified: res.user.verified || false,
+          user: res.user
+        }, false);
+      }
+    }),
+    catchError(this.handleOtpError)
+  );
+}
 
   resendOtp(request: OtpRequest): Observable<OtpResponse> {
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
