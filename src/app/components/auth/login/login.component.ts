@@ -116,14 +116,17 @@ export class LoginComponent implements OnInit {
   }
 
   validateForm(): boolean {
+  
     this.emailError = '';
     this.passwordError = '';
     
+   
     const emailError = this.validateEmail(this.loginData.email);
     if (emailError) {
       this.emailError = emailError;
     }
     
+    // Validate password
     if (!this.loginData.password) {
       this.passwordError = 'Password is required';
     } else if (this.loginData.password.length < 6) {

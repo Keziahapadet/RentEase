@@ -167,19 +167,34 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     const hasAuthData = response.token || response.user;
     
     if (!hasAuthData) {
-      this.showMessage('Email verified successfully! Please login to continue.', 'success');
+      try {
+        sessionStorage.setItem('emailVerified', 'true');
+        sessionStorage.setItem('verifiedEmail', this.email);
+        sessionStorage.setItem('verifiedUserType', finalUserType);
+      } catch (e) {
+        console.error('Failed to store verification data', e);
+      }
       
-      sessionStorage.setItem('emailVerified', 'true');
-      sessionStorage.setItem('verifiedEmail', this.email);
-      sessionStorage.setItem('verifiedUserType', finalUserType);
+      this.showMessage('Email verified successfully! Redirecting to login...', 'success');
       
-      this.router.navigate(['/login'], {
+      await this.router.navigate(['/login'], {
         queryParams: {
           email: this.email,
           userType: finalUserType,
-          message: 'Email verified successfully! Please login.'
+          message: 'Email verified successfully! Please login.',
+          verified: 'true'
+        },
+        replaceUrl: true
+      }).then(success => {
+        if (!success) {
+          console.error('Navigation to login failed');
+          this.router.navigate(['/login'], { replaceUrl: true });
         }
+      }).catch(err => {
+        console.error('Navigation error:', err);
+        window.location.href = '/login';
       });
+      
       return;
     }
 
@@ -208,6 +223,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
         this.tryAlternativeNavigation(finalUserType);
       }
     }).catch(error => {
+      console.error('Dashboard navigation error:', error);
       this.tryAlternativeNavigation(finalUserType);
     });
   }
