@@ -267,14 +267,10 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       next: (response: ApiResponse) => {
         this.isLoading = false;
         if (response.success) {
-          this.showSnackBar(response.message || 'Password reset successful! Redirecting to login...', 'success');
+          this.showSnackBar('Password reset successful! Redirecting to login...', 'success');
           this.clearResetSession();
           setTimeout(() => {
-            this.router.navigate(['/login'], {
-              queryParams: {
-                resetMessage: 'Password reset successfully. Please login with your new password.'
-              }
-            });
+            this.router.navigate(['/login']);
           }, 2000);
         } else {
           this.handleApiError(response.message || 'Failed to reset password');

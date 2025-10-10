@@ -116,11 +116,9 @@ export class LoginComponent implements OnInit {
   }
 
   validateForm(): boolean {
-  
     this.emailError = '';
     this.passwordError = '';
     
-   
     const emailError = this.validateEmail(this.loginData.email);
     if (emailError) {
       this.emailError = emailError;
