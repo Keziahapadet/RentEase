@@ -93,6 +93,17 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     sessionStorage.removeItem('otpVerified');
   }
 
+  private clearAllAuthData() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('profileImage');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userData');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('profileImage');
+  }
+
   validateEmail(email: string): string {
     if (!email.trim()) {
       return 'Email is required';
@@ -273,9 +284,11 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
       if (response.success) {
         this.clearResetSession();
-        this.showSnackBar('Password reset successful! Redirecting...', 'success');
+        this.clearAllAuthData();
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        this.showSnackBar('Password reset successful! Redirecting to login...', 'success');
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         await this.performNavigation();
       } else {
@@ -298,8 +311,9 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       try {
         const success = await this.router.navigate(['/login'], {
           queryParams: {
+            email: this.email,
             message: 'Password reset successful! Please login with your new password.',
-            resetMessage: 'true'
+            resetSuccess: 'true'
           },
           replaceUrl: true
         });
@@ -312,16 +326,13 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
       } catch (err) {
-        console.error(`Navigation attempt ${attempt} failed:`, err);
-        
         if (attempt < maxAttempts) {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
       }
     }
 
-    console.warn('All navigation attempts failed, using window.location');
-    window.location.href = '/login?message=Password reset successful! Please login with your new password.&resetMessage=true';
+    window.location.href = '/login?message=Password reset successful! Please login with your new password.&resetSuccess=true';
   }
 
   private handleApiError(error: any): void {
