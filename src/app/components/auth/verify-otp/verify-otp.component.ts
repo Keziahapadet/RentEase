@@ -128,7 +128,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! ', 'success');
+        this.showMessage('Verification successful! Redirecting to login...', 'success');
         await this.handleSuccessfulVerification(response);
       } else {
         throw new Error(response.message || 'Verification failed');
@@ -166,134 +166,39 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
 
     const hasAuthData = response.token || response.user;
     
-    if (!hasAuthData) {
-      try {
-        sessionStorage.setItem('emailVerified', 'true');
-        sessionStorage.setItem('verifiedEmail', this.email);
-        sessionStorage.setItem('verifiedUserType', finalUserType);
-      } catch (e) {
-        console.error('Failed to store verification data', e);
-      }
-      
-      this.showMessage('Email verified successfully! Redirecting to login...', 'success');
-      
-      await this.router.navigate(['/login'], {
-        queryParams: {
-          email: this.email,
-          userType: finalUserType,
-          message: 'Email verified successfully! Please login.',
-          verified: 'true'
-        },
-        replaceUrl: true
-      }).then(success => {
-        if (!success) {
-          console.error('Navigation to login failed');
-          this.router.navigate(['/login'], { replaceUrl: true });
-        }
-      }).catch(err => {
-        console.error('Navigation error:', err);
-        window.location.href = '/login';
-      });
-      
-      return;
+    if (hasAuthData) {
+      this.authService.logoutSync();
+      localStorage.clear();
+      sessionStorage.clear();
     }
 
-    const userData = {
-      email: this.email,
-      userType: finalUserType,
-      isVerified: true,
-      ...response.user
-    };
-    
-    if (response.token) {
-      sessionStorage.setItem('authToken', response.token);
-      localStorage.setItem('authToken', response.token);
+    try {
+      sessionStorage.setItem('emailVerified', 'true');
+      sessionStorage.setItem('verifiedEmail', this.email);
+      sessionStorage.setItem('verifiedUserType', finalUserType);
+    } catch (e) {
+      console.error('Failed to store verification data', e);
     }
     
-    sessionStorage.setItem('currentUser', JSON.stringify(userData));
-    sessionStorage.setItem('isAuthenticated', 'true');
+    this.showMessage('Email verified successfully! Redirecting to login...', 'success');
     
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    localStorage.setItem('isAuthenticated', 'true');
-
-    const dashboardRoute = this.getDashboardRoute(finalUserType);
-
-    this.router.navigate([dashboardRoute]).then(success => {
+    await this.router.navigate(['/login'], {
+      queryParams: {
+        email: this.email,
+        userType: finalUserType,
+        message: 'Email verified successfully! Please login with your credentials.',
+        verified: 'true'
+      },
+      replaceUrl: true
+    }).then(success => {
       if (!success) {
-        this.tryAlternativeNavigation(finalUserType);
+        console.error('Navigation to login failed');
+        this.router.navigate(['/login'], { replaceUrl: true });
       }
-    }).catch(error => {
-      console.error('Dashboard navigation error:', error);
-      this.tryAlternativeNavigation(finalUserType);
+    }).catch(err => {
+      console.error('Navigation error:', err);
+      window.location.href = '/login';
     });
-  }
-
-  private getDashboardRoute(userType: string): string {
-    const normalizedUserType = userType.toLowerCase().trim();
-    
-    const routeMap: { [key: string]: string } = {
-      'landlord': '/landlord-dashboard/home',
-      'tenant': '/tenant-dashboard/dashboard', 
-      'caretaker': '/caretaker-dashboard',
-      'business': '/business-dashboard',
-      'admin': '/admin-dashboard',
-    };
-
-    return routeMap[normalizedUserType] || '/tenant-dashboard/dashboard';
-  }
-
-  private tryAlternativeNavigation(userType: string) {
-    const normalizedUserType = userType.toLowerCase().trim();
-    
-    if (normalizedUserType === 'landlord') {
-      const landlordRoutes = [
-        '/landlord-dashboard',
-        '/landlord-dashboard/home',
-        '/landlord'
-      ];
-      this.tryMultipleRoutes(landlordRoutes, 'Landlord dashboard');
-    } else if (normalizedUserType === 'tenant') {
-      const tenantRoutes = [
-        '/tenant-dashboard',
-        '/tenant-dashboard/dashboard',
-        '/tenant',
-        '/dashboard'
-      ];
-      this.tryMultipleRoutes(tenantRoutes, 'Tenant dashboard');
-    } else {
-      const genericRoutes = [
-        '/dashboard',
-        '/tenant-dashboard/dashboard',
-        '/login'
-      ];
-      this.tryMultipleRoutes(genericRoutes, 'Generic dashboard');
-    }
-  }
-
-  private tryMultipleRoutes(routes: string[], routeType: string) {
-    let currentIndex = 0;
-    
-    const tryNextRoute = () => {
-      if (currentIndex >= routes.length) {
-        this.showMessage(`${routeType} not available. Redirecting to login.`, 'info');
-        this.router.navigate(['/login']);
-        return;
-      }
-      
-      const route = routes[currentIndex];
-      
-      this.router.navigate([route]).then(success => {
-        if (!success) {
-          currentIndex++;
-          tryNextRoute();
-        }
-      }).catch(error => {
-        currentIndex++;
-        tryNextRoute();
-      });
-    };
-    
-    tryNextRoute();
   }
 
   private handleVerificationError(error: any) {

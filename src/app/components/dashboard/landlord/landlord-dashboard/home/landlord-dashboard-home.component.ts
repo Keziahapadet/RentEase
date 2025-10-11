@@ -12,8 +12,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { PropertyService } from '../../../../../services/property.service';
 import { AuthService } from '../../../../../services/auth.service';
-import { Property, Unit, } from '../../../../../services/dashboard-interface';
-import{ User} from'../../../../../services/auth-interfaces';
+import { Property, Unit } from '../../../../../services/dashboard-interface';
+import { User } from '../../../../../services/auth-interfaces';
 import { DashboardStats, StatCardConfig } from '../../../../../services/dashboard-interface';
 import { Subscription } from 'rxjs';
 
@@ -71,6 +71,20 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     console.log('=== Landlord Dashboard Home Initialized ===');
+    
+    const shouldRedirectToLogin = sessionStorage.getItem('redirectToLoginAfterReset');
+    if (shouldRedirectToLogin) {
+      sessionStorage.removeItem('redirectToLoginAfterReset');
+      this.authService.logoutSync();
+      this.router.navigate(['/login']);
+      return;
+    }
+    
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    
     this.loadDashboardData();
   }
 
