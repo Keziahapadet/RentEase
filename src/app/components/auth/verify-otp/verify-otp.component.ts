@@ -128,7 +128,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! Redirecting to login...', 'success');
+        this.showMessage('Verification successful! Logging you in...', 'success');
         await this.handleSuccessfulVerification(response);
       } else {
         throw new Error(response.message || 'Verification failed');
@@ -152,53 +152,47 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private async handleSuccessfulVerification(response: any) {
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    let finalUserType = this.userType;
+    const userRole = response.user?.role || this.userType;
     
-    if (!finalUserType && response.user?.role) {
-      finalUserType = response.user.role;
-    }
-    
-    if (!finalUserType && response.role) {
-      finalUserType = response.role;
-    }
-
-    const hasAuthData = response.token || response.user;
-    
-    if (hasAuthData) {
-      this.authService.logoutSync();
-      localStorage.clear();
-      sessionStorage.clear();
+    if (!response.token || !response.user) {
+      this.showMessage('Verification successful! Please login.', 'success');
+      await this.router.navigate(['/login'], {
+        queryParams: {
+          email: this.email,
+          verified: 'true',
+          message: 'Email verified! Please login.'
+        }
+      });
+      return;
     }
 
-    try {
-      sessionStorage.setItem('emailVerified', 'true');
-      sessionStorage.setItem('verifiedEmail', this.email);
-      sessionStorage.setItem('verifiedUserType', finalUserType);
-    } catch (e) {
-      console.error('Failed to store verification data', e);
+    this.showMessage('Verification successful! Redirecting to dashboard...', 'success');
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const dashboardRoute = this.getDashboardRoute(userRole);
+    await this.router.navigate([dashboardRoute], { replaceUrl: true });
+  }
+
+  private getDashboardRoute(role: string): string {
+    const normalizedRole = role.toUpperCase().trim();
+    
+    switch (normalizedRole) {
+      case 'LANDLORD':
+        return '/landlord-dashboard';
+      case 'TENANT':
+        return '/tenant-dashboard';
+      case 'CARETAKER':
+        return '/caretaker-dashboard';
+      case 'BUSINESS':
+        return '/business-dashboard';
+      case 'ADMIN':
+        return '/admin-dashboard';
+      default:
+        return '/dashboard';
     }
-    
-    this.showMessage('Email verified successfully! Redirecting to login...', 'success');
-    
-    await this.router.navigate(['/login'], {
-      queryParams: {
-        email: this.email,
-        userType: finalUserType,
-        message: 'Email verified successfully! Please login with your credentials.',
-        verified: 'true'
-      },
-      replaceUrl: true
-    }).then(success => {
-      if (!success) {
-        console.error('Navigation to login failed');
-        this.router.navigate(['/login'], { replaceUrl: true });
-      }
-    }).catch(err => {
-      console.error('Navigation error:', err);
-      window.location.href = '/login';
-    });
   }
 
   private handleVerificationError(error: any) {
@@ -212,8 +206,12 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
       this.showMessage('Account not found. Please check your email or register.', 'error');
     } else if (errorMsg.includes('already verified')) {
-      this.showMessage('Account already verified. Please login.', 'info');
-      this.router.navigate(['/login']);
+      this.showMessage('Account already verified. Redirecting to login...', 'info');
+      setTimeout(() => {
+        this.router.navigate(['/login'], {
+          queryParams: { email: this.email }
+        });
+      }, 2000);
     } else {
       this.showMessage(error.message || 'Verification failed. Please try again.', 'error');
     }
@@ -233,7 +231,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       const response = await firstValueFrom(this.authService.resendOtp(resendRequest));
 
       if (response.success) {
-        this.showMessage('New code sent! Check your email. ', 'success');
+        this.showMessage('New code sent! Check your email.', 'success');
         this.startResendTimer();
         this.clearOtpInputs();
       } else {

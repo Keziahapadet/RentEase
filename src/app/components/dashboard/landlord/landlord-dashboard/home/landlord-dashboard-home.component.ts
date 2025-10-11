@@ -51,15 +51,12 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
   };
 
   statCards: StatCardConfig[] = [];
-
   recentProperties: Property[] = [];
   recentUnits: Unit[] = [];
   allProperties: Property[] = [];
-
   loading = true;
   loadingProperties = true;
   errorMessage = '';
-
   private subscriptions = new Subscription();
 
   constructor(
@@ -70,8 +67,6 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    console.log('=== Landlord Dashboard Home Initialized ===');
-    
     const shouldRedirectToLogin = sessionStorage.getItem('redirectToLoginAfterReset');
     if (shouldRedirectToLogin) {
       sessionStorage.removeItem('redirectToLoginAfterReset');
@@ -95,7 +90,6 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
   loadDashboardData() {
     this.loading = true;
     this.errorMessage = '';
-    console.log('Loading dashboard data...');
     this.loadAllProperties();
   }
 
@@ -104,8 +98,6 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
 
     const propertiesSub = this.propertyService.getProperties().subscribe({
       next: (response: any) => {
-        console.log('Properties response for dashboard:', response);
-        
         let properties: Property[] = [];
         
         if (Array.isArray(response)) {
@@ -119,7 +111,6 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
         } else if (response?.success && Array.isArray(response.data)) {
           properties = response.data;
         } else {
-          console.warn('Unexpected response format from properties API:', response);
           properties = [];
         }
 
@@ -128,12 +119,10 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
         this.loadRecentProperties(properties);
         this.loadRecentUnits(properties);
         this.initializeStatCards();
-
         this.loadingProperties = false;
         this.loading = false;
       },
       error: (error: any) => {
-        console.error('Error loading properties for dashboard:', error);
         this.loadingProperties = false;
         this.loading = false;
         this.errorMessage = error?.message || 'Failed to load dashboard data';
@@ -141,7 +130,7 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
         
         if (error.status === 401) {
           setTimeout(() => {
-            this.authService.logout();
+            this.authService.logout().subscribe();
             this.router.navigate(['/login']);
           }, 2000);
         }
@@ -195,8 +184,6 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
       pendingRent: 0,
       totalTenants
     };
-
-    console.log('Calculated dashboard stats:', this.dashboardStats);
   }
 
   private initializeStatCards() {
@@ -275,7 +262,6 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
     this.recentProperties = properties
       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
       .slice(0, 5);
-    console.log('Recent properties:', this.recentProperties);
   }
 
   private loadRecentUnits(properties: Property[]) {
@@ -294,7 +280,6 @@ export class LandlordDashboardHomeComponent implements OnInit, OnDestroy {
     this.recentUnits = allUnits
       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
       .slice(0, 8);
-    console.log('Recent units:', this.recentUnits);
   }
 
   refreshDashboard() {
