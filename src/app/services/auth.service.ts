@@ -1,26 +1,9 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
-import {
-  User,
-  LoginRequest,
-  RegisterRequest,
-  RegisterResponse,
-  UserRole,
-  AuthResponse,
-  OtpRequest,
-  OtpVerifyRequest,
-  OtpResponse,
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
-  ChangePasswordRequest,
-  ApiResponse,
-  VerifyPasswordResetOtpRequest,
-  UpdatePhoneRequest
-} from './auth-interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +16,7 @@ export class AuthService {
 
   private readonly apiUrl = 'https://rentease-3-sfgx.onrender.com/api/auth';
 
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private currentUserSubject = new BehaviorSubject<any>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
 
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -83,8 +66,8 @@ export class AuthService {
     this.isAuthenticatedSubject.next(false);
   }
 
-  login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials, {
+  login(credentials: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, credentials, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
       tap(res => this.handleAuthSuccess(res, credentials.rememberMe)),
@@ -92,13 +75,13 @@ export class AuthService {
     );
   }
 
-  register(userData: RegisterRequest): Observable<RegisterResponse> {
+  register(userData: any): Observable<any> {
     const normalizedData = {
       ...userData,
       email: userData.email.trim().toLowerCase()
     };
 
-    return this.http.post<RegisterResponse>(`${this.apiUrl}/signup`, normalizedData, {
+    return this.http.post<any>(`${this.apiUrl}/signup`, normalizedData, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
       tap(res => {
@@ -118,48 +101,112 @@ export class AuthService {
     );
   }
 
-  logout(): void {
+  /**
+   * Logout user - calls backend API and clears local state
+   * Falls back to local logout if API call fails
+   */
+  logout(): Observable<any> {
+    const token = this.getToken();
+    
+    // If no token, just clear local state
+    if (!token) {
+      this.performLocalLogout();
+      return of({ success: true, message: 'Logged out locally' });
+    }
+
+    // Call backend logout endpoint
+    return this.http.post<any>(
+      `${this.apiUrl}/logout`,
+      {},
+      { 
+        headers: this.getAuthHeaders(),
+        responseType: 'json'
+      }
+    ).pipe(
+      tap(response => {
+        console.log('Backend logout successful:', response);
+        this.performLocalLogout();
+      }),
+      catchError(error => {
+        console.error('Backend logout failed, performing local logout:', error);
+        // Always perform local logout even if backend fails
+        this.performLocalLogout();
+        // Return success since local logout succeeded
+        return of({ 
+          success: true, 
+          message: 'Logged out locally (backend unavailable)' 
+        });
+      })
+    );
+  }
+
+  /**
+   * Perform local logout operations
+   * Clears all storage and resets state
+   */
+  private performLocalLogout(): void {
     this.clearAllStorage();
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
     this.router.navigate(['/login']);
   }
 
-  requestPasswordReset(request: ForgotPasswordRequest): Observable<ApiResponse> {
+  /**
+   * Quick logout without waiting for API response
+   * Useful for navigation guards or immediate redirects
+   */
+  logoutSync(): void {
+    const token = this.getToken();
+    
+    // Perform local logout immediately
+    this.performLocalLogout();
+    
+    // Fire and forget the backend call
+    if (token) {
+      this.http.post<any>(
+        `${this.apiUrl}/logout`,
+        {},
+        { 
+          headers: this.getAuthHeaders(),
+          responseType: 'json'
+        }
+      ).subscribe({
+        next: () => console.log('Backend logout completed'),
+        error: (err) => console.warn('Backend logout failed:', err)
+      });
+    }
+  }
+
+  requestPasswordReset(request: any): Observable<any> {
     const normalizedRequest = { email: request.email.trim().toLowerCase() };
-    return this.http.post<ApiResponse>(
+    return this.http.post<any>(
       `${this.apiUrl}/forgot-password`,
       normalizedRequest,
       { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
     ).pipe(catchError(this.handleError));
   }
 
-  verifyPasswordResetOtp(request: VerifyPasswordResetOtpRequest): Observable<ApiResponse> {
+  verifyPasswordResetOtp(request: any): Observable<any> {
     const normalizedRequest = {
       email: request.email.trim().toLowerCase(),
       otpCode: request.otpCode.toString().trim()
     };
     
-    return this.http.post<ApiResponse>(
+    return this.http.post<any>(
       `${this.apiUrl}/verify-reset-otp`,
       normalizedRequest,
       { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
     ).pipe(catchError(this.handlePasswordResetError));
   }
 
-  resetPassword(request: ResetPasswordRequest): Observable<ApiResponse> {
+  resetPassword(request: any): Observable<any> {
     const payload = {
       email: request.email.trim().toLowerCase(),
       otpCode: request.otpCode,
       newPassword: request.newPassword
     };
     
-    console.log(' RESET PASSWORD DEBUG - Payload:', JSON.stringify(payload, null, 2));
-    console.log(' OTP Code details - Type:', typeof payload.otpCode, 'Value:', payload.otpCode);
-    console.log(' Email:', payload.email);
-    console.log(' Password length:', payload.newPassword?.length);
-    
-    return this.http.post<ApiResponse>(
+    return this.http.post<any>(
       `${this.apiUrl}/reset-password`,
       payload,
       { 
@@ -169,28 +216,25 @@ export class AuthService {
       }
     ).pipe(
       tap(response => {
-        console.log(' RESET PASSWORD SUCCESS:', response);
+        console.log('RESET PASSWORD SUCCESS:', response);
       }),
       catchError(error => {
-        console.error(' RESET PASSWORD ERROR:', error);
-        console.error(' Error status:', error.status);
-        console.error(' Error message:', error.message);
-        console.error(' Error details:', error.error);
+        console.error('RESET PASSWORD ERROR:', error);
         return this.handleError(error);
       })
     );
   }
 
-  changePassword(request: ChangePasswordRequest): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(
+  changePassword(request: any): Observable<any> {
+    return this.http.post<any>(
       `${this.apiUrl}/change-password`,
       request,
       { headers: this.getAuthHeaders() }
     ).pipe(catchError(this.handleError));
   }
 
-  updatePhoneNumber(request: UpdatePhoneRequest): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(
+  updatePhoneNumber(request: any): Observable<any> {
+    return this.http.post<any>(
       `${this.apiUrl}/update-phone`,
       request,
       { headers: this.getAuthHeaders() }
@@ -213,49 +257,47 @@ export class AuthService {
     );
   }
 
-  sendOtp(request: OtpRequest): Observable<OtpResponse> {
+  sendOtp(request: any): Observable<any> {
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
-    return this.http.post<OtpResponse>(`${this.apiUrl}/send-otp`, cleanRequest, {
+    return this.http.post<any>(`${this.apiUrl}/send-otp`, cleanRequest, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(catchError(this.handleError));
   }
 
- verifyOtp(request: OtpVerifyRequest): Observable<OtpResponse> {
-  const cleanRequest = {
-    email: request.email.trim().toLowerCase(),
-    otpCode: request.otpCode.toString().trim(),
-    type: request.type
-  };
-  return this.http.post<OtpResponse>(`${this.apiUrl}/verify-otp`, cleanRequest, {
-    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-  }).pipe(
-    tap(res => {
-      if (res.success && res.token) {
-       
-        if (!res.user?.role) {
-          console.error(' User role missing in OTP verification response');
-          throw new Error('User role not provided in verification response');
+  verifyOtp(request: any): Observable<any> {
+    const cleanRequest = {
+      email: request.email.trim().toLowerCase(),
+      otpCode: request.otpCode.toString().trim(),
+      type: request.type
+    };
+    return this.http.post<any>(`${this.apiUrl}/verify-otp`, cleanRequest, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }).pipe(
+      tap(res => {
+        if (res.success && res.token) {
+          if (!res.user?.role) {
+            throw new Error('User role not provided in verification response');
+          }
+          
+          this.handleAuthSuccess({
+            token: res.token,
+            tokenType: 'Bearer',
+            userId: res.user.id as number,
+            fullName: res.user.fullName || '',
+            email: res.user.email || '',
+            role: res.user.role,
+            verified: res.user.verified || false,
+            user: res.user
+          }, false);
         }
-        
-        this.handleAuthSuccess({
-          token: res.token,
-          tokenType: 'Bearer',
-          userId: res.user.id as number,
-          fullName: res.user.fullName || '',
-          email: res.user.email || '',
-          role: res.user.role, 
-          verified: res.user.verified || false,
-          user: res.user
-        }, false);
-      }
-    }),
-    catchError(this.handleOtpError)
-  );
-}
+      }),
+      catchError(this.handleOtpError)
+    );
+  }
 
-  resendOtp(request: OtpRequest): Observable<OtpResponse> {
+  resendOtp(request: any): Observable<any> {
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
-    return this.http.post<OtpResponse>(`${this.apiUrl}/resend-otp`, cleanRequest, {
+    return this.http.post<any>(`${this.apiUrl}/resend-otp`, cleanRequest, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(catchError(this.handleError));
   }
@@ -278,7 +320,7 @@ export class AuthService {
     return cleanToken;
   }
 
-  getCurrentUser(): User | null {
+  getCurrentUser(): any {
     const userData = this.getFromStorage('userData');
     if (!userData) return null;
     try { 
@@ -313,16 +355,16 @@ export class AuthService {
     return new HttpHeaders(headers);
   }
 
-  hasRole(role: UserRole | string): boolean {
+  hasRole(role: string): boolean {
     const user = this.getCurrentUser();
     return user?.role?.toUpperCase() === role.toUpperCase();
   }
 
-  isBusiness(): boolean { return this.hasRole(UserRole.BUSINESS); }
-  isTenant(): boolean { return this.hasRole(UserRole.TENANT); }
-  isLandlord(): boolean { return this.hasRole(UserRole.LANDLORD); }
-  isCaretaker(): boolean { return this.hasRole(UserRole.CARETAKER); }
-  isAdmin(): boolean { return this.hasRole(UserRole.ADMIN); }
+  isBusiness(): boolean { return this.hasRole('BUSINESS'); }
+  isTenant(): boolean { return this.hasRole('TENANT'); }
+  isLandlord(): boolean { return this.hasRole('LANDLORD'); }
+  isCaretaker(): boolean { return this.hasRole('CARETAKER'); }
+  isAdmin(): boolean { return this.hasRole('ADMIN'); }
 
   needsEmailVerification(): boolean {
     const user = this.getCurrentUser();
@@ -340,10 +382,10 @@ export class AuthService {
     sessionStorage.removeItem('pendingEmail');
   }
 
-  private handleAuthSuccess(response: AuthResponse | RegisterResponse, rememberMe: boolean = false): void {
+  private handleAuthSuccess(response: any, rememberMe: boolean = false): void {
     if (!this.isBrowser) return;
     
-    let user: User | null = null;
+    let user: any = null;
     let token: string | null = null;
 
     if ('userId' in response) {

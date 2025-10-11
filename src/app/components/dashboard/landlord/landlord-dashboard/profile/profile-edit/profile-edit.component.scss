@@ -84,36 +84,44 @@
 
           .profile-image-overlay {
             position: absolute;
-            bottom: -5px;
-            right: -5px;
+            bottom: 0;
+            right: -120px;
             display: flex;
             gap: 0.75rem;
-            flex-direction: column;
+            flex-direction: row;
 
             .change-photo-btn,
             .camera-btn,
             .delete-photo-btn {
-              width: 48px;
-              height: 48px;
-              border-radius: 50%;
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              min-width: 130px;
+              height: 44px;
+              border-radius: 8px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
               transition: all 0.3s ease;
-              border: 3px solid white;
+              border: none;
+              font-weight: 600;
+              font-size: 0.875rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 0.5rem;
+              cursor: pointer;
+              padding: 0 1rem;
 
               mat-icon {
-                font-size: 24px;
-                width: 24px;
-                height: 24px;
-                line-height: 24px;
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+                line-height: 20px;
               }
 
               &:hover:not([disabled]) {
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-                transform: scale(1.1) translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                transform: translateY(-2px);
               }
 
               &:active:not([disabled]) {
-                transform: scale(0.95);
+                transform: translateY(0);
               }
 
               &[disabled] {
@@ -124,29 +132,35 @@
             }
 
             .change-photo-btn {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
               color: white;
 
               &:hover:not([disabled]) {
-                background: linear-gradient(135deg, #5568d3 0%, #63408a 100%);
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
               }
             }
 
             .camera-btn {
-              background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+              background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
               color: white;
 
               &:hover:not([disabled]) {
-                background: linear-gradient(135deg, #e77fe8 0%, #e34557 100%);
+                background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
               }
             }
 
             .delete-photo-btn {
-              background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
               color: white;
 
+              mat-icon {
+                font-size: 22px;
+                width: 22px;
+                height: 22px;
+              }
+
               &:hover:not([disabled]) {
-                background: linear-gradient(135deg, #e85e87 0%, #f5d12d 100%);
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
               }
 
               &[disabled] {
@@ -196,7 +210,7 @@
             gap: 0.5rem;
 
             &:before {
-              content: '⏳';
+              content: '';
             }
           }
 
@@ -213,7 +227,7 @@
             gap: 0.5rem;
 
             &:before {
-              content: '🗑️';
+              content: '';
             }
           }
         }
@@ -288,7 +302,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 1.5rem 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
         h3 {
@@ -343,7 +357,7 @@
         border-top: 2px solid rgba(255, 255, 255, 0.1);
 
         .capture-btn {
-          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
           color: white;
           padding: 1rem 3rem;
           border-radius: 60px;
@@ -352,7 +366,7 @@
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          box-shadow: 0 8px 24px rgba(245, 87, 108, 0.4);
+          box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
           transition: all 0.3s ease;
           border: none;
           cursor: pointer;
@@ -371,9 +385,9 @@
           }
 
           &:hover {
-            background: linear-gradient(135deg, #e77fe8 0%, #e34557 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
             transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 12px 32px rgba(245, 87, 108, 0.5);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
 
             &:before {
               left: 100%;
@@ -449,6 +463,36 @@ mat-form-field {
   color: white !important;
 }
 
+@media (max-width: 1024px) {
+  .profile-edit-container {
+    .profile-content {
+      .profile-card {
+        .profile-header {
+          flex-direction: column;
+          align-items: center;
+          gap: 2rem;
+
+          .profile-image-section {
+            .profile-image-overlay {
+              position: static;
+              margin-top: 1.5rem;
+              justify-content: center;
+            }
+          }
+
+          .profile-basic-info {
+            text-align: center;
+
+            .instruction {
+              justify-content: center;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .profile-edit-container {
     .content-header {
@@ -463,25 +507,33 @@ mat-form-field {
 
       .profile-card {
         .profile-header {
-          flex-direction: column;
-          text-align: center;
-          gap: 1.5rem;
-
           .profile-image-section {
             .profile-image-overlay {
-              bottom: -10px;
-              right: 50%;
-              transform: translateX(50%);
-              flex-direction: row;
-              gap: 1rem;
-            }
-          }
+              flex-direction: column;
+              gap: 0.75rem;
+              margin-top: 1rem;
 
-          .profile-basic-info {
-            text-align: center;
+              .change-photo-btn,
+              .camera-btn,
+              .delete-photo-btn {
+                min-width: 160px;
+                height: 48px;
+                font-size: 0.9375rem;
 
-            .instruction {
-              justify-content: center;
+                mat-icon {
+                  font-size: 22px;
+                  width: 22px;
+                  height: 22px;
+                }
+              }
+
+              .delete-photo-btn {
+                mat-icon {
+                  font-size: 24px;
+                  width: 24px;
+                  height: 24px;
+                }
+              }
             }
           }
         }
@@ -555,8 +607,9 @@ mat-form-field {
               .change-photo-btn,
               .camera-btn,
               .delete-photo-btn {
-                width: 42px;
-                height: 42px;
+                min-width: 140px;
+                height: 44px;
+                font-size: 0.875rem;
 
                 mat-icon {
                   font-size: 20px;
@@ -564,6 +617,33 @@ mat-form-field {
                   height: 20px;
                 }
               }
+
+              .delete-photo-btn {
+                mat-icon {
+                  font-size: 22px;
+                  width: 22px;
+                  height: 22px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .camera-overlay {
+      .camera-container {
+        .camera-controls {
+          padding: 1rem;
+
+          .capture-btn {
+            padding: 0.75rem 2rem;
+            font-size: 0.9375rem;
+
+            mat-icon {
+              font-size: 24px;
+              width: 24px;
+              height: 24px;
             }
           }
         }

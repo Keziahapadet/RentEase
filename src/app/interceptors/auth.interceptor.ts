@@ -9,59 +9,40 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   
   const skipAuth = [
-    '/auth/login',
-    '/auth/signup', 
-    '/auth/send-otp',
-    '/auth/verify-otp',
-    '/auth/forgot-password',
-    '/auth/verify-reset-otp',
-    '/auth/reset-password',
-    '/auth/resend-otp'
+    '/api/auth/login',
+    '/api/auth/signup', 
+    '/api/auth/send-otp',
+    '/api/auth/verify-otp',
+    '/api/auth/forgot-password',
+    '/api/auth/verify-reset-otp',
+    '/api/auth/reset-password',
+    '/api/auth/resend-otp'
   ].some(endpoint => req.url.includes(endpoint));
 
-  if (skipAuth) {
-    return next(req);
-  }
-
+  let clonedReq = req;
   const token = authService.getToken();
   
-  if (token) {
-    const cloned = req.clone({
+  if (token && !skipAuth) {
+    clonedReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
       }
     });
-
-    console.log('Adding auth token to request:', req.url);
-    
-    return next(cloned).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
-          console.log(' 401 Unauthorized - clearing corrupted storage and redirecting to login');
-          authService.clearCorruptedStorage();
-          
-         
-          const currentUrl = router.url;
-          if (!currentUrl.includes('/auth/login')) {
-            router.navigate(['/auth/login'], {
-              queryParams: { returnUrl: currentUrl }
-            });
-          }
-        }
-        
-        return throwError(() => error);
-      })
-    );
-  } else {
-   
-    console.log(' No auth token found - redirecting to login');
-    const currentUrl = router.url;
-    if (!currentUrl.includes('/auth/login')) {
-      router.navigate(['/auth/login'], {
-        queryParams: { returnUrl: currentUrl }
-      });
-    }
   }
-  
-  return next(req);
+
+  return next(clonedReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401 && !skipAuth) {
+        authService.clearCorruptedStorage();
+        
+        const currentUrl = router.url;
+        if (!currentUrl.includes('/login')) {
+          router.navigate(['/login'], {
+            queryParams: { returnUrl: currentUrl }
+          });
+        }
+      }
+      return throwError(() => error);
+    })
+  );
 };

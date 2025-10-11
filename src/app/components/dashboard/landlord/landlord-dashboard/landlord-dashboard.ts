@@ -91,6 +91,7 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
   ];
 
   private profileUpdateListener: any;
+  isLoggingOut: boolean = false;
 
   constructor(
     private router: Router,
@@ -290,6 +291,10 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
     document.body.style.overflow = '';
   }
 
+  closeProfileMenu(): void {
+    this.isProfileMenuOpen = false;
+  }
+
   toggleMenu(menuName: keyof typeof this.expandedMenus): void {
     this.expandedMenus[menuName] = !this.expandedMenus[menuName];
   }
@@ -427,8 +432,33 @@ export class LandlordDashboardComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('profileImage');
-    this.router.navigate(['/login']);
+    if (this.isLoggingOut) return;
+
+    const confirmed = confirm('Are you sure you want to logout?');
+    if (!confirmed) return;
+
+    this.isLoggingOut = true;
+    this.closeProfileMenu();
+
+    this.authService.logout().subscribe({
+      next: (response) => {
+        console.log('Logout successful:', response.message);
+      },
+      error: (error) => {
+        console.error('Logout error:', error);
+        this.isLoggingOut = false;
+      },
+      complete: () => {
+        this.isLoggingOut = false;
+      }
+    });
+  }
+
+  quickLogout(): void {
+    if (this.isLoggingOut) return;
+    
+    this.isLoggingOut = true;
+    this.closeProfileMenu();
+    this.authService.logoutSync();
   }
 }

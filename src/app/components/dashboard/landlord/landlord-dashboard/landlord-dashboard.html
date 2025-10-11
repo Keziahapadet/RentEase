@@ -37,9 +37,11 @@
 
           <div class="menu-divider"></div>
 
-          <button class="profile-action-btn logout-btn" (click)="logout(); $event.stopPropagation()">
+          <button class="profile-action-btn logout-btn" 
+                  (click)="logout(); $event.stopPropagation()"
+                  [disabled]="isLoggingOut">
             <mat-icon>logout</mat-icon>
-            <span>Logout</span>
+            <span>{{ isLoggingOut ? 'Logging out...' : 'Logout' }}</span>
           </button>
         </div>
       </div>

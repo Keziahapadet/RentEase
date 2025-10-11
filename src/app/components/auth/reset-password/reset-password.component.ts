@@ -216,7 +216,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     this.hideConfirmPassword = !this.hideConfirmPassword;
   }
 
-  onSubmit() {
+  async onSubmit() {
     this.passwordError = '';
     this.confirmPasswordError = '';
 
@@ -263,37 +263,65 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       newPassword: this.resetForm.value.newPassword
     };
 
-    this.authService.resetPassword(payload).subscribe({
-      next: (response: ApiResponse) => {
+    try {
+      const response = await new Promise<ApiResponse>((resolve, reject) => {
+        this.authService.resetPassword(payload).subscribe({
+          next: (res) => resolve(res),
+          error: (err) => reject(err)
+        });
+      });
+
+      if (response.success) {
+        this.clearResetSession();
+        this.showSnackBar('Password reset successful! Redirecting...', 'success');
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        await this.performNavigation();
+      } else {
         this.isLoading = false;
-        if (response.success) {
-          this.clearResetSession();
-          this.showSnackBar('Password reset successful! Redirecting to login...', 'success');
-          
-          this.router.navigate(['/login'], {
-            queryParams: {
-              message: 'Password reset successful! Please login with your new password.',
-              resetMessage: 'true'
-            },
-            replaceUrl: true
-          }).then(success => {
-            if (!success) {
-              console.error('Navigation to login failed');
-              window.location.href = '/login';
-            }
-          }).catch(err => {
-            console.error('Navigation error:', err);
-            window.location.href = '/login';
-          });
-        } else {
-          this.handleApiError(response.message || 'Failed to reset password');
-        }
-      },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.handleApiError(error);
+        this.handleApiError(response.message || 'Failed to reset password');
       }
-    });
+    } catch (error: any) {
+      this.isLoading = false;
+      this.handleApiError(error);
+    }
+  }
+
+  private async performNavigation(): Promise<void> {
+    const maxAttempts = 3;
+    let attempt = 0;
+
+    while (attempt < maxAttempts) {
+      attempt++;
+      
+      try {
+        const success = await this.router.navigate(['/login'], {
+          queryParams: {
+            message: 'Password reset successful! Please login with your new password.',
+            resetMessage: 'true'
+          },
+          replaceUrl: true
+        });
+
+        if (success) {
+          return;
+        }
+
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      } catch (err) {
+        console.error(`Navigation attempt ${attempt} failed:`, err);
+        
+        if (attempt < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      }
+    }
+
+    console.warn('All navigation attempts failed, using window.location');
+    window.location.href = '/login?message=Password reset successful! Please login with your new password.&resetMessage=true';
   }
 
   private handleApiError(error: any): void {

@@ -3,28 +3,6 @@ import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http
 import { Observable, throwError, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
-import { 
-  PropertyRequest, 
-  PropertyResponse, 
-  Property, 
-  Unit,
-  ProfilePictureResponse
-} from './dashboard-interface';
-import { ApiResponse, User } from './auth-interfaces';
-
-export interface InviteTenantRequest {
-  tenantEmail: string;
-  unitId: number;
-}
-
-export interface InviteCaretakerRequest {
-  caretakerEmail: string;
-  propertyId: number;
-}
-
-export interface AcceptInvitationRequest {
-  invitationToken: string;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -34,7 +12,7 @@ export class PropertyService {
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  getCurrentUserProfile(): Observable<ApiResponse> {
+  getCurrentUserProfile(): Observable<any> {
     const currentUser = this.authService.getCurrentUser();
     
     if (!currentUser) {
@@ -48,10 +26,10 @@ export class PropertyService {
       success: true,
       message: 'Using local user data',
       user: currentUser
-    } as ApiResponse);
+    });
   }
 
-  updateUserProfile(profileData: any): Observable<ApiResponse> {
+  updateUserProfile(profileData: any): Observable<any> {
     const currentUser = this.authService.getCurrentUser();
     
     if (!currentUser) {
@@ -76,10 +54,10 @@ export class PropertyService {
       success: true,
       message: 'Profile updated locally',
       user: updatedUser
-    } as ApiResponse);
+    });
   }
 
-  getProfilePicture(): Observable<ProfilePictureResponse> {
+  getProfilePicture(): Observable<any> {
     const token = this.authService.getToken();
     if (!token) {
       return of({
@@ -89,16 +67,16 @@ export class PropertyService {
       });
     }
 
-    return this.http.get<ProfilePictureResponse>(
+    return this.http.get<any>(
       `${this.apiUrl}/api/profile/picture`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(
       tap(response => {
         if (response.success && response.pictureUrl) {
           localStorage.setItem('profileImage', response.pictureUrl);
         }
       }),
-      catchError(error => {
+      catchError(() => {
         const cachedImage = localStorage.getItem('profileImage');
         if (cachedImage && !cachedImage.includes('svg+xml')) {
           return of({
@@ -116,7 +94,7 @@ export class PropertyService {
     );
   }
 
-  uploadProfilePicture(file: File): Observable<ApiResponse> {
+  uploadProfilePicture(file: File): Observable<any> {
     const token = this.authService.getToken();
     if (!token) {
       return throwError(() => ({ 
@@ -132,10 +110,10 @@ export class PropertyService {
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.post<ApiResponse>(
+    return this.http.post<any>(
       `${this.apiUrl}/api/profile/upload-picture`,
       formData,
-      { headers }
+      { headers, responseType: 'json' }
     ).pipe(
       tap(response => {
         if (response.success) {
@@ -146,7 +124,7 @@ export class PropertyService {
     );
   }
 
-  updateProfilePicture(file: File): Observable<ApiResponse> {
+  updateProfilePicture(file: File): Observable<any> {
     const token = this.authService.getToken();
     if (!token) {
       return throwError(() => ({ 
@@ -162,10 +140,10 @@ export class PropertyService {
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.put<ApiResponse>(
+    return this.http.put<any>(
       `${this.apiUrl}/api/profile/update-picture`,
       formData,
-      { headers }
+      { headers, responseType: 'json' }
     ).pipe(
       tap(response => {
         if (response.success) {
@@ -176,7 +154,7 @@ export class PropertyService {
     );
   }
 
-  deleteProfilePicture(): Observable<ApiResponse> {
+  deleteProfilePicture(): Observable<any> {
     const token = this.authService.getToken();
     if (!token) {
       return throwError(() => ({ 
@@ -185,9 +163,9 @@ export class PropertyService {
       }));
     }
 
-    return this.http.delete<ApiResponse>(
+    return this.http.delete<any>(
       `${this.apiUrl}/api/profile/delete-picture`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(
       tap(response => {
         if (response.success) {
@@ -198,7 +176,7 @@ export class PropertyService {
     );
   }
 
-  createProperty(request: PropertyRequest): Observable<PropertyResponse> {
+  createProperty(request: any): Observable<any> {
     const backendRequest = {
       name: request.name.trim(),
       location: request.location.trim(),
@@ -207,17 +185,17 @@ export class PropertyService {
       description: request.description?.trim() || ''
     };
 
-    return this.http.post<PropertyResponse>(
+    return this.http.post<any>(
       `${this.apiUrl}/api/landlord/properties`,
       backendRequest,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
-  getProperties(): Observable<Property[]> {
+  getProperties(): Observable<any[]> {
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties`, 
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(
       map(response => {
         if (Array.isArray(response)) {
@@ -235,10 +213,10 @@ export class PropertyService {
     );
   }
 
-  getPropertyById(propertyId: string): Observable<Property> {
+  getPropertyById(propertyId: string): Observable<any> {
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(
       map(response => {
         if (response?.data) {
@@ -252,7 +230,7 @@ export class PropertyService {
     );
   }
 
-  updateProperty(propertyId: string, request: PropertyRequest): Observable<PropertyResponse> {
+  updateProperty(propertyId: string, request: any): Observable<any> {
     const backendRequest = {
       name: request.name.trim(),
       location: request.location.trim(),
@@ -261,24 +239,24 @@ export class PropertyService {
       description: request.description?.trim() || ''
     };
 
-    return this.http.put<PropertyResponse>(
+    return this.http.put<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
       backendRequest,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
-  deleteProperty(propertyId: string): Observable<PropertyResponse> {
-    return this.http.delete<PropertyResponse>(
+  deleteProperty(propertyId: string): Observable<any> {
+    return this.http.delete<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
-  getUnitsByPropertyId(propertyId: string): Observable<Unit[]> {
+  getUnitsByPropertyId(propertyId: string): Observable<any[]> {
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(
       map(response => {
         if (Array.isArray(response)) {
@@ -296,7 +274,7 @@ export class PropertyService {
     );
   }
 
-  getPropertyUnits(propertyId: string): Observable<Unit[]> {
+  getPropertyUnits(propertyId: string): Observable<any[]> {
     return this.getUnitsByPropertyId(propertyId);
   }
 
@@ -312,11 +290,11 @@ export class PropertyService {
     return this.http.post<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units`,
       unitData,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
-  updateUnit(propertyId: string, unitId: string, unit: Unit): Observable<Unit> {
+  updateUnit(propertyId: string, unitId: string, unit: any): Observable<any> {
     const unitData = {
       unitNumber: unit.unitNumber?.trim(),
       unitType: unit.unitType,
@@ -325,57 +303,90 @@ export class PropertyService {
       description: unit.description?.trim() || ''
     };
 
-    return this.http.put<Unit>(
+    return this.http.put<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units/${unitId}`,
       unitData,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
-  deleteUnit(propertyId: string, unitId: string): Observable<void> {
-    return this.http.delete<void>(
+  deleteUnit(propertyId: string, unitId: string): Observable<any> {
+    return this.http.delete<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/units/${unitId}`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
   getDashboardStats(): Observable<any> {
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/dashboard/stats`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
   getPropertyStats(propertyId: string): Observable<any> {
     return this.http.get<any>(
       `${this.apiUrl}/api/landlord/properties/${propertyId}/stats`,
-      { headers: this.createHeaders() }
+      { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(catchError(this.handleError));
   }
 
-  inviteTenant(request: InviteTenantRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/invitations/tenant`, request, { 
-      headers: this.createHeaders() 
+  inviteTenant(request: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/landlord/invite-tenant`, request, { 
+      headers: this.createHeaders(),
+      responseType: 'json'
     }).pipe(catchError(this.handleError));
   }
 
-  inviteCaretaker(request: InviteCaretakerRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/invitations/caretaker`, request, { 
-      headers: this.createHeaders() 
+  inviteCaretaker(request: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/landlord/invite-caretaker`, request, { 
+      headers: this.createHeaders(),
+      responseType: 'json'
     }).pipe(catchError(this.handleError));
   }
 
-  acceptInvitation(request: AcceptInvitationRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/invitations/accept`, request, { 
-      headers: this.createHeaders() 
+  acceptInvitation(request: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/accept-invitation`, request, { 
+      headers: this.createHeaders(),
+      responseType: 'json'
     }).pipe(catchError(this.handleError));
+  }
+
+  getSentInvitations(): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}/api/invitations/sent`,
+      { headers: this.createHeaders(), responseType: 'json' }
+    ).pipe(
+      map(response => {
+        if (Array.isArray(response)) return response;
+        if (response?.data && Array.isArray(response.data)) return response.data;
+        if (response?.invitations && Array.isArray(response.invitations)) return response.invitations;
+        return [];
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  getReceivedInvitations(): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}/api/invitations/received`,
+      { headers: this.createHeaders(), responseType: 'json' }
+    ).pipe(
+      map(response => {
+        if (Array.isArray(response)) return response;
+        if (response?.data && Array.isArray(response.data)) return response.data;
+        if (response?.invitations && Array.isArray(response.invitations)) return response.invitations;
+        return [];
+      }),
+      catchError(this.handleError)
+    );
   }
 
   private generateDefaultAvatar(): string {
     const currentUser = this.authService.getCurrentUser();
     const name = currentUser?.fullName || 'User';
     const names = name.split(' ');
-    const initials = names.map(n => n.charAt(0).toUpperCase()).join('').slice(0, 2) || 'US';
+    const initials = names.map((n: string) => n.charAt(0).toUpperCase()).join('').slice(0, 2) || 'US';
     
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
     const color = colors[initials.charCodeAt(0) % colors.length];
@@ -407,7 +418,7 @@ export class PropertyService {
       errorMessage = 'Server error - profile picture feature temporarily unavailable';
     } else if (error.status === 401) {
       errorMessage = 'Authentication failed';
-      this.authService.logout();
+      this.authService.logout().subscribe();
     } else if (error.status === 413) {
       errorMessage = 'Image file is too large';
     } else if (error.status === 415) {
@@ -428,7 +439,7 @@ export class PropertyService {
     
     if (error.status === 401) {
       errorMessage = 'Authentication failed';
-      this.authService.logout();
+      this.authService.logout().subscribe();
     } else if (error.error?.message) {
       errorMessage = error.error.message;
     }
@@ -440,7 +451,7 @@ export class PropertyService {
     }));
   };
 
-  updateLocalUserData(user: User): void {
+  updateLocalUserData(user: any): void {
     const isPermanent = !!localStorage.getItem('userData');
     const storage = isPermanent ? localStorage : sessionStorage;
     storage.setItem('userData', JSON.stringify(user));
@@ -448,20 +459,5 @@ export class PropertyService {
     if ((this.authService as any).currentUserSubject) {
       (this.authService as any).currentUserSubject.next(user);
     }
-  }
-
-  testProfilePictureEndpoints(): void {
-    const token = this.authService.getToken();
-    if (!token) {
-      console.error('No token available for testing');
-      return;
-    }
-
-    console.log('Testing profile picture endpoints...');
-    
-    this.getProfilePicture().subscribe({
-      next: (response) => console.log('GET /api/profile/picture:', response),
-      error: (error) => console.error('GET /api/profile/picture failed:', error)
-    });
   }
 }
