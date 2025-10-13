@@ -5,7 +5,7 @@
       <h2>Login</h2>
     </div>
 
-    <div *ngIf="countdown > 0" class="auto-login-notice">
+    <div *ngIf="showAutoLoginNotice" class="auto-login-notice">
       <mat-icon>timer</mat-icon>
       <span>Auto-login in {{countdown}} seconds...</span>
     </div>

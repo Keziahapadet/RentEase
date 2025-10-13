@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,7 +29,7 @@ import { LoginRequest, UserRole, AuthResponse } from '../../../services/auth-int
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   private router: Router = inject(Router);
   private route: ActivatedRoute = inject(ActivatedRoute);
   private authService: AuthService = inject(AuthService);
@@ -41,7 +41,8 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   returnUrl: string = '/dashboard';
   autoSubmitTimer: any;
-  countdown: number = 3;
+  countdown: number = 0;
+  showAutoLoginNotice: boolean = false;
   
   emailError: string = '';
   passwordError: string = '';
@@ -60,7 +61,7 @@ export class LoginComponent implements OnInit {
     if (emailFromReset && passwordFromReset) {
       this.loginData.email = emailFromReset;
       this.loginData.password = passwordFromReset;
-      
+      this.showAutoLoginNotice = true;
       this.startAutoSubmitCountdown();
     }
     
@@ -72,11 +73,12 @@ export class LoginComponent implements OnInit {
 
   startAutoSubmitCountdown(): void {
     this.countdown = 3;
+    
     this.autoSubmitTimer = setInterval(() => {
       this.countdown--;
       
       if (this.countdown <= 0) {
-        clearInterval(this.autoSubmitTimer);
+        this.stopAutoSubmit();
         if (this.isFormValid && !this.isLoading) {
           this.onSubmit();
         }
@@ -87,7 +89,8 @@ export class LoginComponent implements OnInit {
   stopAutoSubmit(): void {
     if (this.autoSubmitTimer) {
       clearInterval(this.autoSubmitTimer);
-      this.countdown = 0;
+      this.autoSubmitTimer = null;
+      this.showAutoLoginNotice = false;
     }
   }
 
@@ -305,9 +308,9 @@ export class LoginComponent implements OnInit {
   }
 
   get loginButtonText(): string {
-    if (this.isLoading) return 'Logging in...';
+    if (this.isLoading) return 'Signing In...';
     if (this.countdown > 0) return `Logging in... (${this.countdown})`;
-    return 'Login';
+    return 'Sign In';
   }
 
   resetForm(): void {
