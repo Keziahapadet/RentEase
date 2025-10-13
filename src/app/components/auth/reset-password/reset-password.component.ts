@@ -11,7 +11,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
-import { ResetPasswordRequest, ApiResponse, LoginRequest, AuthResponse } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-reset-password',
@@ -112,28 +111,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     sessionStorage.removeItem('resetEmail');
     sessionStorage.removeItem('resetOtp');
     sessionStorage.removeItem('otpVerified');
-  }
-
-  validateEmail(email: string): string {
-    if (!email.trim()) {
-      return 'Email is required';
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!email.includes('@')) {
-      return 'Email needs @ symbol';
-    }
-    
-    if (!email.includes('.')) {
-      return 'Email needs .com ';
-    }
-    
-    if (!emailRegex.test(email)) {
-      return 'Please check your email format';
-    }
-    
-    return '';
   }
 
   onPasswordInput(): void {
@@ -251,50 +228,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     return Object.keys(errors).length ? errors : null;
   }
 
-  getPasswordErrorMessage(): string {
-    const control = this.resetForm.get('newPassword');
-    
-    if (control?.hasError('required')) {
-      return 'Password is required';
-    }
-    
-    if (control?.hasError('minLength')) {
-      return 'Password must be at least 6 characters';
-    }
-    
-    const errors = control?.errors;
-    if (errors) {
-      if (errors['lowercase']) {
-        return 'Missing lowercase letter';
-      }
-      if (errors['uppercase']) {
-        return 'Missing uppercase letter';
-      }
-      if (errors['number']) {
-        return 'Missing number';
-      }
-      if (errors['specialChar']) {
-        return 'Missing special character';
-      }
-    }
-    
-    return '';
-  }
-
-  getConfirmPasswordErrorMessage(): string {
-    const control = this.resetForm.get('confirmNewPassword');
-    
-    if (control?.hasError('required')) {
-      return 'Please confirm your password';
-    }
-    
-    if (this.resetForm.hasError('mismatch')) {
-      return 'Passwords do not match';
-    }
-    
-    return '';
-  }
-
   get hasMinLength(): boolean {
     const password = this.resetForm.get('newPassword')?.value || '';
     return password.length >= 6;
@@ -377,7 +310,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   async onSubmit() {
     if (this.isLoading) return;
 
-    // Validate all fields before submission
     this.validateAllFields();
 
     if (this.passwordError || this.confirmPasswordError || this.resetForm.invalid) {
@@ -385,38 +317,31 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const emailError = this.validateEmail(this.email);
-    if (emailError) {
-      this.showSnackBar(emailError, 'error');
-      return;
-    }
-
     this.isLoading = true;
     this.disableForm();
 
-    const payload: ResetPasswordRequest = {
+    const payload = {
       email: this.email,
       otpCode: this.otpCode,
       newPassword: this.resetForm.value.newPassword
     };
 
     try {
-      const response = await new Promise<ApiResponse>((resolve, reject) => {
-        this.authService.resetPassword(payload).subscribe({
-          next: (res) => resolve(res),
-          error: (err) => reject(err)
-        });
-      });
+      const response = await this.authService.resetPassword(payload).toPromise();
 
       if (response.success) {
-        this.showSnackBar('Password reset successful! Redirecting to login...', 'success');
+        this.showSnackBar('Password reset successfully! Redirecting to login...', 'success');
         
         this.clearAllAuthData();
         this.clearResetSession();
         
         setTimeout(() => {
-          window.location.href = '/login?message=Password reset successful! Please login with your new password.';
-        }, 1500);
+          this.router.navigate(['/login'], {
+            queryParams: { 
+              message: 'Password reset successful! Please login with your new password.' 
+            }
+          });
+        }, 2000);
       } else {
         this.isLoading = false;
         this.enableForm();
@@ -452,7 +377,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     } else if (error.message) {
       errorMessage = error.message;
     } else if (error.status === 400) {
-      errorMessage = this.getDetailed400Error(error);
+      errorMessage = 'Invalid request. Please check your inputs.';
     } else if (error.status === 404) {
       errorMessage = 'Reset password endpoint not found. Please contact support.';
     } else if (error.status === 500) {
@@ -484,22 +409,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getDetailed400Error(error: any): string {
-    if (error.error) {
-      if (typeof error.error === 'string') {
-        return error.error;
-      } else if (error.error.errors) {
-        const errors = error.error.errors;
-        if (Array.isArray(errors) && errors.length > 0) {
-          return errors.map((e: any) => e.defaultMessage || e.message).join(', ');
-        }
-      } else if (error.error.error) {
-        return error.error.error;
-      }
-    }
-    return 'Invalid request. Please check your inputs and try again.';
-  }
-
   private markFormGroupTouched() {
     Object.keys(this.resetForm.controls).forEach(key => {
       const control = this.resetForm.get(key);
@@ -507,7 +416,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       control?.markAsDirty();
     });
     
-   
     this.validateAllFields();
   }
 

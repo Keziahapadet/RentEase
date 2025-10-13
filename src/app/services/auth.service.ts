@@ -118,11 +118,9 @@ export class AuthService {
       }
     ).pipe(
       tap(response => {
-        console.log('Backend logout successful:', response);
         this.performLocalLogout();
       }),
       catchError(error => {
-        console.error('Backend logout failed, performing local logout:', error);
         this.performLocalLogout();
         return of({ 
           success: true, 
