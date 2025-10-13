@@ -6,7 +6,7 @@ import { AuthService } from '../../../../../../services/auth.service';
 @Component({
   selector: 'app-accept-invitation',
   templateUrl: './accept-invitation.component.html',
-  styleUrls: ['./accept-invitation.component.css']
+  styleUrls: ['./accept-invitation.component.scss']
 })
 export class AcceptInvitationComponent implements OnInit {
   token: string = '';
