@@ -15,7 +15,7 @@ import { PaymentsComponent } from './components/dashboard/tenant/payments/paymen
 import { MaintenanceComponent } from './components/dashboard/tenant/maintenance/maintenance.component';
 import { DocumentsComponent } from './components/dashboard/tenant/documents/documents.component';
 import { MessagesComponent } from './components/dashboard/tenant/messages/messages.component';
-import { MarketplaceComponent } from './components/dashboard/tenant/marketplace/marketplace.component';
+// import { MarketplaceComponent } from './components/dashboard/tenant/marketplace/marketplace.component';
 import { ReviewComponent } from './components/dashboard/tenant/review/review.component';
 import { SettingsComponent } from './components/dashboard/tenant/settings/settings.component';
 import { LandlordDashboardComponent } from './components/dashboard/landlord/landlord-dashboard/landlord-dashboard';
@@ -64,7 +64,7 @@ export const routes: Routes = [
       { path: 'maintenance', component: MaintenanceComponent },
       { path: 'documents', component: DocumentsComponent },
       { path: 'messages', component: MessagesComponent },
-      { path: 'marketplace', component: MarketplaceComponent },
+      // { path: 'marketplace', component: MarketplaceComponent },
       { path: 'reviews', component: ReviewComponent },
       { path: 'settings', component: SettingsComponent }
     ]

@@ -7,7 +7,6 @@ import { PaymentsComponent } from '../payments/payments.component';
 import { MaintenanceComponent } from '../maintenance/maintenance.component';
 import { DocumentsComponent } from '../documents/documents.component';
 import { MessagesComponent } from '../messages/messages.component';
-import { MarketplaceComponent } from '../marketplace/marketplace.component';
 import { ReviewComponent } from '../review/review.component';
 import { SettingsComponent } from '../settings/settings.component';
 
@@ -86,7 +85,7 @@ interface Review {
     MaintenanceComponent,
     DocumentsComponent,
     MessagesComponent,
-    MarketplaceComponent,
+   
     ReviewComponent,
     SettingsComponent
   ],
