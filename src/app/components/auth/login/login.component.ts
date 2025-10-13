@@ -40,6 +40,8 @@ export class LoginComponent implements OnInit {
   rememberMe = false;
   isLoading = false;
   returnUrl: string = '/dashboard';
+  autoSubmitTimer: any;
+  countdown: number = 3;
   
   emailError: string = '';
   passwordError: string = '';
@@ -49,16 +51,43 @@ export class LoginComponent implements OnInit {
       this.redirectToDashboard();
       return;
     }
+    
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
     
-    const resetMessage = this.route.snapshot.queryParams['resetMessage'];
-    if (resetMessage) {
-      this.showSnackbar(resetMessage, 'success');
+    const emailFromReset = this.route.snapshot.queryParams['email'];
+    const passwordFromReset = this.route.snapshot.queryParams['prefillPassword'];
+    
+    if (emailFromReset && passwordFromReset) {
+      this.loginData.email = emailFromReset;
+      this.loginData.password = passwordFromReset;
+      
+      this.startAutoSubmitCountdown();
     }
     
     const message = this.route.snapshot.queryParams['message'];
-    if (message && !resetMessage) {
+    if (message) {
       this.showSnackbar(message, 'success');
+    }
+  }
+
+  startAutoSubmitCountdown(): void {
+    this.countdown = 3;
+    this.autoSubmitTimer = setInterval(() => {
+      this.countdown--;
+      
+      if (this.countdown <= 0) {
+        clearInterval(this.autoSubmitTimer);
+        if (this.isFormValid && !this.isLoading) {
+          this.onSubmit();
+        }
+      }
+    }, 1000);
+  }
+
+  stopAutoSubmit(): void {
+    if (this.autoSubmitTimer) {
+      clearInterval(this.autoSubmitTimer);
+      this.countdown = 0;
     }
   }
 
@@ -92,6 +121,7 @@ export class LoginComponent implements OnInit {
   onEmailInput(): void {
     if (this.isLoading) return;
     this.emailError = '';
+    this.stopAutoSubmit();
   }
 
   onEmailBlur(): void {
@@ -105,6 +135,7 @@ export class LoginComponent implements OnInit {
   onPasswordInput(): void {
     if (this.isLoading) return;
     this.passwordError = '';
+    this.stopAutoSubmit();
   }
 
   onPasswordBlur(): void {
@@ -134,6 +165,8 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.stopAutoSubmit();
+    
     if (this.isLoading) return;
     
     if (!this.validateForm()) return;
@@ -271,12 +304,19 @@ export class LoginComponent implements OnInit {
     );
   }
 
+  get loginButtonText(): string {
+    if (this.isLoading) return 'Logging in...';
+    if (this.countdown > 0) return `Logging in... (${this.countdown})`;
+    return 'Login';
+  }
+
   resetForm(): void {
     this.loginData = { email: '', password: '' };
     this.rememberMe = false;
     this.isLoading = false;
     this.emailError = '';
     this.passwordError = '';
+    this.stopAutoSubmit();
   }
 
   private showSnackbar(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
@@ -291,5 +331,9 @@ export class LoginComponent implements OnInit {
           ? ['snackbar-error']
           : ['snackbar-info']
     });
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoSubmit();
   }
 }

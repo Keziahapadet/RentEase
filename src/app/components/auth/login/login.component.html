@@ -5,6 +5,11 @@
       <h2>Login</h2>
     </div>
 
+    <div *ngIf="countdown > 0" class="auto-login-notice">
+      <mat-icon>timer</mat-icon>
+      <span>Auto-login in {{countdown}} seconds...</span>
+    </div>
+
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm" novalidate>
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email Address</mat-label>
@@ -94,7 +99,7 @@
           <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
           Signing In...
         </span>
-        <span *ngIf="!isLoading">Sign In</span>
+        <span *ngIf="!isLoading">{{ loginButtonText }}</span>
       </button>
     </form>
 

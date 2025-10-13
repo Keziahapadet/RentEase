@@ -11,7 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
-import { ResetPasswordRequest, ApiResponse } from '../../../services/auth-interfaces';
+import { ResetPasswordRequest, ApiResponse, LoginRequest, AuthResponse } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-reset-password',
@@ -288,11 +288,8 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
       if (response.success) {
         this.clearResetSession();
-        this.clearAllAuthData();
         
         this.showSnackBar('Password reset successful! Redirecting to login...', 'success');
-        
-        await new Promise(resolve => setTimeout(resolve, 1500));
         
         await this.performNavigation();
       } else {
@@ -308,9 +305,10 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   private async performNavigation(): Promise<void> {
     try {
       const success = await this.router.navigate(['/login'], {
-        state: { 
-          message: 'Password reset successful! Please login with your new password.',
-          email: this.email
+        queryParams: { 
+          email: this.email,
+          prefillPassword: this.resetForm.value.newPassword,
+          message: 'Password reset successful! Click Login to continue.'
         },
         replaceUrl: true
       });

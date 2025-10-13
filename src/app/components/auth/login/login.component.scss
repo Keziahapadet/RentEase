@@ -35,6 +35,33 @@
   }
 }
 
+.auto-login-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  border: 1px solid #bbdefb;
+  animation: pulse 2s infinite;
+  
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
 .alert-error,
 .alert-success {
   padding: 12px 15px;
@@ -82,33 +109,35 @@ mat-form-field {
 
 .forgot-password-link {
   font-size: 14px;
-  
-  a {
-    color: #3b82f6;
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    padding: 5px 8px;
-    border-radius: 4px;
-    position: relative;
+  color: #3b82f6;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 5px 8px;
+  border-radius: 4px;
+  position: relative;
 
-    &:hover {
-      color: #2563eb;
-      background-color: #f3f4f6;
-      text-decoration: underline;
-      transform: translateY(-1px);
-    }
+  &:hover:not(.disabled) {
+    color: #2563eb;
+    background-color: #f3f4f6;
+    text-decoration: underline;
+    transform: translateY(-1px);
+  }
 
-    &:active {
-      transform: translateY(0);
-    }
+  &:active:not(.disabled) {
+    transform: translateY(0);
+  }
 
+  &:focus:not(.disabled) {
+    outline: 2px solid #3b82f6;
+    outline-offset: 1px;
+  }
 
-    &:focus {
-      outline: 2px solid #3b82f6;
-      outline-offset: 1px;
-    }
+  &.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -119,6 +148,7 @@ mat-form-field {
   font-size: 16px;
   border-radius: 10px;
   transition: all 0.3s ease;
+  position: relative;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
@@ -128,6 +158,22 @@ mat-form-field {
   &:active:not(:disabled) {
     transform: translateY(0);
   }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.button-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button-spinner {
+  display: inline-block;
 }
 
 .register-link {
@@ -153,7 +199,7 @@ mat-form-field {
     align-items: center;
     gap: 4px;
 
-    &:hover {
+    &:hover:not(.disabled) {
       color: #2563eb;
       background-color: #f3f4f6;
       text-decoration: underline;
@@ -166,15 +212,20 @@ mat-form-field {
       }
     }
 
-    &:active {
+    &:active:not(.disabled) {
       transform: translateY(0);
     }
 
-    &:focus {
+    &:focus:not(.disabled) {
       outline: 2px solid #3b82f6;
       outline-offset: 1px;
     }
 
+    &.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   
     &::after {
       content: '→';
@@ -295,7 +346,6 @@ mat-form-field {
   outline-offset: 2px;
 }
 
-
 ::ng-deep .snackbar-success {
   background-color: #10b981 !important;
   color: #ffffff !important;
@@ -325,6 +375,17 @@ mat-form-field {
     }
   }
 
+  .auto-login-notice {
+    font-size: 14px;
+    padding: 10px 12px;
+    
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
   .form-options {
     flex-direction: column;
     gap: 15px;
@@ -347,7 +408,7 @@ mat-form-field {
     font-size: 0.85rem;
   }
 
-  .forgot-password-link a,
+  .forgot-password-link,
   .register-now {
     padding: 3px 6px;
   }
