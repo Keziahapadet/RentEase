@@ -120,17 +120,35 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   private async handleSuccessfulVerification(otpCode: string) {
-    sessionStorage.setItem('resetEmail', this.email);
-    sessionStorage.setItem('resetOtp', otpCode);
-    sessionStorage.setItem('otpVerified', 'true');
-    
-    this.showMessage('Verification successful! Redirecting...', 'success');
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    this.router.navigate(['/reset-password']);
-  }  
-  
+    try {
+      const verifyRequest: OtpVerifyRequest = {
+        email: this.email,
+        otpCode: otpCode,
+        type: 'password_reset'
+      };
+
+      const response = await firstValueFrom(
+        this.authService.verifyOtp(verifyRequest)
+      );
+
+      if (!response.success) {
+        throw new Error(response.message || 'OTP verification failed');
+      }
+
+      sessionStorage.setItem('resetEmail', this.email);
+      sessionStorage.setItem('resetOtp', otpCode);
+      sessionStorage.setItem('otpVerified', 'true');
+      
+      this.showMessage('Verification successful! Redirecting...', 'success');
+      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      this.router.navigate(['/reset-password']);
+      
+    } catch (error) {
+      throw error;
+    }
+  }
 
   private handleVerificationError(error: any) {
     const errorMsg = (error.message || '').toLowerCase();
