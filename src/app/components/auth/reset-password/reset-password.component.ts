@@ -102,10 +102,16 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     localStorage.removeItem('userData');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('profileImage');
+    localStorage.removeItem('isLoggedIn');
+    
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('userData');
     sessionStorage.removeItem('refreshToken');
     sessionStorage.removeItem('profileImage');
+    sessionStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('resetEmail');
+    sessionStorage.removeItem('resetOtp');
+    sessionStorage.removeItem('otpVerified');
   }
 
   validateEmail(email: string): string {
@@ -287,11 +293,14 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       });
 
       if (response.success) {
-        this.clearResetSession();
-        
         this.showSnackBar('Password reset successful! Redirecting to login...', 'success');
         
-        await this.performNavigation();
+        this.clearAllAuthData();
+        this.clearResetSession();
+        
+        setTimeout(() => {
+          window.location.href = '/login?message=Password reset successful! Please login with your new password.';
+        }, 1500);
       } else {
         this.isLoading = false;
         this.handleApiError(response.message || 'Failed to reset password');
@@ -299,25 +308,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     } catch (error: any) {
       this.isLoading = false;
       this.handleApiError(error);
-    }
-  }
-
-  private async performNavigation(): Promise<void> {
-    try {
-      const success = await this.router.navigate(['/login'], {
-        queryParams: { 
-          email: this.email,
-          prefillPassword: this.resetForm.value.newPassword,
-          message: 'Password reset successful! Click Login to continue.'
-        },
-        replaceUrl: true
-      });
-
-      if (!success) {
-        window.location.href = '/login';
-      }
-    } catch (err) {
-      window.location.href = '/login';
     }
   }
 
