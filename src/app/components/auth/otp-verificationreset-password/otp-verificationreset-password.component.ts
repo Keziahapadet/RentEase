@@ -128,13 +128,9 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    this.router.navigate(['/reset-password'], { 
-      queryParams: { 
-        email: this.email,
-        otp: otpCode
-      }
-    });
-  }
+    this.router.navigate(['/reset-password']);
+  }  
+  
 
   private handleVerificationError(error: any) {
     const errorMsg = (error.message || '').toLowerCase();

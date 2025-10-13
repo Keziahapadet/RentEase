@@ -3,34 +3,41 @@ import { CanActivateFn, Router } from '@angular/router';
 
 export const resetPasswordGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-
-  const email = sessionStorage.getItem('resetEmail');
-  const otpCode = sessionStorage.getItem('resetOtp');
-  const otpVerified = sessionStorage.getItem('otpVerified');
   
-
-  console.log('Reset Password Guard Check:', {
-    email: email ? 'exists' : 'missing',
-    otpCode: otpCode ? 'exists' : 'missing',
-    otpVerified: otpVerified,
-    allValid: !!(email && otpCode && otpVerified === 'true')
-  });
-
-  if (email && otpCode && otpVerified === 'true') {
-    return true;
-  }
-  sessionStorage.removeItem('resetEmail');
-  sessionStorage.removeItem('resetOtp');
-  sessionStorage.removeItem('otpVerified');
-  
-  console.warn('Access denied to reset-password. Redirecting to forgot-password.');
-  
-  router.navigate(['/forgot-password'], {
-    queryParams: { 
-      error: 'session_expired',
-      message: 'Please verify your OTP first' 
+  try {
+    const email = sessionStorage.getItem('resetEmail');
+    const otpCode = sessionStorage.getItem('resetOtp');
+    const otpVerified = sessionStorage.getItem('otpVerified');
+    const hasQueryParams = route.queryParams && Object.keys(route.queryParams).length > 0;
+    
+    const isValid = 
+      email !== null && 
+      email !== '' && 
+      otpCode !== null && 
+      otpCode !== '' && 
+      otpVerified === 'true' &&
+      !hasQueryParams;
+    
+    if (isValid) {
+      return true;
     }
-  });
-  
-  return false;
+    
+    sessionStorage.removeItem('resetEmail');
+    sessionStorage.removeItem('resetOtp');
+    sessionStorage.removeItem('otpVerified');
+    
+    router.navigate(['/forgot-password'], {
+      queryParams: { 
+        error: 'session_invalid',
+        message: 'Please complete the password reset process from the beginning'
+      },
+      replaceUrl: true
+    });
+    
+    return false;
+    
+  } catch (error) {
+    router.navigate(['/forgot-password']);
+    return false;
+  }
 };
