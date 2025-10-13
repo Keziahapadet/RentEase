@@ -39,8 +39,9 @@ export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: 'registration', component: RegistrationComponent },
   { path: 'login', component: LoginComponent },
+   { path: 'otp-verificationreset-password', component: ResetPasswordOtpComponent },
   { path: 'verify-otp', component: VerifyOtpComponent },
-  { path: 'otp-verificationreset-password', component: ResetPasswordOtpComponent },
+ 
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { 
     path: 'reset-password', 

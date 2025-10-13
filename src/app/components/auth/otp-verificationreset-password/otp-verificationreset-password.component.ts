@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
 import { firstValueFrom, Subscription } from 'rxjs';
-import { OtpVerifyRequest, OtpRequest } from '../../../services/auth-interfaces';
+import { OtpRequest } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-reset-password-otp',
@@ -121,14 +121,14 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
 
   private async handleSuccessfulVerification(otpCode: string) {
     try {
-      const verifyRequest: OtpVerifyRequest = {
+      const verifyRequest = {
         email: this.email,
         otpCode: otpCode,
         type: 'password_reset'
       };
 
       const response = await firstValueFrom(
-        this.authService.verifyOtp(verifyRequest)
+        this.authService.verifyPasswordResetOtp(verifyRequest)
       );
 
       if (!response.success) {
