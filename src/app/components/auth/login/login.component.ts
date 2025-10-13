@@ -257,13 +257,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     
     const roleMap: { [key: string]: string } = {
       'LANDLORD': '/landlord-dashboard/home',
-      'TENANT': '/tenant-dashboard/home', 
+      'TENANT': '/tenant-dashboard/home',
       'BUSINESS': '/business-dashboard',
       'CARETAKER': '/caretaker-dashboard',
       'ADMIN': '/admin-dashboard'
     };
 
-    const dashboardRoute = roleMap[normalizedRole] || '/dashboard';
+    const dashboardRoute = roleMap[normalizedRole] || '/tenant-dashboard/home';
     
     this.router.navigate([dashboardRoute]).then(success => {
       if (!success) {

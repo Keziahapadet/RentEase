@@ -318,9 +318,10 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    return !!token;
-  }
+  const token = this.getToken(); 
+  console.log(' isLoggedIn - Token exists:', !!token);
+  return !!token;
+}
 
   getAuthHeaders(includeContentType: boolean = true): HttpHeaders {
     const token = this.getToken();
