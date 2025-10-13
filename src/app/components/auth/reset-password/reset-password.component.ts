@@ -74,17 +74,21 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {},
-      replaceUrl: true
-    });
+    this.cleanUrl();
   }
 
   ngOnDestroy() {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
     }
+  }
+
+  private cleanUrl() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {},
+      replaceUrl: true
+    });
   }
 
   private clearResetSession() {
@@ -302,37 +306,21 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   private async performNavigation(): Promise<void> {
-    const maxAttempts = 3;
-    let attempt = 0;
+    try {
+      const success = await this.router.navigate(['/login'], {
+        state: { 
+          message: 'Password reset successful! Please login with your new password.',
+          email: this.email
+        },
+        replaceUrl: true
+      });
 
-    while (attempt < maxAttempts) {
-      attempt++;
-      
-      try {
-        const success = await this.router.navigate(['/login'], {
-          queryParams: {
-            email: this.email,
-            message: 'Password reset successful! Please login with your new password.',
-            resetSuccess: 'true'
-          },
-          replaceUrl: true
-        });
-
-        if (success) {
-          return;
-        }
-
-        if (attempt < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
-      } catch (err) {
-        if (attempt < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
+      if (!success) {
+        window.location.href = '/login';
       }
+    } catch (err) {
+      window.location.href = '/login';
     }
-
-    window.location.href = '/login?message=Password reset successful! Please login with your new password.&resetSuccess=true';
   }
 
   private handleApiError(error: any): void {

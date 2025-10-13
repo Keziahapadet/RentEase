@@ -35,13 +35,16 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
   isResending = false;
   resendTimer = 0;
   canResend = true;
+  expirationTimer = 600;
+  isExpired = false;
 
   email = '';
 
   pageTitle = 'Reset Password Verification';
-  infoText = 'We\'ve sent a 7-character verification code to your email';
+  infoText = 'We sent a verification code to your email';
 
   private resendTimerInterval: any;
+  private expirationTimerInterval: any;
   private subscription = new Subscription();
 
   private router = inject(Router);
@@ -63,6 +66,7 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
   ngOnDestroy() {
     this.subscription.unsubscribe();
     this.clearResendTimer();
+    this.clearExpirationTimer();
   }
 
   private initializeComponent() {
@@ -75,6 +79,8 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
           setTimeout(() => this.router.navigate(['/forgot-password']), 3000);
           return;
         }
+        
+        this.startExpirationTimer();
       })
     );
   }
@@ -94,9 +100,7 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     this.isLoading = true;
 
     try {
-     
       await this.handleSuccessfulVerification(otpCode);
-      
     } catch (error: any) {
       this.handleVerificationError(error);
       this.shakeInputs();
@@ -116,12 +120,11 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   private async handleSuccessfulVerification(otpCode: string) {
-    
     sessionStorage.setItem('resetEmail', this.email);
     sessionStorage.setItem('resetOtp', otpCode);
     sessionStorage.setItem('otpVerified', 'true');
     
-    this.showMessage('OTP verified! Now set your new password.', 'success');
+    this.showMessage('Verification successful! Redirecting...', 'success');
     
     await new Promise(resolve => setTimeout(resolve, 1500));
     
@@ -139,6 +142,7 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     if (errorMsg.includes('expired')) {
       this.showMessage('Code has expired. Please request a new one.', 'error');
       this.canResend = true;
+      this.isExpired = true;
     } else if (errorMsg.includes('invalid')) {
       this.showMessage('Invalid code. Please check and try again.', 'error');
     } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
@@ -164,12 +168,23 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
       if (response.success) {
         this.showMessage('New code sent! Check your email.', 'success');
         this.startResendTimer();
+        this.startExpirationTimer();
         this.clearOtpInputs();
+        this.isExpired = false;
       } else {
         throw new Error(response.message || 'Failed to resend code');
       }
     } catch (error: any) {
-      this.showMessage(error.message || 'Failed to resend code. Please try again.', 'error');
+      const errorMsg = error.message || 'Failed to resend code. Please try again.';
+      if (errorMsg.includes('already verified')) {
+        this.showMessage('A new code has been sent to your email.', 'success');
+        this.startResendTimer();
+        this.startExpirationTimer();
+        this.clearOtpInputs();
+        this.isExpired = false;
+      } else {
+        this.showMessage(errorMsg, 'error');
+      }
     } finally {
       this.isResending = false;
     }
@@ -189,10 +204,32 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     }, 1000);
   }
 
+  private startExpirationTimer() {
+    this.expirationTimer = 600;
+    this.isExpired = false;
+    
+    this.clearExpirationTimer();
+    this.expirationTimerInterval = setInterval(() => {
+      this.expirationTimer--;
+      if (this.expirationTimer <= 0) {
+        this.clearExpirationTimer();
+        this.isExpired = true;
+        this.showMessage('Verification code has expired. Please request a new one.', 'error');
+      }
+    }, 1000);
+  }
+
   private clearResendTimer() {
     if (this.resendTimerInterval) {
       clearInterval(this.resendTimerInterval);
       this.resendTimerInterval = null;
+    }
+  }
+
+  private clearExpirationTimer() {
+    if (this.expirationTimerInterval) {
+      clearInterval(this.expirationTimerInterval);
+      this.expirationTimerInterval = null;
     }
   }
 
@@ -284,14 +321,10 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     return this.canResend ? 'Resend Code' : `Resend in ${this.resendTimer}s`;
   }
 
-  getDisplayEmail(): string {
-    if (!this.email) return '';
-    const [localPart, domain] = this.email.split('@');
-    if (!domain) return this.email;
-    const maskedLocal = localPart.length > 2 
-      ? localPart.substring(0, 2) + '*'.repeat(Math.min(localPart.length - 2, 3))
-      : localPart;
-    return `${maskedLocal}@${domain}`;
+  getExpirationTime(): string {
+    const minutes = Math.floor(this.expirationTimer / 60);
+    const seconds = this.expirationTimer % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
   private showMessage(message: string, type: 'success' | 'error' | 'info' = 'info') {

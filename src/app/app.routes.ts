@@ -30,6 +30,8 @@ import { ProfileViewComponent } from './components/dashboard/landlord/landlord-d
 import { ProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
 import { ResetPasswordOtpComponent } from './components/auth/otp-verificationreset-password/otp-verificationreset-password.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
+import { authGuard } from './guards/auth.guard';
+import { resetPasswordGuard } from './guards/reset-password.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
@@ -38,7 +40,11 @@ export const routes: Routes = [
   { path: 'verify-otp', component: VerifyOtpComponent },
   { path: 'otp-verificationreset-password', component: ResetPasswordOtpComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
+  { 
+    path: 'reset-password', 
+    component: ResetPasswordComponent,
+    canActivate: [resetPasswordGuard] 
+  },
   { path: 'pricing', component: PricingComponent },
   { path: 'contact', component: ContactComponent },
   { path: 'about', component: AboutComponent },
@@ -47,6 +53,7 @@ export const routes: Routes = [
   {
     path: 'tenant-dashboard',
     component: TenantDashboardComponent,
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: TenantDashboardComponent },
@@ -63,6 +70,7 @@ export const routes: Routes = [
   {
     path: 'landlord-dashboard',
     component: LandlordDashboardComponent,
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: LandlordDashboardHomeComponent },

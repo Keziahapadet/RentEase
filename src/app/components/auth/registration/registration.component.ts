@@ -34,7 +34,7 @@ import {
     MatSelectModule,
     MatCheckboxModule,
     MatSnackBarModule,
-      MatProgressSpinnerModule
+    MatProgressSpinnerModule
   ],
   encapsulation: ViewEncapsulation.None
 })
@@ -60,8 +60,8 @@ export class RegistrationComponent implements OnInit {
     { value: UserRole.BUSINESS, label: 'Business' }
   ];
 
-  showPassword = false;
-  showConfirmPassword = false;
+  hidePassword = true;
+  hideConfirmPassword = true;
   agreedToTerms = false;
   isLoading = false;
 
@@ -125,9 +125,12 @@ export class RegistrationComponent implements OnInit {
     return '';
   }
 
-  togglePasswordVisibility(field: string): void {
-    if (field === 'password') this.showPassword = !this.showPassword;
-    else if (field === 'confirm') this.showConfirmPassword = !this.showConfirmPassword;
+  togglePasswordVisibility(): void {
+    this.hidePassword = !this.hidePassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.hideConfirmPassword = !this.hideConfirmPassword;
   }
 
   onEmailInput(): void {

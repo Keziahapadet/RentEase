@@ -6,7 +6,6 @@
     </div>
     <form (ngSubmit)="onSubmit()" #registrationForm="ngForm" novalidate>
       
-    
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Role</mat-label>
         <mat-select 
@@ -27,7 +26,6 @@
         </mat-error>
       </mat-form-field>
 
-    
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Full Name</mat-label>
         <input 
@@ -49,7 +47,6 @@
         </mat-error>
       </mat-form-field>
 
-     
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email</mat-label>
         <input 
@@ -91,12 +88,11 @@
         </mat-error>
       </mat-form-field>
 
-  
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
         <input 
           matInput 
-          [type]="showPassword ? 'text' : 'password'" 
+          [type]="hidePassword ? 'password' : 'text'" 
           [(ngModel)]="formData.password" 
           name="password" 
           [disabled]="isLoading" 
@@ -108,9 +104,9 @@
           mat-icon-button 
           matSuffix 
           type="button" 
-          (click)="togglePasswordVisibility('password')"
+          (click)="togglePasswordVisibility()"
           tabindex="-1">
-          <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
         <mat-error *ngIf="fieldErrors.password">
           {{ fieldErrors.password }}
@@ -125,7 +121,7 @@
         <mat-label>Confirm Password</mat-label>
         <input 
           matInput 
-          [type]="showConfirmPassword ? 'text' : 'password'" 
+          [type]="hideConfirmPassword ? 'password' : 'text'" 
           [(ngModel)]="formData.confirmPassword" 
           name="confirmPassword" 
           [disabled]="isLoading" 
@@ -136,9 +132,9 @@
           mat-icon-button 
           matSuffix 
           type="button" 
-          (click)="togglePasswordVisibility('confirm')"
+          (click)="toggleConfirmPasswordVisibility()"
           tabindex="-1">
-          <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          <mat-icon>{{ hideConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
         <mat-error *ngIf="fieldErrors.confirmPassword">
           {{ fieldErrors.confirmPassword }}
@@ -151,7 +147,6 @@
         </mat-error>
       </mat-form-field>
 
-  
       <mat-form-field *ngIf="showBusinessAccessCode()" appearance="outline" class="full-width">
         <mat-label>Business Access Code</mat-label>
         <input 
@@ -171,7 +166,6 @@
         </mat-error>
       </mat-form-field>
 
-      
       <div class="terms-container">
         <mat-checkbox 
           [(ngModel)]="agreedToTerms" 
@@ -188,7 +182,6 @@
         </div>
       </div>
 
-     
       <button 
         mat-raised-button 
         color="primary" 

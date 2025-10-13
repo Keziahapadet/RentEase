@@ -138,7 +138,7 @@
         }
 
         .mat-mdc-checkbox-label {
-          color: #2c3e50;
+          color: #374151;
           font-size: 14px;
           line-height: 1.4;
         }
@@ -152,8 +152,8 @@
           border-bottom: 1px solid transparent;
 
           &:hover {
-            color: #5a67d8;
-            border-bottom-color: #5a67d8;
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
           }
         }
       }
@@ -166,7 +166,8 @@
         letter-spacing: 0.5px;
         border-radius: 12px;
         margin-top: 10px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #3b82f6;
+;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         transition: all 0.3s ease;
 
@@ -201,7 +202,7 @@
       font-size: 14px;
 
       .clickable-text {
-        color: #667eea;
+        color: #3b82f6;
         font-weight: 600;
         cursor: pointer;
         text-decoration: none;

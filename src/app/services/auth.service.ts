@@ -101,20 +101,14 @@ export class AuthService {
     );
   }
 
-  /**
-   * Logout user - calls backend API and clears local state
-   * Falls back to local logout if API call fails
-   */
   logout(): Observable<any> {
     const token = this.getToken();
     
-    // If no token, just clear local state
     if (!token) {
       this.performLocalLogout();
       return of({ success: true, message: 'Logged out locally' });
     }
 
-    // Call backend logout endpoint
     return this.http.post<any>(
       `${this.apiUrl}/logout`,
       {},
@@ -129,9 +123,7 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('Backend logout failed, performing local logout:', error);
-        // Always perform local logout even if backend fails
         this.performLocalLogout();
-        // Return success since local logout succeeded
         return of({ 
           success: true, 
           message: 'Logged out locally (backend unavailable)' 
@@ -140,10 +132,6 @@ export class AuthService {
     );
   }
 
-  /**
-   * Perform local logout operations
-   * Clears all storage and resets state
-   */
   private performLocalLogout(): void {
     this.clearAllStorage();
     this.currentUserSubject.next(null);
@@ -151,17 +139,11 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  /**
-   * Quick logout without waiting for API response
-   * Useful for navigation guards or immediate redirects
-   */
   logoutSync(): void {
     const token = this.getToken();
     
-    // Perform local logout immediately
     this.performLocalLogout();
     
-    // Fire and forget the backend call
     if (token) {
       this.http.post<any>(
         `${this.apiUrl}/logout`,
@@ -333,6 +315,11 @@ export class AuthService {
 
   isAuthenticated(): boolean { 
     return this.hasValidToken();
+  }
+
+  isLoggedIn(): boolean {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    return !!token;
   }
 
   getAuthHeaders(includeContentType: boolean = true): HttpHeaders {
