@@ -256,8 +256,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     const normalizedRole = userRole.toUpperCase().trim();
     
     const roleMap: { [key: string]: string } = {
-      'LANDLORD': '/landlord-dashboard',
-      'TENANT': '/tenant-dashboard', 
+      'LANDLORD': '/landlord-dashboard/home',
+      'TENANT': '/tenant-dashboard/home', 
       'BUSINESS': '/business-dashboard',
       'CARETAKER': '/caretaker-dashboard',
       'ADMIN': '/admin-dashboard'
