@@ -64,7 +64,6 @@ export const routes: Routes = [
       { path: 'maintenance', component: MaintenanceComponent },
       { path: 'documents', component: DocumentsComponent },
       { path: 'messages', component: MessagesComponent },
-      // { path: 'marketplace', component: MarketplaceComponent },
       { path: 'reviews', component: ReviewComponent },
       { path: 'settings', component: SettingsComponent }
     ]

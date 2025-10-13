@@ -507,7 +507,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       control?.markAsDirty();
     });
     
-    // Trigger validation after marking as touched
+   
     this.validateAllFields();
   }
 
