@@ -30,8 +30,10 @@ import { ProfileViewComponent } from './components/dashboard/landlord/landlord-d
 import { ProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
 import { ResetPasswordOtpComponent } from './components/auth/otp-verificationreset-password/otp-verificationreset-password.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
-import { authGuard } from './guards/auth.guard';
 import { resetPasswordGuard } from './guards/reset-password.guard';
+import { authGuard } from './guards/auth.guard';
+
+
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },

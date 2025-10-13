@@ -106,7 +106,7 @@
           type="button" 
           (click)="togglePasswordVisibility()"
           tabindex="-1">
-          <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
         <mat-error *ngIf="fieldErrors.password">
           {{ fieldErrors.password }}
@@ -134,7 +134,7 @@
           type="button" 
           (click)="toggleConfirmPasswordVisibility()"
           tabindex="-1">
-          <mat-icon>{{ hideConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
         <mat-error *ngIf="fieldErrors.confirmPassword">
           {{ fieldErrors.confirmPassword }}
