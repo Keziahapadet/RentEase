@@ -181,7 +181,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     
     switch (normalizedRole) {
       case 'LANDLORD':
-        return '/landlord-dashboard';
+        return '/landlord-dashboard/home';
       case 'TENANT':
         return '/tenant-dashboard';
       case 'CARETAKER':

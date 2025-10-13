@@ -52,11 +52,18 @@ export class ForgotPasswordComponent implements OnDestroy {
     return this.forgotPasswordForm.get('email');
   }
 
+  get isFormDisabled(): boolean {
+    return this.isLoading || (this.emailSent && this.countdown > 0);
+  }
+
   onEmailInput(): void {
+    if (this.isLoading) return;
     this.emailError = '';
   }
 
   onSubmit(): void {
+    if (this.isLoading) return;
+    
     if (this.forgotPasswordForm.invalid) {
       this.markFormGroupTouched();
       
@@ -88,7 +95,7 @@ export class ForgotPasswordComponent implements OnDestroy {
           );
 
           setTimeout(() => {
-            this.router.navigate(['/otp-verificationreset-password'], {
+            this.router.navigate(['/otp-verification'], {
               queryParams: { 
                 email: this.email?.value.trim().toLowerCase(),
                 type: 'password_reset'  
@@ -128,7 +135,7 @@ export class ForgotPasswordComponent implements OnDestroy {
         errorMessage = 'Please enter a valid email address';
       } else if (msg.includes('too many') || msg.includes('rate limit') || msg.includes('wait')) {
         fieldError = 'Too many attempts';
-        errorMessage = 'Too many password reset attempts. Please try again later';
+        errorMessage = 'Too many password reset attempts. Please try again in 15 minutes';
       } else if (msg.includes('account') && (msg.includes('locked') || msg.includes('suspended') || msg.includes('disabled'))) {
         fieldError = 'Account locked';
         errorMessage = 'Your account is locked. Please contact support';
@@ -137,11 +144,21 @@ export class ForgotPasswordComponent implements OnDestroy {
         errorMessage = 'Please verify your email address first';
       } else if (msg.includes('email') && msg.includes('fail')) {
         errorMessage = 'Failed to send email. Please check your email address and try again';
+      } else if (msg.includes('network') || msg.includes('connection')) {
+        errorMessage = 'Connection problem. Check your internet and try again';
+      } else if (msg.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again';
+      } else if (error.status === 500) {
+        errorMessage = 'Temporary server issue. Please try again in a moment';
       } else {
         errorMessage = error.error.message;
       }
     } else if (error?.message) {
       errorMessage = error.message;
+    } else if (error.status === 0) {
+      errorMessage = 'Cannot connect to server. Please check your internet connection';
+    } else if (error.status === 429) {
+      errorMessage = 'Too many requests. Please wait 15 minutes before trying again';
     }
     
     if (fieldError) {
@@ -152,10 +169,8 @@ export class ForgotPasswordComponent implements OnDestroy {
   }
 
   resendEmail(): void {
-    if (this.countdown > 0) {
-      this.showSnackBar(`Please wait ${this.countdown} seconds before resending`, 'error');
-      return;
-    }
+    if (this.isLoading || this.countdown > 0) return;
+    
     this.emailSent = false;
     this.onSubmit();
   }
@@ -185,10 +200,12 @@ export class ForgotPasswordComponent implements OnDestroy {
   }
 
   navigateToLogin(): void {
+    if (this.isLoading) return;
     this.router.navigate(['/login']).catch(err => console.error('Navigation error:', err));
   }
 
   navigateToHome(): void {
+    if (this.isLoading) return;
     this.router.navigate(['/']).catch(err => console.error('Navigation error:', err));
   }
 

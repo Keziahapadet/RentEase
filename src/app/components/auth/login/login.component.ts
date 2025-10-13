@@ -175,6 +175,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (!this.validateForm()) return;
     
     this.isLoading = true;
+   
+    this.emailError = '';
+    this.passwordError = '';
+    
     const loginRequest: LoginRequest = {
       email: this.loginData.email.trim().toLowerCase(),
       password: this.loginData.password,
@@ -213,43 +217,103 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private handleApiError(error: any): void {
+  
+    this.emailError = '';
+    this.passwordError = '';
+    
     let errorMessage = 'Login failed. Please try again.';
+    let showSnackbar = true;
     
     if (typeof error === 'string') {
       errorMessage = error;
     } else if (error.error?.message) {
       const msg = error.error.message.toLowerCase();
       
+     
       if (msg.includes('email') && msg.includes('not found')) {
-        this.emailError = 'Email not found';
-        errorMessage = 'No account found with this email address';
+        this.emailError = 'No account with this email';
+        errorMessage = 'This email is not registered';
       } else if (msg.includes('user') && msg.includes('not found')) {
         this.emailError = 'Account not found';
-        errorMessage = 'No account found with this email address';
+        errorMessage = 'No account exists with this email';
+      } else if (msg.includes('email') && msg.includes('invalid')) {
+        this.emailError = 'Invalid email format';
+        errorMessage = 'Please enter a valid email address';
+      } else if (msg.includes('email') && msg.includes('required')) {
+        this.emailError = 'Email is required';
+        errorMessage = 'Please enter your email address';
+      } else if (msg.includes('email') && msg.includes('exist')) {
+        this.emailError = 'Email not registered';
+        errorMessage = 'This email is not registered with us'; 
       } else if (msg.includes('password') && msg.includes('incorrect')) {
-        this.passwordError = 'Incorrect password';
-        errorMessage = 'Incorrect password. Please try again';
+        this.passwordError = 'Wrong password';
+        errorMessage = 'The password you entered is incorrect';
+        showSnackbar = false;
+      } else if (msg.includes('password') && msg.includes('invalid')) {
+        this.passwordError = 'Invalid password';
+        errorMessage = 'Please check your password';
+        showSnackbar = false;
+      } else if (msg.includes('password') && msg.includes('required')) {
+        this.passwordError = 'Password required';
+        errorMessage = 'Please enter your password';
+        showSnackbar = false;
       } else if (msg.includes('invalid') && msg.includes('credentials')) {
-        this.emailError = 'Invalid credentials';
-        this.passwordError = 'Invalid credentials';
-        errorMessage = 'Invalid email or password';
+        this.emailError = 'Check email or password';
+        this.passwordError = 'Check email or password';
+        errorMessage = 'The email or password you entered is incorrect';
+      } else if (msg.includes('authentication') && msg.includes('failed')) {
+        this.emailError = 'Incorrect email or password';
+        this.passwordError = 'Incorrect email or password';
+        errorMessage = 'Please check your email and password';
+        
       } else if (msg.includes('account') && msg.includes('locked')) {
-        errorMessage = 'Your account has been locked. Please contact support';
+        errorMessage = 'Account temporarily locked. Try again in 30 minutes';
       } else if (msg.includes('account') && msg.includes('suspended')) {
-        errorMessage = 'Your account has been suspended. Please contact support';
+        errorMessage = 'This account has been suspended';
       } else if (msg.includes('not verified') || msg.includes('verify')) {
         errorMessage = 'Please verify your email address before logging in';
       } else if (msg.includes('disabled')) {
-        errorMessage = 'Your account has been disabled. Please contact support';
+        errorMessage = 'This account has been deactivated';
+      } else if (msg.includes('inactive')) {
+        errorMessage = 'Your account is not active';
+        
+      } else if (msg.includes('network') || msg.includes('connection')) {
+        errorMessage = 'Connection problem. Check your internet';
+      } else if (msg.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again';
+      } else if (error.status === 500) {
+        errorMessage = 'Temporary server issue. Please try again';
       } else {
         errorMessage = error.error.message;
       }
     } else if (error.message) {
       errorMessage = error.message;
+    } else if (error.status === 0) {
+      errorMessage = 'Cannot connect to server. Check your internet';
+    } else if (error.status === 401) {
+      this.emailError = 'Incorrect email or password';
+      this.passwordError = 'Incorrect email or password';
+      errorMessage = 'The email or password you entered is not correct';
+    } else if (error.status === 404) {
+      this.emailError = 'Email not registered';
+      errorMessage = 'No account found with this email address';
+    } else if (error.status === 429) {
+      errorMessage = 'Too many login attempts. Please wait 15 minutes';
+    } else if (error.status === 403) {
+      errorMessage = 'Access denied. Please contact support';
     }
     
-    this.showSnackbar(errorMessage, 'error');
-    this.loginData.password = '';
+    // Clear password field for wrong password or invalid credentials
+    if (this.passwordError || 
+        errorMessage.includes('password') || 
+        errorMessage.includes('incorrect') ||
+        errorMessage.includes('invalid credentials')) {
+      this.loginData.password = '';
+    }
+    
+    if (showSnackbar) {
+      this.showSnackbar(errorMessage, 'error');
+    }
   }
 
   private redirectBasedOnRole(userRole: string): void {
@@ -257,7 +321,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     
     const roleMap: { [key: string]: string } = {
       'LANDLORD': '/landlord-dashboard/home',
-      'TENANT': '/tenant-dashboard/home',
+      'TENANT': '/tenant-dashboard/dashboard',
       'BUSINESS': '/business-dashboard',
       'CARETAKER': '/caretaker-dashboard',
       'ADMIN': '/admin-dashboard'

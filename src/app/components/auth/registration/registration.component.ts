@@ -272,41 +272,123 @@ export class RegistrationComponent implements OnInit {
 
   private handleApiError(error: any): void {
     let errorMessage = 'Registration failed. Please try again.';
+    let showSnackbar = true;
     
     if (typeof error === 'string') {
       errorMessage = error;
     } else if (error?.error?.message) {
       const msg = error.error.message.toLowerCase();
       
+      
       if (msg.includes('email') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
         this.fieldErrors.email = 'Email already registered';
         errorMessage = 'This email is already registered. Please use a different email or login';
+        showSnackbar = false;
+      } else if (msg.includes('email') && msg.includes('invalid')) {
+        this.fieldErrors.email = 'Invalid email format';
+        errorMessage = 'Please enter a valid email address';
+        showSnackbar = false;
+      } else if (msg.includes('email') && msg.includes('required')) {
+        this.fieldErrors.email = 'Email is required';
+        errorMessage = 'Please enter your email address';
+        showSnackbar = false;
+        
+     
       } else if (msg.includes('phone') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
         this.fieldErrors.phoneNumber = 'Phone number already registered';
         errorMessage = 'This phone number is already registered. Please use a different number';
-      } else if (msg.includes('username') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
-        this.fieldErrors.fullName = 'Username already taken';
-        errorMessage = 'This username is already taken. Please choose a different name';
-      } else if (msg.includes('invalid') && msg.includes('email')) {
-        this.fieldErrors.email = 'Invalid email format';
-        errorMessage = 'Please enter a valid email address';
-      } else if (msg.includes('invalid') && msg.includes('phone')) {
+        showSnackbar = false;
+      } else if (msg.includes('phone') && msg.includes('invalid')) {
         this.fieldErrors.phoneNumber = 'Invalid phone number';
         errorMessage = 'Please enter a valid phone number';
-      } else if (msg.includes('weak') && msg.includes('password')) {
+        showSnackbar = false;
+      } else if (msg.includes('phone') && msg.includes('required')) {
+        this.fieldErrors.phoneNumber = 'Phone number is required';
+        errorMessage = 'Please enter your phone number';
+        showSnackbar = false;
+        
+     
+      } else if (msg.includes('name') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
+        this.fieldErrors.fullName = 'Name already taken';
+        errorMessage = 'This name is already taken. Please choose a different name';
+        showSnackbar = false;
+      } else if (msg.includes('name') && msg.includes('required')) {
+        this.fieldErrors.fullName = 'Full name is required';
+        errorMessage = 'Please enter your full name';
+        showSnackbar = false;
+        
+     
+      } else if (msg.includes('password') && msg.includes('weak')) {
         this.fieldErrors.password = 'Password too weak';
-        errorMessage = 'Password is too weak. Please use a stronger password';
+        errorMessage = 'Password is too weak. Please use a stronger password with letters, numbers, and symbols';
+        showSnackbar = false;
+      } else if (msg.includes('password') && msg.includes('required')) {
+        this.fieldErrors.password = 'Password is required';
+        errorMessage = 'Please enter a password';
+        showSnackbar = false;
+      } else if (msg.includes('password') && msg.includes('short')) {
+        this.fieldErrors.password = 'Password too short';
+        errorMessage = 'Password must be at least 8 characters long';
+        showSnackbar = false;
+      } else if (msg.includes('password') && msg.includes('mismatch')) {
+        this.fieldErrors.confirmPassword = 'Passwords do not match';
+        errorMessage = 'The passwords you entered do not match';
+        showSnackbar = false;
+        
+     
       } else if (msg.includes('access code') || msg.includes('invalid code')) {
         this.fieldErrors.accessCode = 'Invalid access code';
-        errorMessage = 'Invalid business access code';
+        errorMessage = 'The business access code you entered is incorrect';
+        showSnackbar = false;
+      } else if (msg.includes('access code') && msg.includes('required')) {
+        this.fieldErrors.accessCode = 'Access code required';
+        errorMessage = 'Business access code is required for business registration';
+        showSnackbar = false;
+        
+    
+      } else if (msg.includes('role') && msg.includes('required')) {
+        this.fieldErrors.role = 'Please select a role';
+        errorMessage = 'Please select your account type';
+        showSnackbar = false;
+      } else if (msg.includes('role') && msg.includes('invalid')) {
+        this.fieldErrors.role = 'Invalid role selected';
+        errorMessage = 'Please select a valid account type';
+        showSnackbar = false;
+        
+      } else if (msg.includes('network') || msg.includes('connection')) {
+        errorMessage = 'Connection problem. Check your internet and try again';
+      } else if (msg.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again';
+      } else if (error.status === 500) {
+        errorMessage = 'Temporary server issue. Please try again in a moment';
       } else {
         errorMessage = error.error.message;
       }
     } else if (error?.message) {
       errorMessage = error.message;
+    } else if (error.status === 0) {
+      errorMessage = 'Cannot connect to server. Please check your internet connection';
+    } else if (error.status === 400) {
+      errorMessage = 'Invalid registration data. Please check all fields';
+    } else if (error.status === 409) {
+      this.fieldErrors.email = 'Email already exists';
+      errorMessage = 'An account with this email already exists. Please login or use a different email';
+      showSnackbar = false;
+    } else if (error.status === 429) {
+      errorMessage = 'Too many registration attempts. Please wait 15 minutes before trying again';
     }
     
-    this.showError(errorMessage);
+   
+    if (errorMessage.includes('password') || 
+        errorMessage.includes('already exists') ||
+        errorMessage.includes('taken')) {
+      this.formData.password = '';
+      this.formData.confirmPassword = '';
+    }
+    
+    if (showSnackbar) {
+      this.showError(errorMessage);
+    }
   }
 
   private showSuccess(message: string): void {

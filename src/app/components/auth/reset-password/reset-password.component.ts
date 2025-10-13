@@ -138,9 +138,85 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
   onPasswordInput(): void {
     this.passwordError = '';
+    this.validatePasswordField();
   }
 
   onConfirmPasswordInput(): void {
+    this.confirmPasswordError = '';
+    this.validateConfirmPasswordField();
+  }
+
+  onPasswordBlur(): void {
+    this.validatePasswordField();
+  }
+
+  onConfirmPasswordBlur(): void {
+    this.validateConfirmPasswordField();
+  }
+
+  private validatePasswordField(): void {
+    const passwordControl = this.resetForm.get('newPassword');
+    
+    if (!passwordControl?.touched && !passwordControl?.dirty) {
+      return;
+    }
+
+    if (passwordControl?.hasError('required')) {
+      this.passwordError = 'Password is required';
+      return;
+    }
+
+    if (passwordControl?.hasError('minLength')) {
+      this.passwordError = 'Password must be at least 6 characters long';
+      return;
+    }
+
+    const passwordErrors = passwordControl?.errors;
+    if (passwordErrors) {
+      if (passwordErrors['lowercase']) {
+        this.passwordError = 'Password must contain at least one lowercase letter';
+        return;
+      }
+      if (passwordErrors['uppercase']) {
+        this.passwordError = 'Password must contain at least one uppercase letter';
+        return;
+      }
+      if (passwordErrors['number']) {
+        this.passwordError = 'Password must contain at least one number';
+        return;
+      }
+      if (passwordErrors['specialChar']) {
+        this.passwordError = 'Password must contain at least one special character';
+        return;
+      }
+    }
+
+    this.passwordError = '';
+  }
+
+  private validateConfirmPasswordField(): void {
+    const confirmControl = this.resetForm.get('confirmNewPassword');
+    const passwordControl = this.resetForm.get('newPassword');
+    
+    if (!confirmControl?.touched && !confirmControl?.dirty) {
+      return;
+    }
+
+    if (confirmControl?.hasError('required')) {
+      this.confirmPasswordError = 'Please confirm your password';
+      return;
+    }
+
+    if (this.resetForm.hasError('mismatch')) {
+      this.confirmPasswordError = 'Passwords do not match';
+      return;
+    }
+
+    if (passwordControl?.value && confirmControl?.value && passwordControl.value !== confirmControl.value) {
+      this.confirmPasswordError = 'Passwords do not match';
+      return;
+    }
+
     this.confirmPasswordError = '';
   }
 
@@ -153,13 +229,70 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value;
     if (!value) return null;
+    
     const errors: ValidationErrors = {};
-    if (value.length < 6) errors['minLength'] = true;
-    if (!/(?=.*[a-z])/.test(value)) errors['lowercase'] = true;
-    if (!/(?=.*[A-Z])/.test(value)) errors['uppercase'] = true;
-    if (!/(?=.*\d)/.test(value)) errors['number'] = true;
-    if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(value)) errors['specialChar'] = true;
+    
+    if (value.length < 6) {
+      errors['minLength'] = true;
+    }
+    if (!/(?=.*[a-z])/.test(value)) {
+      errors['lowercase'] = true;
+    }
+    if (!/(?=.*[A-Z])/.test(value)) {
+      errors['uppercase'] = true;
+    }
+    if (!/(?=.*\d)/.test(value)) {
+      errors['number'] = true;
+    }
+    if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(value)) {
+      errors['specialChar'] = true;
+    }
+    
     return Object.keys(errors).length ? errors : null;
+  }
+
+  getPasswordErrorMessage(): string {
+    const control = this.resetForm.get('newPassword');
+    
+    if (control?.hasError('required')) {
+      return 'Password is required';
+    }
+    
+    if (control?.hasError('minLength')) {
+      return 'Password must be at least 6 characters';
+    }
+    
+    const errors = control?.errors;
+    if (errors) {
+      if (errors['lowercase']) {
+        return 'Missing lowercase letter';
+      }
+      if (errors['uppercase']) {
+        return 'Missing uppercase letter';
+      }
+      if (errors['number']) {
+        return 'Missing number';
+      }
+      if (errors['specialChar']) {
+        return 'Missing special character';
+      }
+    }
+    
+    return '';
+  }
+
+  getConfirmPasswordErrorMessage(): string {
+    const control = this.resetForm.get('confirmNewPassword');
+    
+    if (control?.hasError('required')) {
+      return 'Please confirm your password';
+    }
+    
+    if (this.resetForm.hasError('mismatch')) {
+      return 'Passwords do not match';
+    }
+    
+    return '';
   }
 
   get hasMinLength(): boolean {
@@ -230,16 +363,27 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   togglePasswordVisibility() {
-    this.hidePassword = !this.hidePassword;
+    if (!this.isLoading) {
+      this.hidePassword = !this.hidePassword;
+    }
   }
 
   toggleConfirmPasswordVisibility() {
-    this.hideConfirmPassword = !this.hideConfirmPassword;
+    if (!this.isLoading) {
+      this.hideConfirmPassword = !this.hideConfirmPassword;
+    }
   }
 
   async onSubmit() {
-    this.passwordError = '';
-    this.confirmPasswordError = '';
+    if (this.isLoading) return;
+
+    // Validate all fields before submission
+    this.validateAllFields();
+
+    if (this.passwordError || this.confirmPasswordError || this.resetForm.invalid) {
+      this.markFormGroupTouched();
+      return;
+    }
 
     const emailError = this.validateEmail(this.email);
     if (emailError) {
@@ -247,36 +391,8 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.resetForm.get('newPassword')?.hasError('required')) {
-      this.passwordError = 'Password is required';
-      this.markFormGroupTouched();
-      return;
-    }
-
-    if (!this.isPasswordValid) {
-      this.passwordError = 'Password does not meet requirements';
-      this.markFormGroupTouched();
-      return;
-    }
-
-    if (this.resetForm.get('confirmNewPassword')?.hasError('required')) {
-      this.confirmPasswordError = 'Please confirm your password';
-      this.markFormGroupTouched();
-      return;
-    }
-
-    if (!this.passwordsMatch) {
-      this.confirmPasswordError = 'Passwords do not match';
-      this.markFormGroupTouched();
-      return;
-    }
-
-    if (this.resetForm.invalid) {
-      this.markFormGroupTouched();
-      return;
-    }
-
     this.isLoading = true;
+    this.disableForm();
 
     const payload: ResetPasswordRequest = {
       email: this.email,
@@ -303,12 +419,27 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
         }, 1500);
       } else {
         this.isLoading = false;
+        this.enableForm();
         this.handleApiError(response.message || 'Failed to reset password');
       }
     } catch (error: any) {
       this.isLoading = false;
+      this.enableForm();
       this.handleApiError(error);
     }
+  }
+
+  private validateAllFields(): void {
+    this.validatePasswordField();
+    this.validateConfirmPasswordField();
+  }
+
+  private disableForm(): void {
+    this.resetForm.disable();
+  }
+
+  private enableForm(): void {
+    this.resetForm.enable();
   }
 
   private handleApiError(error: any): void {
@@ -373,7 +504,11 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     Object.keys(this.resetForm.controls).forEach(key => {
       const control = this.resetForm.get(key);
       control?.markAsTouched();
+      control?.markAsDirty();
     });
+    
+    // Trigger validation after marking as touched
+    this.validateAllFields();
   }
 
   private showSnackBar(message: string, type: 'success' | 'error') {

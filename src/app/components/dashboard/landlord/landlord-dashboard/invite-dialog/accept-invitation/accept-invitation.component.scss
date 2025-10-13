@@ -1,0 +1,19 @@
+.container {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.btn {
+  border-radius: 5px;
+}
+
+.alert {
+  border-radius: 10px;
+}
