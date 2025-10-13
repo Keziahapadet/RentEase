@@ -5,152 +5,170 @@
       <p>Update your personal information and preferences</p>
     </div>
     <div class="header-actions">
-      <button mat-button (click)="goBack()">
+      <button mat-button (click)="goBack()" class="back-btn">
         <mat-icon>arrow_back</mat-icon>
-        Back to Profile
+        Back
       </button>
     </div>
   </div>
 
   <div class="profile-content">
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <div class="profile-header">
-          <div class="profile-image-section">
+    <div class="profile-card">
+      <div class="profile-banner">
+        <div class="banner-gradient"></div>
+      </div>
+
+      <div class="profile-main">
+        <div class="profile-avatar-section">
+          <div class="avatar-wrapper">
             <div class="image-loading" *ngIf="isUploadingPhoto || isDeletingPhoto">
-              <mat-spinner diameter="50"></mat-spinner>
+              <mat-spinner diameter="60"></mat-spinner>
             </div>
             <img 
               [src]="profileImage" 
               alt="Profile" 
-              class="profile-image-large"
+              class="profile-avatar"
               [class.loading]="isUploadingPhoto || isDeletingPhoto">
-            <div class="profile-image-overlay">
-              <button 
-                mat-icon-button 
-                class="change-photo-btn" 
-                (click)="changePhoto()" 
-                [disabled]="isUploadingPhoto || isDeletingPhoto"
-                matTooltip="Upload Photo"
-                matTooltipPosition="left">
-                <mat-icon>cloud_upload</mat-icon>
-              </button>
-              <button 
-                mat-icon-button 
-                class="camera-btn" 
-                (click)="startCamera()" 
-                [disabled]="isUploadingPhoto || isDeletingPhoto"
-                matTooltip="Take Photo"
-                matTooltipPosition="left">
-                <mat-icon>photo_camera</mat-icon>
-              </button>
-              <button 
-                mat-icon-button 
-                class="delete-photo-btn" 
-                (click)="deletePhoto()" 
-                [disabled]="isUploadingPhoto || isDeletingPhoto || !profileImage || isDefaultAvatar()"
-                matTooltip="Delete Photo"
-                matTooltipPosition="left">
-                <mat-icon>delete_forever</mat-icon>
-              </button>
+            <div class="avatar-badge">
+              <mat-icon>verified</mat-icon>
             </div>
           </div>
-          <div class="profile-basic-info">
-            <h2>Update Your Profile Picture</h2>
-            <p class="instruction">Click upload to choose a photo from your device</p>
-            <p class="instruction">Click camera to take a new photo instantly</p>
-            <p class="instruction">Click delete to remove your current photo</p>
-            <p class="upload-info" *ngIf="isUploadingPhoto && !isDeletingPhoto">Processing your image...</p>
-            <p class="delete-info" *ngIf="isDeletingPhoto">Removing photo...</p>
+
+          <div class="avatar-actions">
+            <button 
+              class="action-btn upload-btn" 
+              (click)="changePhoto()" 
+              [disabled]="isUploadingPhoto || isDeletingPhoto">
+              <mat-icon>cloud_upload</mat-icon>
+              <span>Upload</span>
+            </button>
+            <button 
+              class="action-btn camera-btn" 
+              (click)="startCamera()" 
+              [disabled]="isUploadingPhoto || isDeletingPhoto">
+              <mat-icon>photo_camera</mat-icon>
+              <span>Camera</span>
+            </button>
+            <button 
+              class="action-btn delete-btn" 
+              (click)="deletePhoto()" 
+              [disabled]="isUploadingPhoto || isDeletingPhoto || !profileImage || isDefaultAvatar()">
+              <mat-icon>delete</mat-icon>
+              <span>Remove</span>
+            </button>
+          </div>
+
+          <div class="avatar-info">
+            <p *ngIf="isUploadingPhoto && !isDeletingPhoto" class="status-uploading">
+              <mat-icon>sync</mat-icon>
+              Processing image...
+            </p>
+            <p *ngIf="isDeletingPhoto" class="status-deleting">
+              <mat-icon>delete_sweep</mat-icon>
+              Removing photo...
+            </p>
+            <p *ngIf="!isUploadingPhoto && !isDeletingPhoto" class="status-ready">
+              <mat-icon>check_circle</mat-icon>
+              Profile photo ready
+            </p>
           </div>
         </div>
-      </mat-card-header>
 
-      <mat-divider></mat-divider>
-
-      <mat-card-content>
         <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
           <div class="form-section">
-            <h3>Personal Information</h3>
+            <h3>
+              <mat-icon>person</mat-icon>
+              Personal Information
+            </h3>
             <div class="form-grid">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Full Name</mat-label>
                 <input matInput formControlName="fullName" placeholder="Enter your full name">
-                <mat-icon matSuffix>person</mat-icon>
+                <mat-icon matPrefix>badge</mat-icon>
                 <mat-error *ngIf="profileForm.get('fullName')?.hasError('required')">
                   Full name is required
                 </mat-error>
                 <mat-error *ngIf="profileForm.get('fullName')?.hasError('minlength')">
-                  Name must be at least 2 characters long
+                  Name must be at least 2 characters
                 </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Email Address</mat-label>
-                <input matInput formControlName="email" placeholder="Enter your email" type="email">
-                <mat-icon matSuffix>email</mat-icon>
+                <input matInput formControlName="email" placeholder="your.email@example.com" type="email">
+                <mat-icon matPrefix>email</mat-icon>
                 <mat-error *ngIf="profileForm.get('email')?.hasError('required')">
                   Email is required
                 </mat-error>
                 <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
-                  Please enter a valid email address
+                  Enter a valid email
                 </mat-error>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Phone Number</mat-label>
-                <input matInput formControlName="phoneNumber" placeholder="Enter your phone number">
-                <mat-icon matSuffix>phone</mat-icon>
+                <input matInput formControlName="phoneNumber" placeholder="+254 700 000 000">
+                <mat-icon matPrefix>phone</mat-icon>
                 <mat-error *ngIf="profileForm.get('phoneNumber')?.hasError('pattern')">
-                  Please enter a valid phone number
+                  Invalid phone format
                 </mat-error>
               </mat-form-field>
             </div>
           </div>
 
           <div class="form-section">
-            <h3>Additional Information</h3>
+            <h3>
+              <mat-icon>description</mat-icon>
+              About You
+            </h3>
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Bio</mat-label>
               <textarea matInput formControlName="bio" placeholder="Tell us about yourself..." rows="4"></textarea>
-              <mat-hint>Brief description about yourself (optional)</mat-hint>
+              <mat-hint align="end">{{profileForm.get('bio')?.value?.length || 0}}/500</mat-hint>
             </mat-form-field>
           </div>
 
-          <mat-divider></mat-divider>
-
           <div class="form-actions">
-            <button mat-button type="button" (click)="cancel()" [disabled]="isSubmitting">
+            <button mat-stroked-button type="button" (click)="cancel()" [disabled]="isSubmitting" class="cancel-btn">
+              <mat-icon>close</mat-icon>
               Cancel
             </button>
-            <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">
+            <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting" class="save-btn">
               <mat-icon *ngIf="!isSubmitting">save</mat-icon>
-              <mat-icon *ngIf="isSubmitting" class="spinner">hourglass_empty</mat-icon>
+              <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
               {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
             </button>
           </div>
         </form>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
   </div>
 
   <div *ngIf="isCameraActive" class="camera-overlay" (click)="stopCamera()">
-    <div class="camera-container" (click)="$event.stopPropagation()">
+    <div class="camera-modal" (click)="$event.stopPropagation()">
       <div class="camera-header">
-        <h3>Capture Your Photo</h3>
-        <button mat-icon-button class="close-camera" (click)="stopCamera()">
+        <div class="camera-title">
+          <mat-icon>photo_camera</mat-icon>
+          <h3>Take a Photo</h3>
+        </div>
+        <button mat-icon-button class="close-btn" (click)="stopCamera()">
           <mat-icon>close</mat-icon>
         </button>
       </div>
       
-      <video #cameraVideo id="cameraVideo" autoplay playsinline></video>
+      <div class="camera-viewport">
+        <video #cameraVideo id="cameraVideo" autoplay playsinline></video>
+        <div class="camera-guide">
+          <div class="guide-circle"></div>
+        </div>
+      </div>
       <canvas #cameraCanvas id="cameraCanvas" style="display: none"></canvas>
       
       <div class="camera-controls">
-        <button mat-raised-button class="capture-btn" (click)="capturePhoto()" [disabled]="isUploadingPhoto">
-          <mat-icon>camera_alt</mat-icon>
-          {{ isUploadingPhoto ? 'Processing...' : 'Capture Photo' }}
+        <button mat-fab class="capture-btn" (click)="capturePhoto()" [disabled]="isUploadingPhoto">
+          <mat-icon>camera</mat-icon>
         </button>
+        <p class="capture-hint">Click to capture</p>
       </div>
     </div>
   </div>
