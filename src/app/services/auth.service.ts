@@ -185,10 +185,24 @@ export class AuthService {
       tap(response => {
         console.log('RESET PASSWORD SUCCESS:', response);
       }),
-      catchError(error => {
-        console.error('RESET PASSWORD ERROR:', error);
-        return this.handleError(error);
-      })
+      catchError(this.handleError)
+    );
+  }
+
+  verifyPasswordResetOtp(request: any): Observable<any> {
+    const cleanRequest = {
+      email: request.email.trim().toLowerCase(),
+      otpCode: request.otpCode.toString().trim(),
+      type: 'password_reset'
+    };
+    
+    return this.http.post<any>(`${this.apiUrl}/verify-otp`, cleanRequest, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    }).pipe(
+      tap(res => {
+        console.log('Password reset OTP verified:', res);
+      }),
+      catchError(this.handlePasswordResetError)
     );
   }
 
@@ -262,23 +276,6 @@ export class AuthService {
     );
   }
 
-  verifyPasswordResetOtp(request: any): Observable<any> {
-    const cleanRequest = {
-      email: request.email.trim().toLowerCase(),
-      otpCode: request.otpCode.toString().trim(),
-      type: 'password_reset'
-    };
-    
-    return this.http.post<any>(`${this.apiUrl}/verify-otp`, cleanRequest, {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-    }).pipe(
-      tap(res => {
-        console.log('Password reset OTP verified:', res);
-      }),
-      catchError(this.handlePasswordResetError)
-    );
-  }
-
   resendOtp(request: any): Observable<any> {
     const cleanRequest = { email: request.email.trim().toLowerCase(), type: request.type };
     return this.http.post<any>(`${this.apiUrl}/resend-otp`, cleanRequest, {
@@ -321,7 +318,6 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     const token = this.getToken(); 
-    console.log(' isLoggedIn - Token exists:', !!token);
     return !!token;
   }
 

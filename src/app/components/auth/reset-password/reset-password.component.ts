@@ -62,17 +62,47 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    console.log(' ResetPasswordComponent Initializing...');
+    
+   
     this.email = sessionStorage.getItem('resetEmail') || '';
     this.otpCode = sessionStorage.getItem('resetOtp') || '';
     const isOtpVerified = sessionStorage.getItem('otpVerified') === 'true';
 
+    console.log(' Session Storage Data:', {
+      email: this.email,
+      otpCode: this.otpCode,
+      isOtpVerified: isOtpVerified
+    });
+
+   
+    if (!this.email || !this.otpCode) {
+      console.log('Falling back to query params...');
+      this.routeSub = this.route.queryParams.subscribe(params => {
+        this.email = params['email'] || this.email;
+        this.otpCode = params['otp'] || this.otpCode;
+        
+        console.log(' Query Params Data:', {
+          email: this.email,
+          otpCode: this.otpCode
+        });
+      });
+    }
+
     if (!this.email || !this.otpCode || !isOtpVerified) {
+      console.error(' Invalid reset session:', {
+        email: this.email,
+        otpCode: this.otpCode,
+        isOtpVerified: isOtpVerified
+      });
+      
       this.showSnackBar('Invalid or expired reset session. Please request a new password reset.', 'error');
       this.clearResetSession();
       this.router.navigate(['/forgot-password']);
       return;
     }
 
+    console.log(' Valid reset session found');
     this.cleanUrl();
   }
 
@@ -94,6 +124,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     sessionStorage.removeItem('resetEmail');
     sessionStorage.removeItem('resetOtp');
     sessionStorage.removeItem('otpVerified');
+    console.log(' Reset session cleared');
   }
 
   private clearAllAuthData() {
@@ -111,6 +142,8 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     sessionStorage.removeItem('resetEmail');
     sessionStorage.removeItem('resetOtp');
     sessionStorage.removeItem('otpVerified');
+    
+    console.log(' All auth data cleared');
   }
 
   onPasswordInput(): void {
@@ -310,9 +343,20 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   async onSubmit() {
     if (this.isLoading) return;
 
+    console.log('Starting password reset process...', {
+      email: this.email,
+      otpCode: this.otpCode
+    });
+
     this.validateAllFields();
 
     if (this.passwordError || this.confirmPasswordError || this.resetForm.invalid) {
+      console.warn('Form validation failed:', {
+        passwordError: this.passwordError,
+        confirmPasswordError: this.confirmPasswordError,
+        formInvalid: this.resetForm.invalid,
+        formErrors: this.resetForm.errors
+      });
       this.markFormGroupTouched();
       return;
     }
@@ -326,8 +370,15 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       newPassword: this.resetForm.value.newPassword
     };
 
+    console.log('Sending reset password request:', {
+      email: payload.email,
+      otpCode: payload.otpCode,
+      passwordLength: payload.newPassword.length
+    });
+
     try {
       const response = await this.authService.resetPassword(payload).toPromise();
+      console.log('Reset password response:', response);
 
       if (response.success) {
         this.showSnackBar('Password reset successfully! Redirecting to login...', 'success');
@@ -345,11 +396,13 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       } else {
         this.isLoading = false;
         this.enableForm();
+        console.error(' Reset password failed:', response.message);
         this.handleApiError(response.message || 'Failed to reset password');
       }
     } catch (error: any) {
       this.isLoading = false;
       this.enableForm();
+      console.error(' Reset password error:', error);
       this.handleApiError(error);
     }
   }
@@ -361,10 +414,12 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
   private disableForm(): void {
     this.resetForm.disable();
+    console.log('Form disabled');
   }
 
   private enableForm(): void {
     this.resetForm.enable();
+    console.log(' Form enabled');
   }
 
   private handleApiError(error: any): void {
@@ -378,12 +433,15 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       errorMessage = error.message;
     } else if (error.status === 400) {
       errorMessage = 'Invalid request. Please check your inputs.';
+    } else if (error.status === 401) {
+      errorMessage = 'Invalid or expired OTP. Please request a new password reset.';
     } else if (error.status === 404) {
       errorMessage = 'Reset password endpoint not found. Please contact support.';
     } else if (error.status === 500) {
       errorMessage = 'Server error. Please try again later.';
     }
     
+    console.error('API Error handled:', errorMessage);
     this.showSnackBar(errorMessage, 'error');
   }
 
@@ -391,8 +449,10 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     const msg = message.toLowerCase();
     
     if (msg.includes('otp') && (msg.includes('invalid') || msg.includes('incorrect'))) {
+      this.clearResetSession();
       return 'Invalid or expired OTP code. Please request a new password reset';
     } else if (msg.includes('otp') && msg.includes('expired')) {
+      this.clearResetSession();
       return 'OTP code has expired. Please request a new password reset';
     } else if (msg.includes('password') && msg.includes('same')) {
       this.passwordError = 'Cannot use previous password';
@@ -404,6 +464,9 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       return 'Account not found. Please check your email address';
     } else if (msg.includes('validation failed')) {
       return 'Invalid request data. Please check your inputs';
+    } else if (msg.includes('already used') || msg.includes('consumed')) {
+      this.clearResetSession();
+      return 'This OTP has already been used. Please request a new password reset';
     } else {
       return message;
     }

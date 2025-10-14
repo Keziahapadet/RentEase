@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../services/auth.service';
 import { firstValueFrom, Subscription } from 'rxjs';
-import { OtpRequest } from '../../../services/auth-interfaces';
+import { OtpVerifyRequest, OtpRequest } from '../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-reset-password-otp',
@@ -35,16 +35,13 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
   isResending = false;
   resendTimer = 0;
   canResend = true;
-  expirationTimer = 600;
-  isExpired = false;
 
   email = '';
 
   pageTitle = 'Reset Password Verification';
-  infoText = 'We sent a verification code to your email';
+  infoText = 'We\'ve sent a 7-character verification code to your email';
 
   private resendTimerInterval: any;
-  private expirationTimerInterval: any;
   private subscription = new Subscription();
 
   private router = inject(Router);
@@ -66,7 +63,6 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
   ngOnDestroy() {
     this.subscription.unsubscribe();
     this.clearResendTimer();
-    this.clearExpirationTimer();
   }
 
   private initializeComponent() {
@@ -79,8 +75,6 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
           setTimeout(() => this.router.navigate(['/forgot-password']), 3000);
           return;
         }
-        
-        this.startExpirationTimer();
       })
     );
   }
@@ -100,8 +94,27 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     this.isLoading = true;
 
     try {
-      await this.handleSuccessfulVerification(otpCode);
+      const verifyRequest: OtpVerifyRequest = {
+        email: this.email,
+        otpCode: otpCode,
+        type: 'password_reset'
+      };
+
+      console.log('Verifying OTP with backend:', { email: this.email, otpCode });
+
+      const response = await firstValueFrom(
+        this.authService.verifyPasswordResetOtp(verifyRequest)
+      );
+
+      console.log('Backend OTP verification response:', response);
+
+      if (response.success) {
+        await this.handleSuccessfulVerification(otpCode, response);
+      } else {
+        throw new Error(response.message || 'OTP verification failed');
+      }
     } catch (error: any) {
+      console.error(' OTP verification error:', error);
       this.handleVerificationError(error);
       this.shakeInputs();
       this.clearOtpInputs();
@@ -119,35 +132,28 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     return null;
   }
 
-  private async handleSuccessfulVerification(otpCode: string) {
-    try {
-      const verifyRequest = {
+  private async handleSuccessfulVerification(otpCode: string, response: any) {
+    
+    sessionStorage.setItem('resetEmail', this.email);
+    sessionStorage.setItem('resetOtp', otpCode);
+    sessionStorage.setItem('otpVerified', 'true');
+    
+    console.log('Stored in sessionStorage:', {
+      email: sessionStorage.getItem('resetEmail'),
+      otp: sessionStorage.getItem('resetOtp'),
+      verified: sessionStorage.getItem('otpVerified')
+    });
+    
+    this.showMessage('OTP verified successfully! Now set your new password.', 'success');
+    
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    this.router.navigate(['/reset-password'], { 
+      queryParams: { 
         email: this.email,
-        otpCode: otpCode,
-        type: 'password_reset'
-      };
-
-      const response = await firstValueFrom(
-        this.authService.verifyPasswordResetOtp(verifyRequest)
-      );
-
-      if (!response.success) {
-        throw new Error(response.message || 'OTP verification failed');
+        otp: otpCode
       }
-
-      sessionStorage.setItem('resetEmail', this.email);
-      sessionStorage.setItem('resetOtp', otpCode);
-      sessionStorage.setItem('otpVerified', 'true');
-      
-      this.showMessage('Verification successful! Redirecting...', 'success');
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      this.router.navigate(['/reset-password']);
-      
-    } catch (error) {
-      throw error;
-    }
+    });
   }
 
   private handleVerificationError(error: any) {
@@ -156,11 +162,15 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     if (errorMsg.includes('expired')) {
       this.showMessage('Code has expired. Please request a new one.', 'error');
       this.canResend = true;
-      this.isExpired = true;
-    } else if (errorMsg.includes('invalid')) {
-      this.showMessage('Invalid code. Please check and try again.', 'error');
+    } else if (errorMsg.includes('invalid') || errorMsg.includes('incorrect')) {
+      this.showMessage('Invalid verification code. Please check and try again.', 'error');
     } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
       this.showMessage('Account not found. Please check your email.', 'error');
+    } else if (errorMsg.includes('already used') || errorMsg.includes('consumed')) {
+      this.showMessage('This code has already been used. Please request a new one.', 'error');
+      this.canResend = true;
+    } else if (errorMsg.includes('too many attempts')) {
+      this.showMessage('Too many failed attempts. Please wait before trying again.', 'error');
     } else {
       this.showMessage(error.message || 'Verification failed. Please try again.', 'error');
     }
@@ -177,25 +187,24 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
         type: 'password_reset'
       };
 
+      console.log('Resending OTP:', { email: this.email });
+
       const response = await firstValueFrom(this.authService.resendOtp(resendRequest));
 
       if (response.success) {
-        this.showMessage('New code sent! Check your email.', 'success');
+        this.showMessage('New verification code sent! Check your email.', 'success');
         this.startResendTimer();
-        this.startExpirationTimer();
         this.clearOtpInputs();
-        this.isExpired = false;
       } else {
         throw new Error(response.message || 'Failed to resend code');
       }
     } catch (error: any) {
+      console.error(' Resend OTP error:', error);
       const errorMsg = error.message || 'Failed to resend code. Please try again.';
-      if (errorMsg.includes('already verified')) {
+      if (errorMsg.includes('already verified') || errorMsg.includes('already sent')) {
         this.showMessage('A new code has been sent to your email.', 'success');
         this.startResendTimer();
-        this.startExpirationTimer();
         this.clearOtpInputs();
-        this.isExpired = false;
       } else {
         this.showMessage(errorMsg, 'error');
       }
@@ -218,32 +227,10 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     }, 1000);
   }
 
-  private startExpirationTimer() {
-    this.expirationTimer = 600;
-    this.isExpired = false;
-    
-    this.clearExpirationTimer();
-    this.expirationTimerInterval = setInterval(() => {
-      this.expirationTimer--;
-      if (this.expirationTimer <= 0) {
-        this.clearExpirationTimer();
-        this.isExpired = true;
-        this.showMessage('Verification code has expired. Please request a new one.', 'error');
-      }
-    }, 1000);
-  }
-
   private clearResendTimer() {
     if (this.resendTimerInterval) {
       clearInterval(this.resendTimerInterval);
       this.resendTimerInterval = null;
-    }
-  }
-
-  private clearExpirationTimer() {
-    if (this.expirationTimerInterval) {
-      clearInterval(this.expirationTimerInterval);
-      this.expirationTimerInterval = null;
     }
   }
 
@@ -335,10 +322,14 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     return this.canResend ? 'Resend Code' : `Resend in ${this.resendTimer}s`;
   }
 
-  getExpirationTime(): string {
-    const minutes = Math.floor(this.expirationTimer / 60);
-    const seconds = this.expirationTimer % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  getDisplayEmail(): string {
+    if (!this.email) return '';
+    const [localPart, domain] = this.email.split('@');
+    if (!domain) return this.email;
+    const maskedLocal = localPart.length > 2 
+      ? localPart.substring(0, 2) + '*'.repeat(Math.min(localPart.length - 2, 3))
+      : localPart;
+    return `${maskedLocal}@${domain}`;
   }
 
   private showMessage(message: string, type: 'success' | 'error' | 'info' = 'info') {
