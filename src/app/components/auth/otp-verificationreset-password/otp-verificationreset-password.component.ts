@@ -93,28 +93,22 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
 
     this.isLoading = true;
 
-    try {
-      sessionStorage.setItem('resetEmail', this.email);
-      sessionStorage.setItem('resetOtp', otpCode);
-      sessionStorage.setItem('otpVerified', 'true');
-      
-      this.showMessage('OTP verified! Now set your new password.', 'success');
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      this.router.navigate(['/reset-password'], { 
-        queryParams: { 
-          email: this.email,
-          otp: otpCode
-        }
-      });
-    } catch (error: any) {
-      this.handleVerificationError(error);
-      this.shakeInputs();
-      this.clearOtpInputs();
-    } finally {
-      this.isLoading = false;
-    }
+    sessionStorage.setItem('resetEmail', this.email);
+    sessionStorage.setItem('resetOtp', otpCode);
+    sessionStorage.setItem('otpVerified', 'true');
+    
+    this.showMessage('OTP verified! Now set your new password.', 'success');
+    
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    this.router.navigate(['/reset-password'], { 
+      queryParams: { 
+        email: this.email,
+        otp: otpCode
+      }
+    });
+    
+    this.isLoading = false;
   }
 
   private validateOtp(otpCode: string): string | null {
@@ -124,21 +118,6 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
       return 'Invalid verification code format.';
     }
     return null;
-  }
-
-  private handleVerificationError(error: any) {
-    const errorMsg = (error.message || '').toLowerCase();
-    
-    if (errorMsg.includes('expired')) {
-      this.showMessage('Code has expired. Please request a new one.', 'error');
-      this.canResend = true;
-    } else if (errorMsg.includes('invalid')) {
-      this.showMessage('Invalid code. Please check and try again.', 'error');
-    } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
-      this.showMessage('Account not found. Please check your email.', 'error');
-    } else {
-      this.showMessage(error.message || 'Verification failed. Please try again.', 'error');
-    }
   }
 
   async resendOtp() {
