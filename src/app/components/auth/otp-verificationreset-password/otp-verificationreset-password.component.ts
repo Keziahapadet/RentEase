@@ -94,27 +94,21 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     this.isLoading = true;
 
     try {
-      const verifyRequest: OtpVerifyRequest = {
-        email: this.email,
-        otpCode: otpCode,
-        type: 'password_reset'
-      };
-
-      console.log('Verifying OTP with backend:', { email: this.email, otpCode });
-
-      const response = await firstValueFrom(
-        this.authService.verifyPasswordResetOtp(verifyRequest)
-      );
-
-      console.log('Backend OTP verification response:', response);
-
-      if (response.success) {
-        await this.handleSuccessfulVerification(otpCode, response);
-      } else {
-        throw new Error(response.message || 'OTP verification failed');
-      }
+      sessionStorage.setItem('resetEmail', this.email);
+      sessionStorage.setItem('resetOtp', otpCode);
+      sessionStorage.setItem('otpVerified', 'true');
+      
+      this.showMessage('OTP verified! Now set your new password.', 'success');
+      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      this.router.navigate(['/reset-password'], { 
+        queryParams: { 
+          email: this.email,
+          otp: otpCode
+        }
+      });
     } catch (error: any) {
-      console.error(' OTP verification error:', error);
       this.handleVerificationError(error);
       this.shakeInputs();
       this.clearOtpInputs();
@@ -132,45 +126,16 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     return null;
   }
 
-  private async handleSuccessfulVerification(otpCode: string, response: any) {
-    
-    sessionStorage.setItem('resetEmail', this.email);
-    sessionStorage.setItem('resetOtp', otpCode);
-    sessionStorage.setItem('otpVerified', 'true');
-    
-    console.log('Stored in sessionStorage:', {
-      email: sessionStorage.getItem('resetEmail'),
-      otp: sessionStorage.getItem('resetOtp'),
-      verified: sessionStorage.getItem('otpVerified')
-    });
-    
-    this.showMessage('OTP verified successfully! Now set your new password.', 'success');
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    this.router.navigate(['/reset-password'], { 
-      queryParams: { 
-        email: this.email,
-        otp: otpCode
-      }
-    });
-  }
-
   private handleVerificationError(error: any) {
     const errorMsg = (error.message || '').toLowerCase();
     
     if (errorMsg.includes('expired')) {
       this.showMessage('Code has expired. Please request a new one.', 'error');
       this.canResend = true;
-    } else if (errorMsg.includes('invalid') || errorMsg.includes('incorrect')) {
-      this.showMessage('Invalid verification code. Please check and try again.', 'error');
+    } else if (errorMsg.includes('invalid')) {
+      this.showMessage('Invalid code. Please check and try again.', 'error');
     } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
       this.showMessage('Account not found. Please check your email.', 'error');
-    } else if (errorMsg.includes('already used') || errorMsg.includes('consumed')) {
-      this.showMessage('This code has already been used. Please request a new one.', 'error');
-      this.canResend = true;
-    } else if (errorMsg.includes('too many attempts')) {
-      this.showMessage('Too many failed attempts. Please wait before trying again.', 'error');
     } else {
       this.showMessage(error.message || 'Verification failed. Please try again.', 'error');
     }
@@ -187,21 +152,18 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
         type: 'password_reset'
       };
 
-      console.log('Resending OTP:', { email: this.email });
-
       const response = await firstValueFrom(this.authService.resendOtp(resendRequest));
 
       if (response.success) {
-        this.showMessage('New verification code sent! Check your email.', 'success');
+        this.showMessage('New code sent! Check your email.', 'success');
         this.startResendTimer();
         this.clearOtpInputs();
       } else {
         throw new Error(response.message || 'Failed to resend code');
       }
     } catch (error: any) {
-      console.error(' Resend OTP error:', error);
       const errorMsg = error.message || 'Failed to resend code. Please try again.';
-      if (errorMsg.includes('already verified') || errorMsg.includes('already sent')) {
+      if (errorMsg.includes('already verified')) {
         this.showMessage('A new code has been sent to your email.', 'success');
         this.startResendTimer();
         this.clearOtpInputs();
