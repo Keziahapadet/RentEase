@@ -8,23 +8,32 @@ export const resetPasswordGuard: CanActivateFn = (route, state) => {
     const email = sessionStorage.getItem('resetEmail');
     const otpCode = sessionStorage.getItem('resetOtp');
     const otpVerified = sessionStorage.getItem('otpVerified');
-    const hasQueryParams = route.queryParams && Object.keys(route.queryParams).length > 0;
     
+   
     const isValid = 
       email !== null && 
       email !== '' && 
       otpCode !== null && 
       otpCode !== '' && 
-      otpVerified === 'true' &&
-      !hasQueryParams;
+      otpVerified === 'true';
+    
+    console.log('ResetPasswordGuard check:', {
+      email: !!email,
+      otpCode: !!otpCode,
+      otpVerified,
+      isValid
+    });
     
     if (isValid) {
       return true;
     }
     
+  
     sessionStorage.removeItem('resetEmail');
     sessionStorage.removeItem('resetOtp');
     sessionStorage.removeItem('otpVerified');
+    
+    console.log('ResetPasswordGuard: Navigation not allowed, redirecting to forgot-password');
     
     router.navigate(['/forgot-password'], {
       queryParams: { 
@@ -37,6 +46,7 @@ export const resetPasswordGuard: CanActivateFn = (route, state) => {
     return false;
     
   } catch (error) {
+    console.error('ResetPasswordGuard error:', error);
     router.navigate(['/forgot-password']);
     return false;
   }

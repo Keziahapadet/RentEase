@@ -94,6 +94,7 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
     this.isLoading = true;
 
     try {
+      // Store in sessionStorage for the guard
       sessionStorage.setItem('resetEmail', this.email);
       sessionStorage.setItem('resetOtp', otpCode);
       sessionStorage.setItem('otpVerified', 'true');
@@ -102,12 +103,17 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
       
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      this.router.navigate(['/reset-password'], { 
-        queryParams: { 
-          email: this.email,
-          otp: otpCode
-        }
-      });
+      // REMOVED queryParams - navigate without them
+      console.log('Navigating to reset-password...');
+      const navigationResult = await this.router.navigate(['/reset-password']);
+      
+      if (!navigationResult) {
+        console.error('Navigation to reset-password failed');
+        this.showMessage('Failed to navigate. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      this.showMessage('An error occurred during navigation.', 'error');
     } finally {
       this.isLoading = false;
     }
