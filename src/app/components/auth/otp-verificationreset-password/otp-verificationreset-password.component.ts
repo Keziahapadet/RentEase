@@ -93,22 +93,24 @@ export class ResetPasswordOtpComponent implements AfterViewInit, OnInit, OnDestr
 
     this.isLoading = true;
 
-    sessionStorage.setItem('resetEmail', this.email);
-    sessionStorage.setItem('resetOtp', otpCode);
-    sessionStorage.setItem('otpVerified', 'true');
-    
-    this.showMessage('OTP verified! Now set your new password.', 'success');
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    this.router.navigate(['/reset-password'], { 
-      queryParams: { 
-        email: this.email,
-        otp: otpCode
-      }
-    });
-    
-    this.isLoading = false;
+    try {
+      sessionStorage.setItem('resetEmail', this.email);
+      sessionStorage.setItem('resetOtp', otpCode);
+      sessionStorage.setItem('otpVerified', 'true');
+      
+      this.showMessage('OTP verified! Now set your new password.', 'success');
+      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      this.router.navigate(['/reset-password'], { 
+        queryParams: { 
+          email: this.email,
+          otp: otpCode
+        }
+      });
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   private validateOtp(otpCode: string): string | null {
