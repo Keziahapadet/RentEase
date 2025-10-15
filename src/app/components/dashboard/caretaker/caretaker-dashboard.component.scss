@@ -1,4 +1,4 @@
-.admin-dashboard {
+.caretaker-dashboard {
   display: flex;
   height: 100vh;
   background: #f8f9fa;
@@ -6,7 +6,7 @@
 
 .sidebar {
   width: 280px;
-  background: #1a1a1a;
+  background: #1a5d1a;
   color: white;
   transition: all 0.3s ease;
   display: flex;
@@ -29,7 +29,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #2d7d2d;
 
     .logo {
       display: flex;
@@ -39,7 +39,7 @@
       font-weight: 700;
 
       mat-icon {
-        color: #007bff;
+        color: #ffd700;
       }
     }
 
@@ -52,7 +52,7 @@
       border-radius: 4px;
 
       &:hover {
-        background: #333;
+        background: #2d7d2d;
       }
     }
   }
@@ -66,19 +66,19 @@
       align-items: center;
       gap: 12px;
       padding: 12px 20px;
-      color: #b0b0b0;
+      color: #e0e0e0;
       text-decoration: none;
       cursor: pointer;
       transition: all 0.2s;
 
       &:hover {
-        background: #333;
+        background: #2d7d2d;
         color: white;
       }
 
       &.active {
-        background: #007bff;
-        color: white;
+        background: #ffd700;
+        color: #1a5d1a;
       }
 
       .nav-icon {
@@ -95,7 +95,7 @@
 
   .sidebar-footer {
     padding: 20px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #2d7d2d;
 
     .logout-btn {
       display: flex;
@@ -157,7 +157,7 @@
 
     .page-title {
       margin: 0;
-      color: #1a1a1a;
+      color: #1a5d1a;
       font-size: 24px;
       font-weight: 700;
     }
@@ -213,7 +213,7 @@
       .user-avatar {
         width: 32px;
         height: 32px;
-        background: #007bff;
+        background: #1a5d1a;
         color: white;
         border-radius: 50%;
         display: flex;
@@ -224,6 +224,7 @@
 
       .user-name {
         font-weight: 500;
+        color: #1a5d1a;
       }
     }
   }
@@ -265,12 +266,12 @@
         justify-content: center;
         color: white;
 
-        &.users { background: #007bff; }
-        &.businesses { background: #28a745; }
-        &.transactions { background: #ffc107; }
-        &.revenue { background: #17a2b8; }
-        &.approvals { background: #fd7e14; }
-        &.disputes { background: #dc3545; }
+        &.maintenance { background: #007bff; }
+        &.inspections { background: #28a745; }
+        &.deposits { background: #ffc107; }
+        &.completed { background: #17a2b8; }
+        &.response { background: #6f42c1; }
+        &.satisfaction { background: #e83e8c; }
       }
 
       .stat-info {
@@ -289,7 +290,7 @@
     }
   }
 
-  .alerts-section, .quick-actions-section {
+  .quick-actions-section {
     margin-bottom: 32px;
 
     h3 {
@@ -297,70 +298,145 @@
       color: #1a1a1a;
       font-size: 20px;
     }
-  }
 
-  .alerts-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
 
-    .alert-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      border-radius: 8px;
-      font-weight: 500;
-
-      &.alert-warning {
-        background: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
-      }
-
-      &.alert-success {
-        background: #d1edff;
-        color: #0c5460;
-        border: 1px solid #bee5eb;
-      }
-
-      .alert-count {
-        background: #dc3545;
-        color: white;
-        padding: 4px 8px;
+      .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 20px;
+        border: 2px dashed #dee2e6;
         border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        &:hover {
+          border-color: #1a5d1a;
+          background: #f8f9fa;
+        }
+
+        .action-icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+
+          mat-icon {
+            font-size: 24px;
+          }
+        }
+
+        .action-label {
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+
+        .action-description {
+          font-size: 12px;
+          color: #6c757d;
+          text-align: center;
+        }
       }
     }
   }
 
-  .actions-grid {
+  .recent-activity {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
 
-    .action-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 20px;
-      border: 2px dashed #dee2e6;
-      border-radius: 12px;
+    .activity-section {
       background: white;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 
-      &:hover {
-        border-color: #007bff;
-        background: #f8f9fa;
+      h3 {
+        margin: 0 0 16px 0;
+        color: #1a1a1a;
+        font-size: 18px;
       }
 
-      span {
-        font-weight: 500;
-        color: #1a1a1a;
+      .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .activity-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          border-radius: 8px;
+          background: #f8f9fa;
+          transition: all 0.2s;
+
+          &:hover {
+            background: #e9ecef;
+          }
+
+          .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+
+            &.priority-low { background: #28a745; }
+            &.priority-medium { background: #ffc107; }
+            &.priority-high { background: #fd7e14; }
+            &.priority-urgent { background: #dc3545; }
+            &.type-move-in { background: #007bff; }
+            &.type-move-out { background: #6f42c1; }
+            &.type-routine { background: #6c757d; }
+          }
+
+          .activity-content {
+            flex: 1;
+
+            .activity-title {
+              font-weight: 600;
+              color: #1a1a1a;
+              margin-bottom: 4px;
+            }
+
+            .activity-details {
+              font-size: 12px;
+              color: #6c757d;
+              margin-bottom: 4px;
+
+              .tenant {
+                font-weight: 500;
+              }
+
+              .property {
+                color: #1a5d1a;
+              }
+            }
+
+            .activity-status {
+              margin-top: 4px;
+            }
+
+            .activity-date {
+              font-size: 12px;
+              color: #6c757d;
+              font-weight: 500;
+            }
+          }
+        }
       }
     }
   }
@@ -393,9 +469,14 @@
         color: #856404;
       }
 
-      &.total {
+      &.scheduled {
         background: #d1edff;
         color: #0c5460;
+      }
+
+      &.total {
+        background: #e8f5e8;
+        color: #2e7d32;
       }
     }
   }
@@ -408,7 +489,7 @@
   background: white;
 }
 
-.business-table, .user-table, .dispute-table, .transaction-table {
+.maintenance-table, .inspection-table, .deposit-table {
   width: 100%;
   background: white;
 
@@ -433,82 +514,79 @@
   font-weight: 600;
   text-transform: capitalize;
 
-  &.status-pending, &.status-escalated {
+  &.status-pending, &.status-submitted, &.status-scheduled {
     background: #fff3cd;
     color: #856404;
   }
 
-  &.status-approved, &.status-active, &.status-resolved, &.status-completed {
+  &.status-progress, &.status-in-progress {
+    background: #d1edff;
+    color: #0c5460;
+  }
+
+  &.status-completed, &.status-approved {
     background: #d4edda;
     color: #155724;
   }
 
-  &.status-rejected, &.status-suspended, &.status-inactive, &.status-failed {
+  &.status-cancelled, &.status-rejected {
     background: #f8d7da;
     color: #721c24;
   }
 }
 
-.type-badge {
+.priority-badge {
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   text-transform: capitalize;
+  color: white;
 
-  &.type-tenant {
-    background: #e3f2fd;
-    color: #1565c0;
+  &.priority-low {
+    background: #28a745;
   }
 
-  &.type-landlord {
-    background: #f3e5f5;
-    color: #7b1fa2;
+  &.priority-medium {
+    background: #ffc107;
   }
 
-  &.type-caretaker {
-    background: #e8f5e8;
-    color: #2e7d32;
+  &.priority-high {
+    background: #fd7e14;
+  }
+
+  &.priority-urgent {
+    background: #dc3545;
   }
 }
 
-.dispute-type, .transaction-type {
+.inspection-type {
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   text-transform: capitalize;
+  color: white;
 
-  &.type-deposit {
-    background: #fff3e0;
-    color: #e65100;
+  &.type-move-in {
+    background: #007bff;
   }
 
-  &.type-service {
-    background: #e8f5e8;
-    color: #2e7d32;
+  &.type-move-out {
+    background: #6f42c1;
   }
 
-  &.type-payment {
-    background: #e3f2fd;
-    color: #1565c0;
-  }
-
-  &.type-commission {
-    background: #f3e5f5;
-    color: #7b1fa2;
+  &.type-routine {
+    background: #6c757d;
   }
 }
 
-.rating-display {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #ffc107;
+.damage-amount {
+  color: #dc3545;
   font-weight: 600;
 }
 
-.no-rating {
+.no-damage, .no-deposit {
   color: #6c757d;
   font-style: italic;
 }
@@ -535,7 +613,7 @@
       }
     }
 
-    &.btn-danger, &.btn-warning {
+    &.btn-danger {
       background: #dc3545;
       color: white;
 
@@ -593,6 +671,10 @@
   }
 
   .actions-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .recent-activity {
     grid-template-columns: 1fr !important;
   }
 

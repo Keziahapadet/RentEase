@@ -15,7 +15,6 @@ import { PaymentsComponent } from './components/dashboard/tenant/payments/paymen
 import { MaintenanceComponent } from './components/dashboard/tenant/maintenance/maintenance.component';
 import { DocumentsComponent } from './components/dashboard/tenant/documents/documents.component';
 import { MessagesComponent } from './components/dashboard/tenant/messages/messages.component';
-// import { MarketplaceComponent } from './components/dashboard/tenant/marketplace/marketplace.component';
 import { ReviewComponent } from './components/dashboard/tenant/review/review.component';
 import { SettingsComponent } from './components/dashboard/tenant/settings/settings.component';
 import { LandlordDashboardComponent } from './components/dashboard/landlord/landlord-dashboard/landlord-dashboard';
@@ -33,15 +32,16 @@ import { ResetPasswordComponent } from './components/auth/reset-password/reset-p
 import { resetPasswordGuard } from './guards/reset-password.guard';
 import { authGuard } from './guards/auth.guard';
 
-
+import { AdminDashboardComponent } from './components/dashboard/admin/admin-dashboard/admin-dashboard.component';
+import { CaretakerDashboardComponent } from './components/dashboard/caretaker/caretaker-dashboard.component';
+import { BusinessDashboardComponent } from './components/dashboard/bussiness/business-dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: 'registration', component: RegistrationComponent },
   { path: 'login', component: LoginComponent },
-   { path: 'otp-verificationreset-password', component: ResetPasswordOtpComponent },
+  { path: 'otp-verificationreset-password', component: ResetPasswordOtpComponent },
   { path: 'verify-otp', component: VerifyOtpComponent },
- 
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { 
     path: 'reset-password', 
@@ -53,10 +53,11 @@ export const routes: Routes = [
   { path: 'about', component: AboutComponent },
   { path: 'terms', component: TermsComponent },
   { path: 'privacy', component: PrivacyComponent },
+
   {
     path: 'tenant-dashboard',
     component: TenantDashboardComponent,
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: TenantDashboardComponent },
@@ -69,6 +70,8 @@ export const routes: Routes = [
       { path: 'settings', component: SettingsComponent }
     ]
   },
+
+ 
   {
     path: 'landlord-dashboard',
     component: LandlordDashboardComponent,
@@ -91,8 +94,64 @@ export const routes: Routes = [
       { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' }
     ]
   },
+
+
+  {
+    path: 'business-dashboard',
+    component: BusinessDashboardComponent,
+    // canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      { path: 'overview', component: BusinessDashboardComponent },
+      { path: 'jobs', component: BusinessDashboardComponent },
+      { path: 'earnings', component: BusinessDashboardComponent },
+      { path: 'reviews', component: BusinessDashboardComponent },
+      { path: 'profile', component: BusinessDashboardComponent },
+      { path: 'services', component: BusinessDashboardComponent },
+      { path: 'messages', component: BusinessDashboardComponent }
+    ]
+  },
+
+ 
+  {
+    path: 'caretaker-dashboard',
+    component: CaretakerDashboardComponent,
+    // canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      { path: 'overview', component: CaretakerDashboardComponent },
+      { path: 'maintenance', component: CaretakerDashboardComponent },
+      { path: 'inspections', component: CaretakerDashboardComponent },
+      { path: 'deposits', component: CaretakerDashboardComponent },
+      { path: 'properties', component: CaretakerDashboardComponent },
+      { path: 'messages', component: CaretakerDashboardComponent },
+      { path: 'reports', component: CaretakerDashboardComponent }
+    ]
+  },
+
+ 
+  {
+    path: 'admin-dashboard',
+    component: AdminDashboardComponent,
+    // canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      { path: 'overview', component: AdminDashboardComponent },
+      { path: 'businesses', component: AdminDashboardComponent },
+      { path: 'users', component: AdminDashboardComponent },
+      { path: 'disputes', component: AdminDashboardComponent },
+      { path: 'transactions', component: AdminDashboardComponent },
+      { path: 'reports', component: AdminDashboardComponent },
+      { path: 'settings', component: AdminDashboardComponent }
+    ]
+  },
+
+
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
   { path: 'tenant', redirectTo: '/tenant-dashboard' },
+  { path: 'business', redirectTo: '/business-dashboard' },
+  { path: 'caretaker', redirectTo: '/caretaker-dashboard' },
+  { path: 'admin', redirectTo: '/admin-dashboard' },
   { path: 'dashboard', redirectTo: '/tenant-dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: '' }
 ];

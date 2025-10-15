@@ -1,0 +1,383 @@
+<div class="caretaker-dashboard">
+  <div class="sidebar" [class.sidebar-collapsed]="!isSidebarOpen">
+    <div class="sidebar-header">
+      <div class="logo">
+        <mat-icon>handyman</mat-icon>
+        <span class="logo-text" *ngIf="isSidebarOpen">Caretaker Panel</span>
+      </div>
+      <button class="sidebar-toggle" (click)="toggleSidebar()">
+        <mat-icon>{{isSidebarOpen ? 'chevron_left' : 'chevron_right'}}</mat-icon>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a *ngFor="let item of navItems" 
+         class="nav-item" 
+         [class.active]="currentView === item.id"
+         (click)="setView(item.id)">
+        <mat-icon class="nav-icon">{{item.icon}}</mat-icon>
+        <span class="nav-label" *ngIf="isSidebarOpen">{{item.label}}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span *ngIf="isSidebarOpen">Logout</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="main-content" [class.content-expanded]="!isSidebarOpen">
+    <div class="top-header">
+      <div class="header-left">
+        <button class="menu-toggle" (click)="toggleSidebar()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <h1 class="page-title">Caretaker Dashboard</h1>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="refreshData()">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+        <div class="user-menu">
+          <div class="user-avatar">C</div>
+          <span class="user-name">Caretaker</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      
+      <div *ngIf="currentView === 'overview'" class="overview-view">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon maintenance">
+              <mat-icon>build</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{formatNumber(stats.pendingMaintenance)}}</div>
+              <div class="stat-label">Pending Maintenance</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon inspections">
+              <mat-icon>home</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{formatNumber(stats.scheduledInspections)}}</div>
+              <div class="stat-label">Scheduled Inspections</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon deposits">
+              <mat-icon>account_balance</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{formatNumber(stats.activeDepositCases)}}</div>
+              <div class="stat-label">Active Deposit Cases</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon completed">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{formatNumber(stats.completedJobs)}}</div>
+              <div class="stat-label">Completed Jobs</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon response">
+              <mat-icon>timer</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{stats.responseRate}}%</div>
+              <div class="stat-label">Response Rate</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon satisfaction">
+              <mat-icon>star</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{stats.tenantSatisfaction}}/5</div>
+              <div class="stat-label">Tenant Satisfaction</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-actions-section">
+          <h3>Quick Actions</h3>
+          <div class="actions-grid">
+            <button *ngFor="let action of quickActions" class="action-btn" (click)="action.action()">
+              <div class="action-icon" [style.background-color]="action.color">
+                <mat-icon>{{action.icon}}</mat-icon>
+              </div>
+              <span class="action-label">{{action.title}}</span>
+              <span class="action-description">{{action.description}}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="recent-activity">
+          <div class="activity-section">
+            <h3>Recent Maintenance Requests</h3>
+            <div class="activity-list">
+              <div *ngFor="let request of maintenanceRequests.slice(0, 3)" class="activity-item">
+                <div class="activity-icon" [class]="getPriorityClass(request.priority)">
+                  <mat-icon>build</mat-icon>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">{{request.title}}</div>
+                  <div class="activity-details">
+                    <span class="tenant">{{request.tenantName}}</span> • 
+                    <span class="property">{{request.property}}</span>
+                  </div>
+                  <div class="activity-status">
+                    <span class="status-badge" [class]="getStatusClass(request.status)">{{request.status}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="activity-section">
+            <h3>Upcoming Inspections</h3>
+            <div class="activity-list">
+              <div *ngFor="let inspection of inspections" class="activity-item">
+                <div class="activity-icon" [class]="getInspectionTypeClass(inspection.type)">
+                  <mat-icon>home</mat-icon>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">{{inspection.type | titlecase}} Inspection</div>
+                  <div class="activity-details">
+                    <span class="tenant">{{inspection.tenantName}}</span> • 
+                    <span class="property">{{inspection.property}}</span>
+                  </div>
+                  <div class="activity-date">{{inspection.date}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="currentView === 'maintenance'" class="maintenance-view">
+        <div class="view-header">
+          <h2>Maintenance Management</h2>
+          <div class="view-stats">
+            <span class="stat-badge pending">{{stats.pendingMaintenance}} Pending</span>
+            <span class="stat-badge total">{{maintenanceRequests.length}} Total</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table mat-table [dataSource]="maintenanceRequests" class="maintenance-table">
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef>Title</th>
+              <td mat-cell *matCellDef="let request">{{request.title}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Category</th>
+              <td mat-cell *matCellDef="let request">{{request.category}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="priority">
+              <th mat-header-cell *matHeaderCellDef>Priority</th>
+              <td mat-cell *matCellDef="let request">
+                <span class="priority-badge" [class]="getPriorityClass(request.priority)">
+                  {{request.priority}}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let request">
+                <span class="status-badge" [class]="getStatusClass(request.status)">
+                  {{request.status}}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="tenantName">
+              <th mat-header-cell *matHeaderCellDef>Tenant</th>
+              <td mat-cell *matCellDef="let request">{{request.tenantName}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="property">
+              <th mat-header-cell *matHeaderCellDef>Property</th>
+              <td mat-cell *matCellDef="let request">{{request.property}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let request">
+                <div class="action-buttons">
+                  <button *ngIf="request.status === 'submitted'" class="btn-primary" (click)="updateMaintenanceStatus(request, 'in-progress')">
+                    Start
+                  </button>
+                  <button *ngIf="request.status === 'in-progress'" class="btn-success" (click)="updateMaintenanceStatus(request, 'completed')">
+                    Complete
+                  </button>
+                  <button class="btn-secondary">
+                    Details
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedMaintenanceColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedMaintenanceColumns;"></tr>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="currentView === 'inspections'" class="inspections-view">
+        <div class="view-header">
+          <h2>Property Inspections</h2>
+          <div class="view-stats">
+            <span class="stat-badge scheduled">{{inspections.length}} Scheduled</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table mat-table [dataSource]="inspections" class="inspection-table">
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let inspection">
+                <span class="inspection-type" [class]="getInspectionTypeClass(inspection.type)">
+                  {{inspection.type}}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="property">
+              <th mat-header-cell *matHeaderCellDef>Property</th>
+              <td mat-cell *matCellDef="let inspection">{{inspection.property}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="tenantName">
+              <th mat-header-cell *matHeaderCellDef>Tenant</th>
+              <td mat-cell *matCellDef="let inspection">{{inspection.tenantName}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let inspection">{{inspection.date}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let inspection">
+                <span class="status-badge" [class]="getStatusClass(inspection.status)">
+                  {{inspection.status}}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="depositAmount">
+              <th mat-header-cell *matHeaderCellDef>Deposit</th>
+              <td mat-cell *matCellDef="let inspection">
+                <span *ngIf="inspection.depositAmount > 0">{{formatCurrency(inspection.depositAmount)}}</span>
+                <span *ngIf="inspection.depositAmount === 0" class="no-deposit">-</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let inspection">
+                <div class="action-buttons">
+                  <button *ngIf="inspection.status === 'scheduled'" class="btn-success" (click)="completeInspection(inspection)">
+                    Complete
+                  </button>
+                  <button class="btn-secondary">
+                    Reschedule
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedInspectionColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedInspectionColumns;"></tr>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="currentView === 'deposits'" class="deposits-view">
+        <div class="view-header">
+          <h2>Deposit Management</h2>
+          <div class="view-stats">
+            <span class="stat-badge pending">{{getPendingDepositCount()}} Pending</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table mat-table [dataSource]="depositCases" class="deposit-table">
+            <ng-container matColumnDef="tenantName">
+              <th mat-header-cell *matHeaderCellDef>Tenant</th>
+              <td mat-cell *matCellDef="let deposit">{{deposit.tenantName}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="property">
+              <th mat-header-cell *matHeaderCellDef>Property</th>
+              <td mat-cell *matCellDef="let deposit">{{deposit.property}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="depositAmount">
+              <th mat-header-cell *matHeaderCellDef>Deposit Amount</th>
+              <td mat-cell *matCellDef="let deposit">{{formatCurrency(deposit.depositAmount)}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let deposit">
+                <span class="status-badge" [class]="getStatusClass(deposit.status)">
+                  {{deposit.status}}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="damageAmount">
+              <th mat-header-cell *matHeaderCellDef>Damage Amount</th>
+              <td mat-cell *matCellDef="let deposit">
+                <span *ngIf="deposit.damageAmount > 0" class="damage-amount">{{formatCurrency(deposit.damageAmount)}}</span>
+                <span *ngIf="deposit.damageAmount === 0" class="no-damage">No damage</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let deposit">
+                <div class="action-buttons">
+                  <button *ngIf="deposit.status === 'pending'" class="btn-success" (click)="approveDeposit(deposit)">
+                    Approve
+                  </button>
+                  <button *ngIf="deposit.status === 'pending'" class="btn-danger" (click)="rejectDeposit(deposit)">
+                    Reject
+                  </button>
+                  <button class="btn-secondary">
+                    Details
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedDepositColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedDepositColumns;"></tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

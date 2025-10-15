@@ -1,55 +1,58 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatTableModule } from '@angular/material/table';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatBadgeModule } from '@angular/material/badge';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatListModule } from '@angular/material/list';
-import { MatExpansionModule } from '@angular/material/expansion';
 
-interface AdminDashboardStats {
+interface DashboardStats {
   totalUsers: number;
-  activeTenants: number;
-  activeLandlords: number;
-  activeCaretakers: number;
   activeBusinesses: number;
-  pendingVerifications: number;
-  pendingBusinessApprovals: number;
-  escrowBalance: number;
-  monthlyRevenue: number;
-  businessCommissions: number;
+  monthlyTransactions: number;
+  commissionRevenue: number;
+  pendingApprovals: number;
   activeDisputes: number;
-  reportedIssues: number;
-  businessComplaints: number;
-  totalServiceRequests: number;
-  completedServices: number;
-  averageBusinessRating: number;
 }
 
-interface RecentActivity {
+interface Business {
   id: string;
-  type: 'user_registration' | 'dispute' | 'business_signup' | 'service_request' | 'review' | 'payment';
-  description: string;
-  timestamp: Date;
-  priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'resolved' | 'in_progress';
+  name: string;
+  category: string;
+  status: 'pending' | 'approved' | 'rejected';
+  registrationDate: string;
+  rating: number;
+  totalJobs: number;
 }
 
-interface PendingApproval {
+interface User {
   id: string;
-  type: 'user' | 'business' | 'document' | 'listing';
   name: string;
   email: string;
-  submittedDate: Date;
-  category?: string;
+  type: 'tenant' | 'landlord' | 'caretaker';
+  status: 'active' | 'inactive' | 'suspended';
+  joinDate: string;
+}
+
+interface Dispute {
+  id: string;
+  type: 'deposit' | 'service' | 'payment';
+  parties: string[];
+  amount: number;
+  status: 'pending' | 'resolved' | 'escalated';
+  createdDate: string;
+}
+
+interface Transaction {
+  id: string;
+  type: 'commission' | 'deposit' | 'payment';
+  amount: number;
+  business: string;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
 }
 
 @Component({
@@ -57,276 +60,157 @@ interface PendingApproval {
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
+    MatIconModule,
     MatCardModule,
     MatButtonModule,
-    MatIconModule,
-    MatTableModule,
     MatTabsModule,
-    MatChipsModule,
+    MatTableModule,
+    MatProgressBarModule,
     MatBadgeModule,
-    MatProgressSpinnerModule,
-    MatMenuModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatListModule,
-    MatExpansionModule
+    MatMenuModule
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss']
 })
 export class AdminDashboardComponent implements OnInit {
-  private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
-
-  isLoading = true;
-  isSidebarCollapsed = false;
+  currentView: string = 'overview';
+  isSidebarOpen = true;
   
-  stats: AdminDashboardStats = {
-    totalUsers: 1247,
-    activeTenants: 523,
-    activeLandlords: 189,
-    activeCaretakers: 67,
-    activeBusinesses: 468,
-    pendingVerifications: 23,
-    pendingBusinessApprovals: 15,
-    escrowBalance: 12450000,
-    monthlyRevenue: 2340000,
-    businessCommissions: 890000,
-    activeDisputes: 8,
-    reportedIssues: 12,
-    businessComplaints: 5,
-    totalServiceRequests: 342,
-    completedServices: 298,
-    averageBusinessRating: 4.6
+  stats: DashboardStats = {
+    totalUsers: 1250,
+    activeBusinesses: 85,
+    monthlyTransactions: 4200000,
+    commissionRevenue: 420000,
+    pendingApprovals: 12,
+    activeDisputes: 8
   };
 
-  recentActivities: RecentActivity[] = [
-    {
-      id: '1',
-      type: 'user_registration',
-      description: 'New landlord registration: John Kamau',
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-      priority: 'low',
-      status: 'pending'
-    },
-    {
-      id: '2',
-      type: 'dispute',
-      description: 'Deposit dispute raised by tenant Mary Wanjiku',
-      timestamp: new Date(Date.now() - 1000 * 60 * 15),
-      priority: 'high',
-      status: 'in_progress'
-    },
-    {
-      id: '3',
-      type: 'business_signup',
-      description: 'New business application: ABC Plumbing Services',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      priority: 'medium',
-      status: 'pending'
-    },
-    {
-      id: '4',
-      type: 'service_request',
-      description: 'Service request completed by QuickFix Plumbing',
-      timestamp: new Date(Date.now() - 1000 * 60 * 45),
-      priority: 'low',
-      status: 'resolved'
-    },
-    {
-      id: '5',
-      type: 'review',
-      description: 'Negative review reported: Jane Doe vs Property XYZ',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60),
-      priority: 'medium',
-      status: 'pending'
-    }
+  businesses: Business[] = [
+    { id: '1', name: 'Joe Plumbing', category: 'Plumbing', status: 'approved', registrationDate: '2024-01-15', rating: 4.5, totalJobs: 45 },
+    { id: '2', name: 'City Furniture', category: 'Furniture', status: 'approved', registrationDate: '2024-01-10', rating: 4.2, totalJobs: 28 },
+    { id: '3', name: 'Quick Clean', category: 'Cleaning', status: 'pending', registrationDate: '2024-03-01', rating: 0, totalJobs: 0 },
+    { id: '4', name: 'Safe Movers', category: 'Moving', status: 'pending', registrationDate: '2024-03-02', rating: 0, totalJobs: 0 },
+    { id: '5', name: 'Power Electric', category: 'Electrical', status: 'approved', registrationDate: '2024-02-01', rating: 4.8, totalJobs: 67 }
   ];
 
-  pendingApprovals: PendingApproval[] = [
-    {
-      id: '1',
-      type: 'business',
-      name: 'QuickFix Plumbing',
-      email: 'info@quickfix.com',
-      submittedDate: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      category: 'Plumbing Services'
-    },
-    {
-      id: '2',
-      type: 'user',
-      name: 'Peter Ochieng',
-      email: 'peter.o@email.com',
-      submittedDate: new Date(Date.now() - 1000 * 60 * 60 * 12),
-      category: 'Landlord'
-    },
-    {
-      id: '3',
-      type: 'business',
-      name: 'CleanPro Services',
-      email: 'contact@cleanpro.co.ke',
-      submittedDate: new Date(Date.now() - 1000 * 60 * 60 * 6),
-      category: 'Cleaning Services'
-    },
-    {
-      id: '4',
-      type: 'document',
-      name: 'Lease Agreement - Westlands Apartment',
-      email: 'landlord@example.com',
-      submittedDate: new Date(Date.now() - 1000 * 60 * 60 * 3),
-      category: 'Lease Document'
-    }
+  users: User[] = [
+    { id: '1', name: 'John Doe', email: 'john@email.com', type: 'tenant', status: 'active', joinDate: '2024-01-15' },
+    { id: '2', name: 'Sarah Smith', email: 'sarah@email.com', type: 'landlord', status: 'active', joinDate: '2024-01-20' },
+    { id: '3', name: 'Mike Johnson', email: 'mike@email.com', type: 'caretaker', status: 'active', joinDate: '2024-02-01' },
+    { id: '4', name: 'Alice Brown', email: 'alice@email.com', type: 'tenant', status: 'inactive', joinDate: '2024-02-15' }
   ];
 
-  ngOnInit() {
+  disputes: Dispute[] = [
+    { id: '1', type: 'deposit', parties: ['Tenant A', 'Landlord B'], amount: 5000, status: 'pending', createdDate: '2024-03-01' },
+    { id: '2', type: 'service', parties: ['Tenant C', 'Quick Clean'], amount: 3000, status: 'pending', createdDate: '2024-03-02' },
+    { id: '3', type: 'payment', parties: ['Business X', 'Platform'], amount: 1500, status: 'resolved', createdDate: '2024-02-28' }
+  ];
+
+  transactions: Transaction[] = [
+    { id: '1', type: 'commission', amount: 2500, business: 'Joe Plumbing', date: '2024-03-01', status: 'completed' },
+    { id: '2', type: 'deposit', amount: 50000, business: 'N/A', date: '2024-03-01', status: 'completed' },
+    { id: '3', type: 'commission', amount: 1800, business: 'City Furniture', date: '2024-03-02', status: 'completed' },
+    { id: '4', type: 'payment', amount: 35000, business: 'Safe Movers', date: '2024-03-02', status: 'pending' }
+  ];
+
+  alerts = [
+    { type: 'warning', message: '3 businesses with rating below 3.0', count: 3 },
+    { type: 'warning', message: '2 deposit disputes awaiting decision', count: 2 },
+    { type: 'warning', message: '5 maintenance requests >48hrs pending', count: 5 },
+    { type: 'success', message: 'All systems operational', count: 0 }
+  ];
+
+  displayedBusinessColumns: string[] = ['name', 'category', 'status', 'rating', 'totalJobs', 'actions'];
+  displayedUserColumns: string[] = ['name', 'email', 'type', 'status', 'joinDate', 'actions'];
+  displayedDisputeColumns: string[] = ['type', 'parties', 'amount', 'status', 'createdDate', 'actions'];
+  displayedTransactionColumns: string[] = ['type', 'business', 'amount', 'date', 'status', 'actions'];
+
+  navItems = [
+    { id: 'overview', label: 'Dashboard', icon: 'dashboard' },
+    { id: 'businesses', label: 'Businesses', icon: 'business' },
+    { id: 'users', label: 'Users', icon: 'people' },
+    { id: 'disputes', label: 'Disputes', icon: 'gavel' },
+    { id: 'transactions', label: 'Transactions', icon: 'payments' },
+    { id: 'reports', label: 'Reports', icon: 'assessment' },
+    { id: 'settings', label: 'Settings', icon: 'settings' }
+  ];
+
+  ngOnInit(): void {
     this.loadDashboardData();
   }
 
-  private loadDashboardData() {
-    
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 1000);
+  loadDashboardData(): void {
+    console.log('Loading admin dashboard data...');
   }
 
-  toggleSidebar() {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  setView(view: string): void {
+    this.currentView = view;
   }
 
+  toggleSidebar(): void {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  approveBusiness(business: Business): void {
+    business.status = 'approved';
+    this.stats.pendingApprovals--;
+  }
+
+  rejectBusiness(business: Business): void {
+    business.status = 'rejected';
+    this.stats.pendingApprovals--;
+  }
+
+  resolveDispute(dispute: Dispute): void {
+    dispute.status = 'resolved';
+    this.stats.activeDisputes--;
+  }
+
+  suspendUser(user: User): void {
+    user.status = 'suspended';
+  }
+
+  activateUser(user: User): void {
+    user.status = 'active';
+  }
 
   formatCurrency(amount: number): string {
-    return amount.toLocaleString('en-KE');
+    return `KSH ${amount.toLocaleString('en-KE')}`;
   }
 
-  formatTime(date: Date): string {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString();
+  formatNumber(num: number): string {
+    return num.toLocaleString('en-KE');
   }
 
-  formatDate(date: Date): string {
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  getActivityIcon(type: string): string {
-    const icons: { [key: string]: string } = {
-      'user_registration': 'person_add',
-      'dispute': 'gavel',
-      'business_signup': 'store',
-      'service_request': 'build',
-      'review': 'star',
-      'payment': 'payment'
+  getStatusClass(status: string): string {
+    const statusMap: any = {
+      'pending': 'status-pending',
+      'approved': 'status-approved',
+      'rejected': 'status-rejected',
+      'active': 'status-active',
+      'inactive': 'status-inactive',
+      'suspended': 'status-suspended',
+      'resolved': 'status-resolved',
+      'escalated': 'status-escalated',
+      'completed': 'status-completed',
+      'failed': 'status-failed'
     };
-    return icons[type] || 'info';
+    return statusMap[status] || 'status-pending';
   }
 
-  getApprovalColor(type: string): string {
-    const colors: { [key: string]: string } = {
-      'user': 'primary',
-      'business': 'accent',
-      'document': 'warn',
-      'listing': ''
-    };
-    return colors[type] || '';
+  getAlertClass(alert: any): string {
+    return alert.type === 'warning' ? 'alert-warning' : 'alert-success';
   }
 
-
-  viewReports() { 
-    this.router.navigate(['/admin/reports']); 
-  }
-
-  viewPendingApprovals() { 
-    this.router.navigate(['/admin/approvals']); 
-  }
-
-  viewDisputes() { 
-    this.router.navigate(['/admin/disputes']); 
-  }
-
-  manageUsers() { 
-    this.router.navigate(['/admin/users']); 
-  }
-
-  manageBusinesses() { 
-    this.router.navigate(['/admin/businesses']); 
-  }
-
-  reviewDocuments() { 
-    this.router.navigate(['/admin/documents']); 
-  }
-
-  moderateContent() { 
-    this.router.navigate(['/admin/moderation']); 
-  }
-
-  manageEscrow() { 
-    this.router.navigate(['/admin/escrow']); 
-  }
-
-  viewAnalytics() { 
-    this.router.navigate(['/admin/analytics']); 
-  }
-
-  exportData() { 
-    this.snackBar.open('Exporting dashboard data...', 'Close', { duration: 3000 });
-   
-  }
-
-  settings() { 
-    this.router.navigate(['/admin/settings']); 
-  }
-
-
-  approveItem(approval: PendingApproval) {
-    this.snackBar.open(`Approving ${approval.name}...`, 'Close', { duration: 2000 });
-    
-
-    this.pendingApprovals = this.pendingApprovals.filter(item => item.id !== approval.id);
-
-    if (approval.type === 'business') {
-      this.stats.pendingBusinessApprovals--;
-      this.stats.activeBusinesses++;
-    } else if (approval.type === 'user') {
-      this.stats.pendingVerifications--;
-    }
-  }
-
-  rejectItem(approval: PendingApproval) {
-    this.snackBar.open(`Rejecting ${approval.name}...`, 'Close', { duration: 2000 });
-    
-  
-    this.pendingApprovals = this.pendingApprovals.filter(item => item.id !== approval.id);
-    
-  
-    if (approval.type === 'business') {
-      this.stats.pendingBusinessApprovals--;
-    } else if (approval.type === 'user') {
-      this.stats.pendingVerifications--;
-    }
-  }
-
-  viewDetails(approval: PendingApproval) {
-    this.router.navigate(['/admin/approvals', approval.id]);
-  }
-
-  refreshDashboard() {
-    this.isLoading = true;
+  refreshData(): void {
     this.loadDashboardData();
+  }
+
+  exportReport(): void {
+    console.log('Exporting admin report...');
+  }
+
+  logout(): void {
+    console.log('Admin logging out...');
   }
 }
