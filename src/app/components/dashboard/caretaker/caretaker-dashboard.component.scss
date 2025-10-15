@@ -6,7 +6,7 @@
 
 .sidebar {
   width: 280px;
-  background: #1a5d1a;
+  background: #0056b3;
   color: white;
   transition: all 0.3s ease;
   display: flex;
@@ -29,7 +29,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #2d7d2d;
+    border-bottom: 1px solid #0069d9;
 
     .logo {
       display: flex;
@@ -39,7 +39,7 @@
       font-weight: 700;
 
       mat-icon {
-        color: #ffd700;
+        color: white;
       }
     }
 
@@ -52,7 +52,7 @@
       border-radius: 4px;
 
       &:hover {
-        background: #2d7d2d;
+        background: #0069d9;
       }
     }
   }
@@ -72,13 +72,13 @@
       transition: all 0.2s;
 
       &:hover {
-        background: #2d7d2d;
+        background: #0069d9;
         color: white;
       }
 
       &.active {
-        background: #ffd700;
-        color: #1a5d1a;
+        background: white;
+        color: #0056b3;
       }
 
       .nav-icon {
@@ -95,7 +95,7 @@
 
   .sidebar-footer {
     padding: 20px;
-    border-top: 1px solid #2d7d2d;
+    border-top: 1px solid #0069d9;
 
     .logout-btn {
       display: flex;
@@ -123,10 +123,6 @@
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
-
-  &.content-expanded {
-    margin-left: -200px;
-  }
 }
 
 .top-header {
@@ -157,7 +153,7 @@
 
     .page-title {
       margin: 0;
-      color: #1a5d1a;
+      color: #0056b3;
       font-size: 24px;
       font-weight: 700;
     }
@@ -213,7 +209,7 @@
       .user-avatar {
         width: 32px;
         height: 32px;
-        background: #1a5d1a;
+        background: #0056b3;
         color: white;
         border-radius: 50%;
         display: flex;
@@ -224,11 +220,12 @@
 
       .user-name {
         font-weight: 500;
-        color: #1a5d1a;
+        color: #0056b3;
       }
     }
   }
 }
+
 
 .dashboard-content {
   flex: 1;
@@ -318,7 +315,7 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 
         &:hover {
-          border-color: #1a5d1a;
+          border-color: #0056b3;
           background: #f8f9fa;
         }
 
@@ -422,7 +419,7 @@
               }
 
               .property {
-                color: #1a5d1a;
+                color: #0056b3;
               }
             }
 
