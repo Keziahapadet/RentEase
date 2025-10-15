@@ -31,7 +31,6 @@ import { ResetPasswordOtpComponent } from './components/auth/otp-verificationres
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 import { resetPasswordGuard } from './guards/reset-password.guard';
 import { authGuard } from './guards/auth.guard';
-
 import { AdminDashboardComponent } from './components/dashboard/admin/admin-dashboard/admin-dashboard.component';
 import { CaretakerDashboardComponent } from './components/dashboard/caretaker/caretaker-dashboard.component';
 import { BusinessDashboardComponent } from './components/dashboard/bussiness/business-dashboard.component';
@@ -53,11 +52,9 @@ export const routes: Routes = [
   { path: 'about', component: AboutComponent },
   { path: 'terms', component: TermsComponent },
   { path: 'privacy', component: PrivacyComponent },
-
   {
     path: 'tenant-dashboard',
     component: TenantDashboardComponent,
-    // canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: TenantDashboardComponent },
@@ -70,8 +67,6 @@ export const routes: Routes = [
       { path: 'settings', component: SettingsComponent }
     ]
   },
-
- 
   {
     path: 'landlord-dashboard',
     component: LandlordDashboardComponent,
@@ -94,12 +89,9 @@ export const routes: Routes = [
       { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' }
     ]
   },
-
-
   {
     path: 'business-dashboard',
     component: BusinessDashboardComponent,
-    // canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: BusinessDashboardComponent },
@@ -111,12 +103,9 @@ export const routes: Routes = [
       { path: 'messages', component: BusinessDashboardComponent }
     ]
   },
-
- 
   {
     path: 'caretaker-dashboard',
     component: CaretakerDashboardComponent,
-    // canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: CaretakerDashboardComponent },
@@ -128,12 +117,9 @@ export const routes: Routes = [
       { path: 'reports', component: CaretakerDashboardComponent }
     ]
   },
-
- 
   {
     path: 'admin-dashboard',
     component: AdminDashboardComponent,
-    // canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: AdminDashboardComponent },
@@ -145,8 +131,6 @@ export const routes: Routes = [
       { path: 'settings', component: AdminDashboardComponent }
     ]
   },
-
-
   { path: 'landlord', redirectTo: '/landlord-dashboard' },
   { path: 'tenant', redirectTo: '/tenant-dashboard' },
   { path: 'business', redirectTo: '/business-dashboard' },

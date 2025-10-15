@@ -37,3 +37,48 @@ export enum ActivityType {
   LEASE = 'lease',
   ANNOUNCEMENT = 'announcement'
 }
+export interface AdminStats {
+  totalUsers: number;
+  totalLandlords: number;
+  totalTenants: number;
+  totalCaretakers: number;
+  totalProperties: number;
+  landlordTenants: number;
+  activeBusinesses: number;
+  monthlyTransactions: number;
+  commissionRevenue: number;
+  pendingApprovals: number;
+  activeDisputes: number;
+  userGrowth: number;
+  revenueGrowth: number;
+  propertiesGrowth: number;
+}
+
+export interface NavItem {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+export interface Activity {
+  id: string;
+  type: 'user' | 'property' | 'business' | 'transaction' | 'dispute';
+  action: string;
+  description: string;
+  timestamp: string;
+  icon: string;
+}
+
+export interface ChartData {
+  label: string;
+  value: number;
+}
+
+export interface Notification {
+  id: number;
+  message: string;
+  unread: boolean;
+  type?: string;
+  timestamp?: string;
+  priority?: string;
+}

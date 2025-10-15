@@ -65,3 +65,28 @@ export enum DocumentType {
   BANK_STATEMENT = 'bank_statement',
   OTHER = 'other'
 }
+export interface EnhancedUser {
+  id: string;
+  name: string;
+  email: string;
+  type: 'tenant' | 'landlord' | 'caretaker';
+  status: 'active' | 'inactive' | 'suspended';
+  joinDate: string;
+  lastActive?: string;
+  rentalProperty?: string;
+  landlordName?: string;
+  caretakerName?: string;
+  rentAmount?: number;
+  leaseEndDate?: string;
+  propertiesCount?: number;
+  tenantsCount?: number;
+  caretakersCount?: number;
+  totalRevenue?: number;
+  companyName?: string;
+  managedPropertiesCount?: number;
+  landlordsCount?: number;
+  activeMaintenance?: number;
+  specialization?: string;
+  rating?: number;
+  verified?: boolean; 
+}
