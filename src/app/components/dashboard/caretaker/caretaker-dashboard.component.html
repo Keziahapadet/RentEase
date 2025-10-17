@@ -1,4 +1,3 @@
-
 <div class="mobile-overlay" 
      [class.active]="isMobile && isMobileMenuOpen"
      (click)="closeMobileMenu()"></div>
@@ -54,7 +53,6 @@
           <span class="btn-text">Refresh</span>
         </button>
         
-      
         <div class="user-menu">
           <app-profile-picture
             [editable]="true"
@@ -218,17 +216,18 @@
         <div class="view-header">
           <h2>My Profile</h2>
           <div class="view-actions">
-            <button class="btn btn-primary" (click)="setView('overview')">
+            <button class="btn btn-primary" (click)="navigateToOverview()">
               <mat-icon>arrow_back</mat-icon>
               Back to Dashboard
             </button>
           </div>
         </div>
         
+        <!-- FIXED: Added missing closing bracket ] -->
         <app-profile-view 
           *ngIf="currentView === 'profile'"
           (editProfile)="navigateToProfileEdit()"
-          (goBack)="setView('overview')">
+          (goBack)="navigateToOverview()">
         </app-profile-view>
       </div>
 

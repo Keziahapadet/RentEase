@@ -45,7 +45,7 @@ export interface QuickAction {
     MatTableModule,
     ProfilePictureComponent,
     ProfileViewComponent,
-    ProfileEditComponent // FIXED: Use shared component
+    ProfileEditComponent
   ],
   templateUrl: './caretaker-dashboard.component.html',
   styleUrls: ['./caretaker-dashboard.component.scss']
@@ -231,15 +231,33 @@ export class CaretakerDashboardComponent implements OnInit {
     console.log('Contacting tenant...');
   }
 
+
   navigateToProfileEdit(): void {
-    this.currentView = 'profile-edit';
+    this.router.navigate(['/caretaker-dashboard/profile/edit']);
     if (this.isMobile) {
       this.isMobileMenuOpen = false;
     }
   }
 
+ 
   navigateToProfileView(): void {
-    this.currentView = 'profile';
+    this.router.navigate(['/caretaker-dashboard/profile/view']);
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
+  }
+
+ 
+  navigateToOverview(): void {
+    this.router.navigate(['/caretaker-dashboard']);
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
+  }
+
+
+  navigateToProfile(): void {
+    this.router.navigate(['/caretaker-dashboard/profile/view']);
     if (this.isMobile) {
       this.isMobileMenuOpen = false;
     }
