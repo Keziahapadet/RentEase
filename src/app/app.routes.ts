@@ -26,7 +26,9 @@ import { PropertyListComponent } from './components/dashboard/landlord/landlord-
 import { PropertyUnitsComponent } from './components/dashboard/landlord/landlord-dashboard/property/property-units/property-units.component';
 import { LandlordDashboardHomeComponent } from './components/dashboard/landlord/landlord-dashboard/home/landlord-dashboard-home.component';
 import { ProfileViewComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-view/profile-view.component';
-import { ProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
+import { LandlordProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/landlord-profile-edit/landlord-profile-edit.component';
+import { ProfileEditComponent as SharedProfileEditComponent } from './shared/components/profile-edit/profile-edit.component';
+
 import { ResetPasswordOtpComponent } from './components/auth/otp-verificationreset-password/otp-verificationreset-password.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 import { resetPasswordGuard } from './guards/reset-password.guard';
@@ -34,7 +36,6 @@ import { authGuard } from './guards/auth.guard';
 import { AdminDashboardComponent } from './components/dashboard/admin/admin-dashboard/admin-dashboard.component';
 import { CaretakerDashboardComponent } from './components/dashboard/caretaker/caretaker-dashboard.component';
 import { BusinessDashboardComponent } from './components/dashboard/bussiness/business-dashboard.component';
-import { ProfileEditComponent as SharedProfileEditComponent } from './shared/components/profile-edit/profile-edit.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
@@ -85,7 +86,7 @@ export const routes: Routes = [
       { path: 'home', component: LandlordDashboardHomeComponent },
       { path: 'profile', redirectTo: 'profile/view', pathMatch: 'full' },
       { path: 'profile/view', component: ProfileViewComponent },
-      { path: 'profile/edit', component: ProfileEditComponent }, 
+      { path: 'profile/edit', component: LandlordProfileEditComponent }, // Use landlord-specific component
       { path: 'property', redirectTo: 'property/list', pathMatch: 'full' },
       { path: 'property/create', component: PropertyCreateComponent },
       { path: 'property/list', component: PropertyListComponent },

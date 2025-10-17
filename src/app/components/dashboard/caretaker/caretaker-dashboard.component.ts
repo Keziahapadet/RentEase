@@ -8,8 +8,8 @@ import { MatTableModule } from '@angular/material/table';
 import { CaretakerService, Property, Unit } from '../../../services/caretaker.service';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
-import { ProfileViewComponent } from '../landlord/landlord-dashboard/profile/profile-view/profile-view.component';
-import { ProfileEditComponent } from '../landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
+import { ProfileViewComponent } from '../../../shared/components/profile-view/profile-view.component';
+import { ProfileEditComponent } from '../../../shared/components/profile-edit/profile-edit.component'; 
 
 export interface NavItem {
   id: string;
@@ -45,7 +45,7 @@ export interface QuickAction {
     MatTableModule,
     ProfilePictureComponent,
     ProfileViewComponent,
-    ProfileEditComponent
+    ProfileEditComponent // FIXED: Use shared component
   ],
   templateUrl: './caretaker-dashboard.component.html',
   styleUrls: ['./caretaker-dashboard.component.scss']

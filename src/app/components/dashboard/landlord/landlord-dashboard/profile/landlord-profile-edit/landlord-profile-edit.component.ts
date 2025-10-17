@@ -33,10 +33,10 @@ import { ExtendedUser, UpdatePhoneRequest, ApiResponse, User } from '../../../..
     MatTooltipModule,
     MatDialogModule
   ],
-  templateUrl: './profile-edit.component.html',
-  styleUrls: ['./profile-edit.component.scss']
+  templateUrl: './landlord-profile-edit.component.html',
+  styleUrls: ['./landlord-profile-edit.component.scss']
 })
-export class ProfileEditComponent implements OnInit, OnDestroy {
+export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   private propertyService = inject(PropertyService);
   private authService = inject(AuthService);
   private router = inject(Router);
