@@ -135,6 +135,8 @@
           </div>
         </div>
 
+        <!-- Comment out recent activity sections for now -->
+        <!--
         <div class="recent-activity">
           <div class="activity-section">
             <h3>Recent Maintenance Requests</h3>
@@ -176,8 +178,21 @@
             </div>
           </div>
         </div>
+        -->
+        
+        <!-- Add a placeholder message -->
+        <div class="coming-soon-section">
+          <div class="coming-soon-card">
+            <mat-icon>construction</mat-icon>
+            <h3>Features Coming Soon</h3>
+            <p>Maintenance, Inspections, and Deposit management features will be available soon.</p>
+            <p class="subtext">Currently showing demo data for preview purposes.</p>
+          </div>
+        </div>
       </div>
 
+      <!-- Comment out maintenance view for now -->
+      <!--
       <div *ngIf="currentView === 'maintenance'" class="maintenance-view">
         <div class="view-header">
           <h2>Maintenance Management</h2>
@@ -249,7 +264,10 @@
           </table>
         </div>
       </div>
+      -->
 
+      <!-- Comment out inspections view for now -->
+      <!--
       <div *ngIf="currentView === 'inspections'" class="inspections-view">
         <div class="view-header">
           <h2>Property Inspections</h2>
@@ -320,7 +338,10 @@
           </table>
         </div>
       </div>
+      -->
 
+      <!-- Comment out deposits view for now -->
+      <!--
       <div *ngIf="currentView === 'deposits'" class="deposits-view">
         <div class="view-header">
           <h2>Deposit Management</h2>
@@ -383,6 +404,35 @@
             <tr mat-header-row *matHeaderRowDef="displayedDepositColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedDepositColumns;"></tr>
           </table>
+        </div>
+      </div>
+      -->
+
+      <!-- Add coming soon views for other sections -->
+      <div *ngIf="currentView === 'maintenance'" class="coming-soon-view">
+        <div class="coming-soon-card large">
+          <mat-icon>build</mat-icon>
+          <h2>Maintenance Management</h2>
+          <p>This feature is coming soon! You'll be able to manage maintenance requests, track progress, and communicate with tenants.</p>
+          <button class="btn btn-primary" disabled>Coming Soon</button>
+        </div>
+      </div>
+
+      <div *ngIf="currentView === 'inspections'" class="coming-soon-view">
+        <div class="coming-soon-card large">
+          <mat-icon>home</mat-icon>
+          <h2>Property Inspections</h2>
+          <p>This feature is coming soon! Schedule and conduct property inspections, document findings, and manage inspection reports.</p>
+          <button class="btn btn-primary" disabled>Coming Soon</button>
+        </div>
+      </div>
+
+      <div *ngIf="currentView === 'deposits'" class="coming-soon-view">
+        <div class="coming-soon-card large">
+          <mat-icon>account_balance</mat-icon>
+          <h2>Deposit Management</h2>
+          <p>This feature is coming soon! Process security deposits, handle deductions, and manage deposit refunds efficiently.</p>
+          <button class="btn btn-primary" disabled>Coming Soon</button>
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
-import { CaretakerService, Property, Unit, MaintenanceRequest, Inspection, DepositCase } from '../../../services/caretaker.service';
+import { CaretakerService, Property, Unit } from '../../../services/caretaker.service';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 
 export interface NavItem {
@@ -31,6 +31,40 @@ export interface QuickAction {
   color: string;
   action: () => void;
 }
+
+// Comment out unused interfaces for now
+/*
+export interface MaintenanceRequest {
+  id: string;
+  title: string;
+  category: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  description: string;
+  status: 'submitted' | 'in-progress' | 'completed' | 'cancelled';
+  dateSubmitted: string;
+  tenantName: string;
+  property: string;
+}
+
+export interface Inspection {
+  id: string;
+  type: 'move-in' | 'move-out' | 'routine';
+  property: string;
+  tenantName: string;
+  date: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  depositAmount: number;
+}
+
+export interface DepositCase {
+  id: string;
+  tenantName: string;
+  property: string;
+  depositAmount: number;
+  status: 'pending' | 'approved' | 'rejected';
+  damageAmount: number;
+}
+*/
 
 @Component({
   selector: 'app-caretaker-dashboard',
@@ -71,6 +105,8 @@ export class CaretakerDashboardComponent implements OnInit {
     tenantSatisfaction: 4.5
   };
 
+  // Comment out maintenance requests for now
+  /*
   maintenanceRequests: MaintenanceRequest[] = [
     { 
       id: '1', 
@@ -106,7 +142,10 @@ export class CaretakerDashboardComponent implements OnInit {
       property: 'Apartment 7C' 
     }
   ];
+  */
 
+  // Comment out inspections for now
+  /*
   inspections: Inspection[] = [
     { 
       id: '1', 
@@ -136,7 +175,10 @@ export class CaretakerDashboardComponent implements OnInit {
       depositAmount: 0 
     }
   ];
+  */
 
+  // Comment out deposit cases for now
+  /*
   depositCases: DepositCase[] = [
     {
       id: '1',
@@ -163,6 +205,7 @@ export class CaretakerDashboardComponent implements OnInit {
       damageAmount: 5000
     }
   ];
+  */
 
   quickActions: QuickAction[] = [
     { 
@@ -199,10 +242,12 @@ export class CaretakerDashboardComponent implements OnInit {
     }
   ];
 
-  // Table columns
+  // Comment out table columns for now
+  /*
   displayedMaintenanceColumns: string[] = ['title', 'category', 'priority', 'status', 'tenantName', 'property', 'actions'];
   displayedInspectionColumns: string[] = ['type', 'property', 'tenantName', 'date', 'status', 'depositAmount', 'actions'];
   displayedDepositColumns: string[] = ['tenantName', 'property', 'depositAmount', 'status', 'damageAmount', 'actions'];
+  */
 
   constructor(
     private caretakerService: CaretakerService,
@@ -212,7 +257,8 @@ export class CaretakerDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserProfile();
-    this.loadData();
+    // Comment out data loading for now
+    // this.loadData();
   }
 
   loadUserProfile(): void {
@@ -238,6 +284,8 @@ export class CaretakerDashboardComponent implements OnInit {
     });
   }
 
+  // Comment out data loading for now
+  /*
   loadData(): void {
     // Load your existing dashboard data
     this.caretakerService.getMaintenanceRequests().subscribe(requests => {
@@ -255,6 +303,7 @@ export class CaretakerDashboardComponent implements OnInit {
       this.updateStats();
     });
   }
+  */
 
   // Handle profile picture updates
   onPictureUpdated(imageUrl: string): void {
@@ -289,7 +338,8 @@ export class CaretakerDashboardComponent implements OnInit {
 
   refreshData(): void {
     this.loadUserProfile();
-    this.loadData();
+    // Comment out data loading for now
+    // this.loadData();
   }
 
   logout(): void {
@@ -321,18 +371,23 @@ export class CaretakerDashboardComponent implements OnInit {
     console.log('Contacting tenant...');
   }
 
-  // Maintenance methods
+  // Comment out maintenance methods for now
+  /*
   updateMaintenanceStatus(request: MaintenanceRequest, status: string): void {
     request.status = status as any;
     this.updateStats();
   }
+  */
 
-  // Inspection methods
+  // Comment out inspection methods for now
+  /*
   completeInspection(inspection: Inspection): void {
     inspection.status = 'completed';
   }
+  */
 
-  // Deposit methods
+  // Comment out deposit methods for now
+  /*
   approveDeposit(deposit: DepositCase): void {
     deposit.status = 'approved';
   }
@@ -348,6 +403,7 @@ export class CaretakerDashboardComponent implements OnInit {
   getScheduledInspectionsCount(): number {
     return this.inspections.filter(inspection => inspection.status === 'scheduled').length;
   }
+  */
 
   // Utility methods
   formatNumber(num: number): string {
@@ -400,6 +456,8 @@ export class CaretakerDashboardComponent implements OnInit {
     return typeMap[type] || 'type-routine';
   }
 
+  // Comment out stats update for now
+  /*
   updateStats(): void {
     this.stats.pendingMaintenance = this.maintenanceRequests.filter(r => 
       r.status === 'submitted' || r.status === 'in-progress'
@@ -408,4 +466,5 @@ export class CaretakerDashboardComponent implements OnInit {
     this.stats.scheduledInspections = this.inspections.filter(i => i.status === 'scheduled').length;
     this.stats.activeDepositCases = this.depositCases.filter(d => d.status === 'pending').length;
   }
+  */
 }

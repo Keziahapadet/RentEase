@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthService } from './auth.service'; // Make sure to import AuthService
+import { AuthService } from './auth.service';
 
 export interface Property {
   id: number;
@@ -22,6 +22,8 @@ export interface Unit {
   propertyId: number;
 }
 
+// Comment out unused interfaces for now
+/*
 export interface MaintenanceRequest {
   id: string;
   title: string;
@@ -52,6 +54,7 @@ export interface DepositCase {
   status: 'pending' | 'approved' | 'rejected';
   damageAmount: number;
 }
+*/
 
 @Injectable({
   providedIn: 'root'
@@ -61,7 +64,7 @@ export class CaretakerService {
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService // Add AuthService to constructor
+    private authService: AuthService
   ) {}
 
   // Create proper headers with authentication
@@ -78,13 +81,11 @@ export class CaretakerService {
     return new HttpHeaders(headersConfig);
   }
 
-  
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Service temporarily unavailable';
     
     if (error.status === 401) {
       errorMessage = 'Please check your authentication';
-     
     } else if (error.status === 404) {
       errorMessage = 'Feature not available yet';
     } else if (error.error?.message) {
@@ -135,7 +136,8 @@ export class CaretakerService {
     }).pipe(catchError(this.handleError));
   }
 
-  // Maintenance methods
+  // Comment out Maintenance methods for now
+  /*
   getMaintenanceRequests(): Observable<MaintenanceRequest[]> {
     return this.http.get<MaintenanceRequest[]>(`${this.apiUrl}/caretaker/maintenance`, {
       headers: this.createHeaders()
@@ -151,8 +153,10 @@ export class CaretakerService {
       }
     ).pipe(catchError(this.handleError));
   }
+  */
 
-  // Inspection methods
+  // Comment out Inspection methods for now
+  /*
   getInspections(): Observable<Inspection[]> {
     return this.http.get<Inspection[]>(`${this.apiUrl}/caretaker/inspections`, {
       headers: this.createHeaders()
@@ -168,8 +172,10 @@ export class CaretakerService {
       }
     ).pipe(catchError(this.handleError));
   }
+  */
 
-  // Deposit methods
+  // Comment out Deposit methods for now
+  /*
   getDepositCases(): Observable<DepositCase[]> {
     return this.http.get<DepositCase[]>(`${this.apiUrl}/caretaker/deposits`, {
       headers: this.createHeaders()
@@ -195,4 +201,5 @@ export class CaretakerService {
       }
     ).pipe(catchError(this.handleError));
   }
+  */
 }
