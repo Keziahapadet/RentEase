@@ -1,9 +1,8 @@
 <div class="admin-dashboard" [class.dark-mode]="isDarkMode">
   <div class="sidebar" [class.sidebar-collapsed]="!isSidebarOpen" [class.mobile-open]="isMobileMenuOpen">
     <div class="sidebar-header">
-      <div class="logo" (click)="navigateToSection('dashboard')">
+      <div class="logo" (click)="navigateToSection('overview')">
         <img src="/images/logo.png" alt="RentEase Logo" class="logo-image">
-        <span class="logo-text" *ngIf="isSidebarOpen">Admin Panel</span>
       </div>
       <button class="sidebar-toggle" (click)="toggleSidebar()" matTooltip="Toggle Sidebar">
         <mat-icon>{{isSidebarOpen ? 'chevron_left' : 'chevron_right'}}</mat-icon>
@@ -30,16 +29,15 @@
     </div>
   </div>
 
-  <!-- Main Content -->
+  <div class="overlay" [class.mobile-open]="isMobileMenuOpen" (click)="toggleMobileMenu()"></div>
+
   <div class="main-content">
-    <!-- Top Header -->
     <div class="top-header">
       <div class="header-left">
-        <button class="menu-toggle" (click)="toggleSidebar()">
+        <button class="menu-toggle" (click)="toggleMobileMenu()">
           <mat-icon>menu</mat-icon>
         </button>
         
-        <!-- Breadcrumb -->
         <div class="breadcrumb">
           <span class="breadcrumb-item">Admin</span>
           <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
@@ -48,7 +46,6 @@
       </div>
       
       <div class="header-actions">
-        <!-- Search Bar -->
         <div class="search-bar">
           <mat-icon class="search-icon">search</mat-icon>
           <input 
@@ -58,12 +55,10 @@
             (keyup.enter)="performSearch()">
         </div>
 
-        <!-- Dark Mode Toggle -->
         <button class="icon-btn" (click)="toggleDarkMode()" matTooltip="Toggle Dark Mode">
           <mat-icon>{{isDarkMode ? 'light_mode' : 'dark_mode'}}</mat-icon>
         </button>
 
-        <!-- Notifications -->
         <button class="icon-btn" [matMenuTriggerFor]="notificationMenu" matTooltip="Notifications">
           <mat-icon [matBadge]="getUnreadNotificationsCount()" matBadgeColor="warn">notifications</mat-icon>
         </button>
@@ -81,13 +76,11 @@
           </div>
         </mat-menu>
 
-        <!-- Refresh Button -->
         <button class="btn btn-secondary" (click)="refreshData()" matTooltip="Refresh Data">
           <mat-icon>refresh</mat-icon>
           <span class="btn-text">Refresh</span>
         </button>
 
-        <!-- User Menu -->
         <div class="user-menu" [matMenuTriggerFor]="userActionsMenu">
           <div class="user-avatar">A</div>
           <span class="user-name">Admin</span>
@@ -111,15 +104,11 @@
       </div>
     </div>
 
-    <!-- Loading Indicator -->
     <mat-progress-bar *ngIf="isLoading" mode="indeterminate" class="loading-bar"></mat-progress-bar>
 
-    <!-- Dashboard Content -->
     <div class="dashboard-content">
       
-      <!-- Overview View -->
       <div *ngIf="currentView === 'overview'" class="overview-view">
-        <!-- Stats Grid with Growth Indicators -->
         <div class="stats-grid">
           <div class="stat-card" (click)="setView('users')">
             <div class="stat-icon users">
@@ -230,9 +219,7 @@
           </div>
         </div>
 
-        <!-- Charts and Activity Section -->
         <div class="dashboard-grid">
-          <!-- Revenue Chart -->
           <div class="chart-card">
             <div class="card-header">
               <h3>Monthly Revenue</h3>
@@ -253,7 +240,6 @@
             </div>
           </div>
 
-          <!-- User Distribution -->
           <div class="chart-card">
             <div class="card-header">
               <h3>User Distribution</h3>
@@ -274,7 +260,7 @@
               <div class="donut-chart">
                 <svg viewBox="0 0 100 100" class="donut-svg">
                   <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e0e0e0" stroke-width="15"></circle>
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#007bff" stroke-width="15"
+                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#1976d2" stroke-width="15"
                           stroke-dasharray="251.2" stroke-dashoffset="0" transform="rotate(-90 50 50)"></circle>
                 </svg>
                 <div class="donut-center">
@@ -285,7 +271,6 @@
             </div>
           </div>
 
-          <!-- Recent Activity -->
           <div class="activity-card">
             <div class="card-header">
               <h3>Recent Activity</h3>
@@ -307,7 +292,6 @@
             </div>
           </div>
 
-          <!-- Quick Stats -->
           <div class="quick-stats-card">
             <div class="card-header">
               <h3>Performance Metrics</h3>
@@ -345,7 +329,6 @@
           </div>
         </div>
 
-        <!-- Quick Actions Section -->
         <div class="quick-actions-section">
           <h3>Quick Actions</h3>
           <div class="actions-grid">
@@ -377,7 +360,6 @@
         </div>
       </div>
 
-      <!-- Users View -->
       <app-users-view 
         *ngIf="currentView === 'users'"
         [filteredUsers]="filteredUsers"
@@ -390,7 +372,6 @@
         (activateUser)="activateUser($event)">
       </app-users-view>
 
-      <!-- Properties View -->
       <app-properties-view 
         *ngIf="currentView === 'properties'"
         [properties]="properties"
@@ -401,7 +382,6 @@
         (editProperty)="editProperty($event)">
       </app-properties-view>
 
-      <!-- Businesses View -->
       <app-businesses-view 
         *ngIf="currentView === 'businesses'"
         [businesses]="businesses"
@@ -411,7 +391,6 @@
         (rejectBusiness)="rejectBusiness($event)">
       </app-businesses-view>
 
-      <!-- Disputes View -->
       <app-disputes-view 
         *ngIf="currentView === 'disputes'"
         [disputes]="disputes"
@@ -419,7 +398,6 @@
         (resolveDispute)="resolveDispute($event)">
       </app-disputes-view>
 
-      <!-- Transactions View -->
       <div *ngIf="currentView === 'transactions'" class="transactions-view">
         <div class="view-header">
           <h2>Transaction History</h2>
@@ -462,7 +440,7 @@
                 </td>
                 <td>
                   <div class="action-buttons">
-                    <button class="btn-secondary" matTooltip="View Details">
+                    <button class="btn-secondary" (click)="viewTransactionDetails(transaction)" matTooltip="View Details">
                       View
                     </button>
                   </div>
@@ -481,7 +459,6 @@
         </ng-template>
       </div>
 
-      <!-- Reports View -->
       <div *ngIf="currentView === 'reports'" class="reports-view">
         <div class="view-header">
           <h2>Reports & Analytics</h2>
@@ -505,7 +482,7 @@
             <div class="report-info">
               <h3>Monthly Performance Report</h3>
               <p>Comprehensive overview of platform performance and metrics</p>
-              <button class="btn btn-primary">Generate Report</button>
+              <button class="btn btn-primary" (click)="generateReport('monthly')">Generate Report</button>
             </div>
           </div>
 
@@ -516,7 +493,7 @@
             <div class="report-info">
               <h3>User Analytics</h3>
               <p>Detailed analysis of user growth and engagement patterns</p>
-              <button class="btn btn-primary">Generate Report</button>
+              <button class="btn btn-primary" (click)="generateReport('user-analytics')">Generate Report</button>
             </div>
           </div>
 
@@ -527,7 +504,7 @@
             <div class="report-info">
               <h3>Property Management Report</h3>
               <p>Property occupancy rates and management efficiency</p>
-              <button class="btn btn-primary">Generate Report</button>
+              <button class="btn btn-primary" (click)="generateReport('property')">Generate Report</button>
             </div>
           </div>
 
@@ -538,7 +515,7 @@
             <div class="report-info">
               <h3>Business Performance</h3>
               <p>Service provider performance and customer satisfaction</p>
-              <button class="btn btn-primary">Generate Report</button>
+              <button class="btn btn-primary" (click)="generateReport('business')">Generate Report</button>
             </div>
           </div>
         </div>

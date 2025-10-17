@@ -1,0 +1,71 @@
+<div class="maintenance-view">
+  <div class="view-header">
+    <h2>Maintenance Management</h2>
+    <div class="view-stats">
+      <span class="stat-badge pending">{{stats.pendingMaintenance}} Pending</span>
+      <span class="stat-badge total">{{stats.total}} Total</span>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="maintenanceRequests" class="maintenance-table">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Title</th>
+        <td mat-cell *matCellDef="let request">{{request.title}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Category</th>
+        <td mat-cell *matCellDef="let request">{{request.category}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="priority">
+        <th mat-header-cell *matHeaderCellDef>Priority</th>
+        <td mat-cell *matCellDef="let request">
+          <span class="priority-badge" [class]="getPriorityClass(request.priority)">
+            {{request.priority}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let request">
+          <span class="status-badge" [class]="getStatusClass(request.status)">
+            {{request.status}}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="tenantName">
+        <th mat-header-cell *matHeaderCellDef>Tenant</th>
+        <td mat-cell *matCellDef="let request">{{request.tenantName}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="property">
+        <th mat-header-cell *matHeaderCellDef>Property</th>
+        <td mat-cell *matCellDef="let request">{{request.property}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let request">
+          <div class="action-buttons">
+            <button *ngIf="request.status === 'submitted'" class="btn-primary" (click)="updateMaintenanceStatus(request, 'in-progress')">
+              Start
+            </button>
+            <button *ngIf="request.status === 'in-progress'" class="btn-success" (click)="updateMaintenanceStatus(request, 'completed')">
+              Complete
+            </button>
+            <button class="btn-secondary">
+              Details
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>

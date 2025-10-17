@@ -21,7 +21,14 @@
       <mat-card-header>
         <div class="profile-header">
           <div class="profile-image-section">
-            <img [src]="profileImage" alt="Profile" class="profile-image-large">
+            <img 
+              [src]="profileImage" 
+              alt="Profile" 
+              class="profile-image-large"
+              (error)="profileImage = generateInitialAvatar(getUserFullName())">
+            <div *ngIf="isLoadingProfilePicture" class="image-loading-overlay">
+              <mat-spinner diameter="40"></mat-spinner>
+            </div>
           </div>
           <div class="profile-basic-info">
             <h2>{{ getUserFullName() }}</h2>

@@ -1,0 +1,59 @@
+<div class="profile-picture-container" [class]="size">
+  <div class="profile-image-wrapper">
+    <div class="profile-image" [class.has-image]="imageUrl" [class.editable]="editable">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <mat-icon>refresh</mat-icon>
+      </div>
+
+      <!-- Profile Image or Default Avatar -->
+      <img 
+        *ngIf="imageUrl && !loading && !imageUrl.includes('svg+xml')" 
+        [src]="imageUrl" 
+        [alt]="getUserName()" 
+        (error)="onImageError()"
+        class="profile-img">
+      
+      <div *ngIf="(!imageUrl || imageUrl.includes('svg+xml')) && !loading" 
+           class="default-avatar" [class]="getUserRole()">
+        <span class="initials">{{getInitials()}}</span>
+      </div>
+      
+      <!-- Overlay Actions for Editable Mode -->
+      <div class="overlay-actions" *ngIf="editable && !uploading && !loading">
+        <input 
+          type="file" 
+          #fileInput 
+          (change)="onFileSelected($event)" 
+          accept="image/jpeg,image/png,image/gif,image/webp" 
+          hidden>
+        
+        <button class="btn-action btn-change" (click)="fileInput.click()" matTooltip="Change picture">
+          <mat-icon>camera_alt</mat-icon>
+        </button>
+        
+        <button 
+          class="btn-action btn-delete" 
+          (click)="deletePicture()" 
+          *ngIf="imageUrl && !imageUrl.includes('svg+xml')"
+          matTooltip="Delete picture">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Upload Progress -->
+    <div class="upload-progress" *ngIf="uploading">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+      </div>
+      <span class="progress-text">Uploading... {{uploadProgress}}%</span>
+    </div>
+  </div>
+
+  <!-- User Name (Optional) -->
+  <div class="user-info" *ngIf="showName && userProfile">
+    <span class="user-name">{{getUserName()}}</span>
+    <span class="user-role">{{getUserRole() | titlecase}}</span>
+  </div>
+</div>

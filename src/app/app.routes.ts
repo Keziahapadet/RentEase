@@ -111,7 +111,6 @@ export const routes: Routes = [
       { path: 'overview', component: CaretakerDashboardComponent },
       { path: 'maintenance', component: CaretakerDashboardComponent },
       { path: 'inspections', component: CaretakerDashboardComponent },
-      { path: 'deposits', component: CaretakerDashboardComponent },
       { path: 'properties', component: CaretakerDashboardComponent },
       { path: 'messages', component: CaretakerDashboardComponent },
       { path: 'reports', component: CaretakerDashboardComponent }

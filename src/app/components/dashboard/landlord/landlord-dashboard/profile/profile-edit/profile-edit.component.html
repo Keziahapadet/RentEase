@@ -28,7 +28,8 @@
               [src]="profileImage" 
               alt="Profile" 
               class="profile-avatar"
-              [class.loading]="isUploadingPhoto || isDeletingPhoto">
+              [class.loading]="isUploadingPhoto || isDeletingPhoto"
+              (error)="handleImageError()">
             <div class="avatar-badge">
               <mat-icon>verified</mat-icon>
             </div>

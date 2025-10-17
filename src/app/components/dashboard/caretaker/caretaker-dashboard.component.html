@@ -42,9 +42,17 @@
           <mat-icon>refresh</mat-icon>
           Refresh
         </button>
+        
+        <!-- Updated User Menu with Profile Picture -->
         <div class="user-menu">
-          <div class="user-avatar">C</div>
-          <span class="user-name">Caretaker</span>
+          <app-profile-picture
+            [editable]="true"
+            [showName]="false"
+            size="small"
+            (pictureUpdated)="onPictureUpdated($event)"
+            (pictureDeleted)="onPictureDeleted()">
+          </app-profile-picture>
+          <span class="user-name">{{userProfile?.fullName || 'Caretaker'}}</span>
         </div>
       </div>
     </div>
@@ -152,7 +160,7 @@
           <div class="activity-section">
             <h3>Upcoming Inspections</h3>
             <div class="activity-list">
-              <div *ngFor="let inspection of inspections" class="activity-item">
+              <div *ngFor="let inspection of inspections.slice(0, 3)" class="activity-item">
                 <div class="activity-icon" [class]="getInspectionTypeClass(inspection.type)">
                   <mat-icon>home</mat-icon>
                 </div>
@@ -162,7 +170,7 @@
                     <span class="tenant">{{inspection.tenantName}}</span> • 
                     <span class="property">{{inspection.property}}</span>
                   </div>
-                  <div class="activity-date">{{inspection.date}}</div>
+                  <div class="activity-date">{{formatDate(inspection.date)}}</div>
                 </div>
               </div>
             </div>
@@ -246,7 +254,7 @@
         <div class="view-header">
           <h2>Property Inspections</h2>
           <div class="view-stats">
-            <span class="stat-badge scheduled">{{inspections.length}} Scheduled</span>
+            <span class="stat-badge scheduled">{{getScheduledInspectionsCount()}} Scheduled</span>
           </div>
         </div>
 
@@ -273,7 +281,7 @@
 
             <ng-container matColumnDef="date">
               <th mat-header-cell *matHeaderCellDef>Date</th>
-              <td mat-cell *matCellDef="let inspection">{{inspection.date}}</td>
+              <td mat-cell *matCellDef="let inspection">{{formatDate(inspection.date)}}</td>
             </ng-container>
 
             <ng-container matColumnDef="status">

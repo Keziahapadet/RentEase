@@ -41,7 +41,6 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
 
   constructor() {
-   
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras?.state?.['refreshProfile']) {
       this.loadUserDataFromApi();
@@ -69,7 +68,6 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
       })
     );
 
-
     this.subscriptions.add(
       this.router.events
         .pipe(filter(event => event instanceof NavigationEnd))
@@ -79,7 +77,6 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
         })
     );
 
-    
     this.subscriptions.add(
       window.addEventListener('profileImageUpdated', () => {
         console.log('Profile image update event received');
@@ -97,14 +94,12 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
       this.loadCachedProfileImage();
     }
 
-   
     this.loadUserDataFromApi();
   }
 
   private loadUserDataFromApi(): void {
     this.isLoadingUserData = true;
     
-   
     this.propertyService.getCurrentUserProfile().subscribe({
       next: (response: ApiResponse) => {
         this.isLoadingUserData = false;
@@ -113,10 +108,8 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
           this.user = response.user;
           this.formattedRole = this.formatUserRole(response.user.role);
           
-         
-     this.propertyService.updateLocalUserData(response.user);
+          this.propertyService.updateLocalUserData(response.user);
           
-         
           this.loadProfilePictureFromApi();
         } else {
           console.warn('No user data received from API:', response.message);
@@ -128,7 +121,6 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
         console.error('Error loading user data from API:', error);
         this.snackBar.open('Error loading profile data', 'Close', { duration: 3000 });
         
-       
         if (!this.user) {
           this.user = this.authService.getCurrentUser();
           if (this.user) {
@@ -142,14 +134,18 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
   private loadProfilePictureFromApi(): void {
     this.isLoadingProfilePicture = true;
     
-   
     this.propertyService.getProfilePicture().subscribe({
       next: (response) => {
         this.isLoadingProfilePicture = false;
         if (response.success && response.pictureUrl) {
-          this.profileImage = response.pictureUrl;
-          localStorage.setItem('profileImage', response.pictureUrl);
-          console.log('Profile picture loaded from API:', response.pictureUrl);
+          const timestamp = new Date().getTime();
+          const cacheBustedUrl = response.pictureUrl.includes('?') 
+            ? `${response.pictureUrl}&t=${timestamp}`
+            : `${response.pictureUrl}?t=${timestamp}`;
+          
+          this.profileImage = cacheBustedUrl;
+          localStorage.setItem('profileImage', cacheBustedUrl);
+          console.log('Profile picture loaded from API:', cacheBustedUrl);
         } else {
           this.loadCachedProfileImage();
           console.log('No profile picture from API, using fallback');
@@ -177,7 +173,8 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private generateInitialAvatar(name: string): string {
+  // CHANGED: Made this method public so it can be used in the template
+  generateInitialAvatar(name: string): string {
     const names = name.split(' ');
     const initials = names.map(name => name.charAt(0).toUpperCase()).join('').slice(0, 2);
     
@@ -244,7 +241,6 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
     this.router.navigate(['/landlord-dashboard/home']);
   }
 
- 
   refreshProfile(): void {
     console.log('Manually refreshing profile data');
     this.loadUserDataFromApi();

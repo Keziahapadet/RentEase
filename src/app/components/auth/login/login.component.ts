@@ -323,7 +323,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       'LANDLORD': '/landlord-dashboard/home',
       'TENANT': '/tenant-dashboard/dashboard',
       'BUSINESS': '/business-dashboard',
-      'CARETAKER': '/caretaker-dashboard',
+      'CARETAKER': '/caretaker-dashboard/overview',
       'ADMIN': '/admin-dashboard'
     };
 

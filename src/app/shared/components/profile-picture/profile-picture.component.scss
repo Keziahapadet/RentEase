@@ -1,0 +1,247 @@
+.profile-picture-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  // Size variations
+  &.small {
+    .profile-image {
+      width: 64px;
+      height: 64px;
+      
+      .default-avatar {
+        font-size: 20px;
+      }
+    }
+    
+    .user-name {
+      font-size: 14px;
+    }
+  }
+
+  &.medium {
+    .profile-image {
+      width: 96px;
+      height: 96px;
+      
+      .default-avatar {
+        font-size: 28px;
+      }
+    }
+    
+    .user-name {
+      font-size: 16px;
+    }
+  }
+
+  &.large {
+    .profile-image {
+      width: 128px;
+      height: 128px;
+      
+      .default-avatar {
+        font-size: 36px;
+      }
+    }
+    
+    .user-name {
+      font-size: 18px;
+    }
+  }
+}
+
+.profile-image-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-image {
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  border: 3px solid #e9ecef;
+  transition: all 0.3s ease;
+  
+  &.editable {
+    cursor: pointer;
+    
+    &:hover {
+      border-color: #1976d2;
+      
+      .overlay-actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+
+  .profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+}
+
+.default-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  
+  &.caretaker {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+  
+  &.tenant {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+  
+  .initials {
+    font-weight: 600;
+  }
+}
+
+.overlay-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+}
+
+.btn-action {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  mat-icon {
+    color: white;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  &.btn-change {
+    background-color: #1976d2;
+    
+    &:hover {
+      background-color: #1565c0;
+      transform: scale(1.1);
+    }
+  }
+  
+  &.btn-delete {
+    background-color: #dc3545;
+    
+    &:hover {
+      background-color: #c82333;
+      transform: scale(1.1);
+    }
+  }
+}
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 120px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background-color: #e9ecef;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1976d2, #4facfe);
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  
+  .user-name {
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+  }
+  
+  .user-role {
+    font-size: 12px;
+    color: #6c757d;
+    text-transform: capitalize;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .profile-picture-container {
+    &.large {
+      .profile-image {
+        width: 96px;
+        height: 96px;
+        
+        .default-avatar {
+          font-size: 28px;
+        }
+      }
+    }
+  }
+}
+
+// Animation for image load
+.profile-img {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

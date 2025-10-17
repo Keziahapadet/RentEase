@@ -455,6 +455,9 @@ export class AdminDashboardComponent implements OnInit {
 
   setView(view: string): void {
     this.currentView = view;
+    if (this.isMobileMenuOpen) {
+      this.isMobileMenuOpen = false;
+    }
     if (view === 'users') {
       this.selectedUserType = 'all';
       this.selectedStatus = 'all';
@@ -477,6 +480,7 @@ export class AdminDashboardComponent implements OnInit {
 
   performSearch(): void {
     if (this.searchQuery.trim()) {
+      console.log('Searching for:', this.searchQuery);
     }
   }
 
@@ -489,44 +493,60 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   viewUserDetails(user: EnhancedUser): void {
+    console.log('View user details:', user);
   }
 
   editUser(user: EnhancedUser): void {
+    console.log('Edit user:', user);
   }
 
   suspendUser(user: EnhancedUser): void {
     user.status = 'suspended';
+    console.log('User suspended:', user);
   }
 
   activateUser(user: EnhancedUser): void {
     user.status = 'active';
+    console.log('User activated:', user);
   }
 
   viewPropertyDetails(property: Property): void {
+    console.log('View property details:', property);
   }
 
   editProperty(property: Property): void {
+    console.log('Edit property:', property);
   }
 
   approveBusiness(business: Business): void {
     business.status = 'approved';
     this.stats.pendingApprovals--;
+    console.log('Business approved:', business);
   }
 
   rejectBusiness(business: Business): void {
     business.status = 'rejected';
     this.stats.pendingApprovals--;
+    console.log('Business rejected:', business);
   }
 
   resolveDispute(dispute: Dispute): void {
     dispute.status = 'resolved';
     this.stats.activeDisputes--;
+    console.log('Dispute resolved:', dispute);
   }
 
   viewTransactionDetails(transaction: Transaction): void {
+    console.log('View transaction details:', transaction);
   }
 
   generateReport(reportType: string): void {
+    console.log('Generating report:', reportType);
+    this.isLoading = true;
+    setTimeout(() => {
+      this.isLoading = false;
+      console.log('Report generated successfully');
+    }, 2000);
   }
 
   formatCurrency(amount: number): string {
@@ -594,6 +614,12 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   exportData(format: string): void {
+    console.log(`Exporting data as ${format}`);
+    this.isLoading = true;
+    setTimeout(() => {
+      this.isLoading = false;
+      console.log(`Data exported as ${format} successfully`);
+    }, 1500);
   }
 
   refreshData(): void {
@@ -606,9 +632,11 @@ export class AdminDashboardComponent implements OnInit {
 
   markNotificationAsRead(notification: Notification): void {
     notification.unread = false;
+    console.log('Notification marked as read:', notification);
   }
 
   logout(): void {
+    console.log('Admin logging out...');
   }
 
   getMaxChartValue(): number {
