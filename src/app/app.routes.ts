@@ -34,6 +34,7 @@ import { authGuard } from './guards/auth.guard';
 import { AdminDashboardComponent } from './components/dashboard/admin/admin-dashboard/admin-dashboard.component';
 import { CaretakerDashboardComponent } from './components/dashboard/caretaker/caretaker-dashboard.component';
 import { BusinessDashboardComponent } from './components/dashboard/bussiness/business-dashboard.component';
+import { ProfileEditComponent as SharedProfileEditComponent } from './shared/components/profile-edit/profile-edit.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
@@ -64,7 +65,15 @@ export const routes: Routes = [
       { path: 'documents', component: DocumentsComponent },
       { path: 'messages', component: MessagesComponent },
       { path: 'reviews', component: ReviewComponent },
-      { path: 'settings', component: SettingsComponent }
+      { path: 'settings', component: SettingsComponent },
+      { 
+        path: 'profile',
+        children: [
+          { path: 'view', component: ProfileViewComponent },
+          { path: 'edit', component: SharedProfileEditComponent }, 
+          { path: '', redirectTo: 'view', pathMatch: 'full' }
+        ]
+      }
     ]
   },
   {
@@ -76,7 +85,7 @@ export const routes: Routes = [
       { path: 'home', component: LandlordDashboardHomeComponent },
       { path: 'profile', redirectTo: 'profile/view', pathMatch: 'full' },
       { path: 'profile/view', component: ProfileViewComponent },
-      { path: 'profile/edit', component: ProfileEditComponent },
+      { path: 'profile/edit', component: ProfileEditComponent }, 
       { path: 'property', redirectTo: 'property/list', pathMatch: 'full' },
       { path: 'property/create', component: PropertyCreateComponent },
       { path: 'property/list', component: PropertyListComponent },
@@ -104,7 +113,7 @@ export const routes: Routes = [
         path: 'profile',
         children: [
           { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: ProfileEditComponent },
+          { path: 'edit', component: SharedProfileEditComponent }, 
           { path: '', redirectTo: 'view', pathMatch: 'full' }
         ]
       }
@@ -125,7 +134,7 @@ export const routes: Routes = [
         path: 'profile',
         children: [
           { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: ProfileEditComponent },
+          { path: 'edit', component: SharedProfileEditComponent }, 
           { path: '', redirectTo: 'view', pathMatch: 'full' }
         ]
       }
@@ -147,7 +156,7 @@ export const routes: Routes = [
         path: 'profile',
         children: [
           { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: ProfileEditComponent },
+          { path: 'edit', component: SharedProfileEditComponent }, 
           { path: '', redirectTo: 'view', pathMatch: 'full' }
         ]
       }
