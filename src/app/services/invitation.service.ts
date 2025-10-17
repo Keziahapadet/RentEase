@@ -27,15 +27,19 @@ export class InvitationService {
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'An unexpected error occurred';
+    let errorMessage = 'Service temporarily unavailable';
     
     if (error.status === 401) {
-      errorMessage = 'Authentication failed';
-      this.authService.logout().subscribe();
+      errorMessage = 'Please check your authentication';
+      // No auto-logout - this prevents the app crash
+    } else if (error.status === 404) {
+      errorMessage = 'Feature not available yet';
     } else if (error.error?.message) {
       errorMessage = error.error.message;
     }
 
+    console.warn('Service error handled gracefully:', errorMessage);
+    
     return throwError(() => ({
       status: error.status,
       message: errorMessage,
