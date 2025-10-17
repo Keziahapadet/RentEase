@@ -45,7 +45,8 @@ import { catchError } from 'rxjs/operators';
     MatDialogModule
   ],
   templateUrl: './property-units.component.html',
-  styleUrls: ['./property-units.component.scss']
+  styleUrls: ['./property-units.component.scss'],
+   providers: [InvitationService]
 })
 export class PropertyUnitsComponent implements OnInit {
   propertyId!: string;

@@ -28,7 +28,8 @@ import { InviteDialogComponent } from '../../invite-dialog/invite-dialog.compone
     MatDialogModule
   ],
   templateUrl: './property-list.component.html',
-  styleUrls: ['./property-list.component.scss']
+  styleUrls: ['./property-list.component.scss'],
+   providers: [InvitationService]
 })
 export class PropertyListComponent implements OnInit {
   properties: Property[] = [];

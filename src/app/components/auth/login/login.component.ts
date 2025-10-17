@@ -303,7 +303,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       errorMessage = 'Access denied. Please contact support';
     }
     
-    // Clear password field for wrong password or invalid credentials
+    
     if (this.passwordError || 
         errorMessage.includes('password') || 
         errorMessage.includes('incorrect') ||
