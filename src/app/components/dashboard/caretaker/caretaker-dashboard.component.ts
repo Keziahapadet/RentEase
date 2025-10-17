@@ -4,9 +4,12 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
+
 import { CaretakerService, Property, Unit } from '../../../services/caretaker.service';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
+import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
+import { ProfileViewComponent } from '../landlord/landlord-dashboard/profile/profile-view/profile-view.component';
+import { ProfileEditComponent } from '../landlord/landlord-dashboard/profile/profile-edit/profile-edit.component';
 
 export interface NavItem {
   id: string;
@@ -32,40 +35,6 @@ export interface QuickAction {
   action: () => void;
 }
 
-// Comment out unused interfaces for now
-/*
-export interface MaintenanceRequest {
-  id: string;
-  title: string;
-  category: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  description: string;
-  status: 'submitted' | 'in-progress' | 'completed' | 'cancelled';
-  dateSubmitted: string;
-  tenantName: string;
-  property: string;
-}
-
-export interface Inspection {
-  id: string;
-  type: 'move-in' | 'move-out' | 'routine';
-  property: string;
-  tenantName: string;
-  date: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  depositAmount: number;
-}
-
-export interface DepositCase {
-  id: string;
-  tenantName: string;
-  property: string;
-  depositAmount: number;
-  status: 'pending' | 'approved' | 'rejected';
-  damageAmount: number;
-}
-*/
-
 @Component({
   selector: 'app-caretaker-dashboard',
   standalone: true,
@@ -74,7 +43,9 @@ export interface DepositCase {
     MatIconModule,
     MatButtonModule,
     MatTableModule,
-    ProfilePictureComponent
+    ProfilePictureComponent,
+    ProfileViewComponent,
+    ProfileEditComponent
   ],
   templateUrl: './caretaker-dashboard.component.html',
   styleUrls: ['./caretaker-dashboard.component.scss']
@@ -92,10 +63,10 @@ export class CaretakerDashboardComponent implements OnInit {
     { id: 'deposits', label: 'Deposits', icon: 'account_balance' },
     { id: 'properties', label: 'Properties', icon: 'apartment' },
     { id: 'messages', label: 'Messages', icon: 'chat' },
-    { id: 'reports', label: 'Reports', icon: 'assessment' }
+    { id: 'reports', label: 'Reports', icon: 'assessment' },
+    { id: 'profile', label: 'Profile', icon: 'person' }
   ];
 
-  // Data for overview section
   stats: Stats = {
     pendingMaintenance: 5,
     scheduledInspections: 3,
@@ -104,108 +75,6 @@ export class CaretakerDashboardComponent implements OnInit {
     responseRate: 92,
     tenantSatisfaction: 4.5
   };
-
-  // Comment out maintenance requests for now
-  /*
-  maintenanceRequests: MaintenanceRequest[] = [
-    { 
-      id: '1', 
-      title: 'Kitchen faucet leaking', 
-      category: 'Plumbing', 
-      priority: 'medium', 
-      description: 'Kitchen sink faucet has constant drip', 
-      status: 'submitted', 
-      dateSubmitted: '2024-03-01', 
-      tenantName: 'John Doe', 
-      property: 'Apartment 4B' 
-    },
-    { 
-      id: '2', 
-      title: 'Broken window lock', 
-      category: 'General Repairs', 
-      priority: 'low', 
-      description: 'Bedroom window lock not closing properly', 
-      status: 'in-progress', 
-      dateSubmitted: '2024-02-28', 
-      tenantName: 'Sarah Smith', 
-      property: 'House 12' 
-    },
-    { 
-      id: '3', 
-      title: 'AC not cooling', 
-      category: 'HVAC', 
-      priority: 'high', 
-      description: 'Air conditioning not cooling living room', 
-      status: 'submitted', 
-      dateSubmitted: '2024-03-02', 
-      tenantName: 'Mike Johnson', 
-      property: 'Apartment 7C' 
-    }
-  ];
-  */
-
-  // Comment out inspections for now
-  /*
-  inspections: Inspection[] = [
-    { 
-      id: '1', 
-      type: 'move-out', 
-      property: 'Apartment 3A', 
-      tenantName: 'David Wilson', 
-      date: '2024-03-05', 
-      status: 'scheduled', 
-      depositAmount: 50000 
-    },
-    { 
-      id: '2', 
-      type: 'move-in', 
-      property: 'House 15', 
-      tenantName: 'Emma Davis', 
-      date: '2024-03-06', 
-      status: 'scheduled', 
-      depositAmount: 75000 
-    },
-    { 
-      id: '3', 
-      type: 'routine', 
-      property: 'Apartment 2B', 
-      tenantName: 'James Miller', 
-      date: '2024-03-10', 
-      status: 'scheduled', 
-      depositAmount: 0 
-    }
-  ];
-  */
-
-  // Comment out deposit cases for now
-  /*
-  depositCases: DepositCase[] = [
-    {
-      id: '1',
-      tenantName: 'John Smith',
-      property: 'Apartment 4B',
-      depositAmount: 50000,
-      status: 'pending',
-      damageAmount: 0
-    },
-    {
-      id: '2',
-      tenantName: 'Maria Garcia',
-      property: 'Unit 2A',
-      depositAmount: 75000,
-      status: 'pending',
-      damageAmount: 15000
-    },
-    {
-      id: '3',
-      tenantName: 'Robert Johnson',
-      property: 'Suite 5C',
-      depositAmount: 60000,
-      status: 'approved',
-      damageAmount: 5000
-    }
-  ];
-  */
 
   quickActions: QuickAction[] = [
     { 
@@ -242,13 +111,6 @@ export class CaretakerDashboardComponent implements OnInit {
     }
   ];
 
-  // Comment out table columns for now
-  /*
-  displayedMaintenanceColumns: string[] = ['title', 'category', 'priority', 'status', 'tenantName', 'property', 'actions'];
-  displayedInspectionColumns: string[] = ['type', 'property', 'tenantName', 'date', 'status', 'depositAmount', 'actions'];
-  displayedDepositColumns: string[] = ['tenantName', 'property', 'depositAmount', 'status', 'damageAmount', 'actions'];
-  */
-
   constructor(
     private caretakerService: CaretakerService,
     private profilePictureService: ProfilePictureService,
@@ -257,8 +119,6 @@ export class CaretakerDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserProfile();
-    // Comment out data loading for now
-    // this.loadData();
   }
 
   loadUserProfile(): void {
@@ -271,7 +131,6 @@ export class CaretakerDashboardComponent implements OnInit {
       error: (error) => {
         console.error('Failed to load user profile:', error);
         this.loading = false;
-        // Set fallback profile
         this.userProfile = {
           id: 'unknown',
           fullName: 'Caretaker',
@@ -284,34 +143,11 @@ export class CaretakerDashboardComponent implements OnInit {
     });
   }
 
-  // Comment out data loading for now
-  /*
-  loadData(): void {
-    // Load your existing dashboard data
-    this.caretakerService.getMaintenanceRequests().subscribe(requests => {
-      this.maintenanceRequests = requests;
-      this.updateStats();
-    });
-
-    this.caretakerService.getInspections().subscribe(inspections => {
-      this.inspections = inspections;
-      this.updateStats();
-    });
-
-    this.caretakerService.getDepositCases().subscribe(deposits => {
-      this.depositCases = deposits;
-      this.updateStats();
-    });
-  }
-  */
-
-  // Handle profile picture updates
   onPictureUpdated(imageUrl: string): void {
     console.log('Profile picture updated:', imageUrl);
     if (this.userProfile) {
       this.userProfile.profilePicture = imageUrl;
     }
-    // Show success message
     this.showNotification('Profile picture updated successfully!', 'success');
   }
 
@@ -324,8 +160,7 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   private showNotification(message: string, type: 'success' | 'error'): void {
-    // Implement your notification logic here (toast, snackbar, etc.)
-    alert(message); // Temporary - replace with proper notification
+    alert(message);
   }
 
   setView(view: string): void {
@@ -338,8 +173,6 @@ export class CaretakerDashboardComponent implements OnInit {
 
   refreshData(): void {
     this.loadUserProfile();
-    // Comment out data loading for now
-    // this.loadData();
   }
 
   logout(): void {
@@ -354,7 +187,6 @@ export class CaretakerDashboardComponent implements OnInit {
     });
   }
 
-  // Quick Actions
   createMaintenance(): void {
     console.log('Creating new maintenance request...');
   }
@@ -371,41 +203,6 @@ export class CaretakerDashboardComponent implements OnInit {
     console.log('Contacting tenant...');
   }
 
-  // Comment out maintenance methods for now
-  /*
-  updateMaintenanceStatus(request: MaintenanceRequest, status: string): void {
-    request.status = status as any;
-    this.updateStats();
-  }
-  */
-
-  // Comment out inspection methods for now
-  /*
-  completeInspection(inspection: Inspection): void {
-    inspection.status = 'completed';
-  }
-  */
-
-  // Comment out deposit methods for now
-  /*
-  approveDeposit(deposit: DepositCase): void {
-    deposit.status = 'approved';
-  }
-
-  rejectDeposit(deposit: DepositCase): void {
-    deposit.status = 'rejected';
-  }
-
-  getPendingDepositCount(): number {
-    return this.depositCases.filter(d => d.status === 'pending').length;
-  }
-
-  getScheduledInspectionsCount(): number {
-    return this.inspections.filter(inspection => inspection.status === 'scheduled').length;
-  }
-  */
-
-  // Utility methods
   formatNumber(num: number): string {
     return num.toLocaleString('en-KE');
   }
@@ -455,16 +252,4 @@ export class CaretakerDashboardComponent implements OnInit {
     };
     return typeMap[type] || 'type-routine';
   }
-
-  // Comment out stats update for now
-  /*
-  updateStats(): void {
-    this.stats.pendingMaintenance = this.maintenanceRequests.filter(r => 
-      r.status === 'submitted' || r.status === 'in-progress'
-    ).length;
-    this.stats.completedJobs = this.maintenanceRequests.filter(r => r.status === 'completed').length;
-    this.stats.scheduledInspections = this.inspections.filter(i => i.status === 'scheduled').length;
-    this.stats.activeDepositCases = this.depositCases.filter(d => d.status === 'pending').length;
-  }
-  */
 }

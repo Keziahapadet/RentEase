@@ -1,25 +1,33 @@
 <div class="profile-picture-container" [class]="size">
   <div class="profile-image-wrapper">
-    <div class="profile-image" [class.has-image]="imageUrl" [class.editable]="editable">
-      <!-- Loading State -->
+    <div class="profile-image" [class.has-image]="imageUrl && !isDefaultAvatar()" [class.editable]="editable">
+      
+     
       <div *ngIf="loading" class="loading-state">
-        <mat-icon>refresh</mat-icon>
+        <mat-icon class="loading-icon">refresh</mat-icon>
+        <span class="loading-text">Loading...</span>
       </div>
 
-      <!-- Profile Image or Default Avatar -->
+   
+      <div *ngIf="uploading" class="uploading-state">
+        <mat-icon class="uploading-icon">cloud_upload</mat-icon>
+        <span class="uploading-text">Uploading...</span>
+      </div>
+
       <img 
-        *ngIf="imageUrl && !loading && !imageUrl.includes('svg+xml')" 
+        *ngIf="imageUrl && !isDefaultAvatar() && !loading && !uploading" 
         [src]="imageUrl" 
         [alt]="getUserName()" 
         (error)="onImageError()"
         class="profile-img">
       
-      <div *ngIf="(!imageUrl || imageUrl.includes('svg+xml')) && !loading" 
+    
+      <div *ngIf="(isDefaultAvatar() || !imageUrl) && !loading && !uploading" 
            class="default-avatar" [class]="getUserRole()">
         <span class="initials">{{getInitials()}}</span>
       </div>
       
-      <!-- Overlay Actions for Editable Mode -->
+     
       <div class="overlay-actions" *ngIf="editable && !uploading && !loading">
         <input 
           type="file" 
@@ -35,25 +43,26 @@
         <button 
           class="btn-action btn-delete" 
           (click)="deletePicture()" 
-          *ngIf="imageUrl && !imageUrl.includes('svg+xml')"
+          *ngIf="!isDefaultAvatar()"
           matTooltip="Delete picture">
           <mat-icon>delete</mat-icon>
         </button>
       </div>
     </div>
 
-    <!-- Upload Progress -->
-    <div class="upload-progress" *ngIf="uploading">
-      <div class="progress-bar">
-        <div class="progress-fill" [style.width.%]="uploadProgress"></div>
-      </div>
-      <span class="progress-text">Uploading... {{uploadProgress}}%</span>
+ 
+    <div class="verified-badge" *ngIf="userProfile?.verified">
+      <mat-icon>verified</mat-icon>
     </div>
   </div>
 
-  <!-- User Name (Optional) -->
+
   <div class="user-info" *ngIf="showName && userProfile">
-    <span class="user-name">{{getUserName()}}</span>
-    <span class="user-role">{{getUserRole() | titlecase}}</span>
+    <h3 class="user-name">{{getUserName()}}</h3>
+    <span class="user-role" *ngIf="showRole">{{getRoleDisplay()}}</span>
+    <span class="user-status" [class.verified]="userProfile.verified" *ngIf="userProfile.verified">
+      <mat-icon>check_circle</mat-icon>
+      Verified
+    </span>
   </div>
 </div>

@@ -2,18 +2,20 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 
 @Component({
   selector: 'app-profile-picture',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
   templateUrl: './profile-picture.component.html',
   styleUrls: ['./profile-picture.component.scss']
 })
 export class ProfilePictureComponent implements OnInit {
   @Input() editable: boolean = false;
   @Input() showName: boolean = false;
+  @Input() showRole: boolean = true;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
   
   @Output() pictureUpdated = new EventEmitter<string>();
@@ -22,7 +24,6 @@ export class ProfilePictureComponent implements OnInit {
   userProfile: UserProfile | null = null;
   imageUrl: string | null = null;
   uploading: boolean = false;
-  uploadProgress: number = 0;
   loading: boolean = true;
 
   constructor(private profilePictureService: ProfilePictureService) {}
@@ -50,22 +51,21 @@ export class ProfilePictureComponent implements OnInit {
     this.profilePictureService.getProfilePicture().subscribe({
       next: (response) => {
         this.loading = false;
-        if (response.success) {
-         
-          const pictureUrl = response.imageUrl || response.pictureUrl;
-          if (pictureUrl) {
-            this.imageUrl = pictureUrl;
-          } else {
-            this.imageUrl = this.profilePictureService.getDefaultAvatar();
-          }
+        if (response.success && response.pictureUrl) {
+          const timestamp = new Date().getTime();
+          const cacheBustedUrl = response.pictureUrl.includes('?') 
+            ? `${response.pictureUrl}&t=${timestamp}`
+            : `${response.pictureUrl}?t=${timestamp}`;
+          
+          this.imageUrl = cacheBustedUrl;
         } else {
-          this.imageUrl = this.profilePictureService.getDefaultAvatar();
+          this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
         }
       },
       error: (error) => {
         this.loading = false;
         console.error('Failed to load profile picture:', error);
-        this.imageUrl = this.profilePictureService.getDefaultAvatar();
+        this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
       }
     });
   }
@@ -74,7 +74,7 @@ export class ProfilePictureComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       if (!this.isValidFileType(file)) {
-        alert('Please select a valid image file (JPEG, PNG, GIF)');
+        alert('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
         return;
       }
       
@@ -93,23 +93,29 @@ export class ProfilePictureComponent implements OnInit {
   }
 
   isValidFileSize(file: File): boolean {
-    const maxSize = 5 * 1024 * 1024; 
+    const maxSize = 5 * 1024 * 1024;
     return file.size <= maxSize;
   }
 
   uploadProfilePicture(file: File): void {
     this.uploading = true;
-    this.uploadProgress = 0;
 
     this.profilePictureService.uploadProfilePicture(file).subscribe({
       next: (response) => {
         this.uploading = false;
-        if (response.success) {
-          const pictureUrl = response.imageUrl || response.pictureUrl;
-          if (pictureUrl) {
-            this.imageUrl = pictureUrl;
-            this.pictureUpdated.emit(pictureUrl);
-          }
+        if (response.success && response.pictureUrl) {
+          const timestamp = new Date().getTime();
+          const cacheBustedUrl = response.pictureUrl.includes('?') 
+            ? `${response.pictureUrl}&t=${timestamp}`
+            : `${response.pictureUrl}?t=${timestamp}`;
+          
+          this.imageUrl = cacheBustedUrl;
+          this.pictureUpdated.emit(cacheBustedUrl);
+          
+          localStorage.setItem('profileImage', cacheBustedUrl);
+          window.dispatchEvent(new Event('profileImageUpdated'));
+        } else {
+          alert('Failed to upload profile picture');
         }
       },
       error: (error) => {
@@ -125,8 +131,13 @@ export class ProfilePictureComponent implements OnInit {
       this.profilePictureService.deleteProfilePicture().subscribe({
         next: (response) => {
           if (response.success) {
-            this.imageUrl = this.profilePictureService.getDefaultAvatar();
+            this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
             this.pictureDeleted.emit();
+            
+            localStorage.removeItem('profileImage');
+            window.dispatchEvent(new Event('profileImageUpdated'));
+          } else {
+            alert('Failed to delete profile picture');
           }
         },
         error: (error) => {
@@ -138,7 +149,7 @@ export class ProfilePictureComponent implements OnInit {
   }
 
   onImageError(): void {
-    this.imageUrl = this.profilePictureService.getDefaultAvatar();
+    this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
   }
 
   getInitials(): string {
@@ -158,8 +169,20 @@ export class ProfilePictureComponent implements OnInit {
     return this.userProfile?.fullName || 'User';
   }
 
- 
+  getRoleDisplay(): string {
+    const role = this.getUserRole();
+    const roleMap: { [key: string]: string } = {
+      'landlord': 'Landlord',
+      'tenant': 'Tenant', 
+      'caretaker': 'Caretaker',
+      'admin': 'Administrator',
+      'business': 'Business',
+      'user': 'User'
+    };
+    return roleMap[role] || 'User';
+  }
+
   isDefaultAvatar(): boolean {
-    return !this.imageUrl || this.imageUrl.includes('svg+xml') || this.imageUrl.includes('default-');
+    return !this.imageUrl || this.imageUrl.includes('svg+xml');
   }
 }

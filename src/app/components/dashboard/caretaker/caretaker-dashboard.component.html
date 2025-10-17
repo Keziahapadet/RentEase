@@ -436,6 +436,64 @@
         </div>
       </div>
 
+      <div *ngIf="currentView === 'properties'" class="coming-soon-view">
+        <div class="coming-soon-card large">
+          <mat-icon>apartment</mat-icon>
+          <h2>Properties Management</h2>
+          <p>This feature is coming soon! View and manage properties under your care, track maintenance schedules, and coordinate with landlords.</p>
+          <button class="btn btn-primary" disabled>Coming Soon</button>
+        </div>
+      </div>
+
+      <div *ngIf="currentView === 'messages'" class="coming-soon-view">
+        <div class="coming-soon-card large">
+          <mat-icon>chat</mat-icon>
+          <h2>Messages</h2>
+          <p>This feature is coming soon! Communicate with tenants, landlords, and maintenance teams through our integrated messaging system.</p>
+          <button class="btn btn-primary" disabled>Coming Soon</button>
+        </div>
+      </div>
+
+      <div *ngIf="currentView === 'reports'" class="coming-soon-view">
+        <div class="coming-soon-card large">
+          <mat-icon>assessment</mat-icon>
+          <h2>Reports & Analytics</h2>
+          <p>This feature is coming soon! Generate detailed reports on maintenance activities, inspection results, and property performance.</p>
+          <button class="btn btn-primary" disabled>Coming Soon</button>
+        </div>
+      </div>
+
+   
+      <div *ngIf="currentView === 'profile'" class="profile-view">
+        <div class="view-header">
+          <h2>My Profile</h2>
+          <div class="view-actions">
+            <button class="btn btn-primary" (click)="setView('overview')">
+              <mat-icon>arrow_back</mat-icon>
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+        
+    
+        <app-profile-view *ngIf="currentView === 'profile'"></app-profile-view>
+      </div>
+
+     
+      <div *ngIf="currentView === 'profile-edit'" class="profile-edit-view">
+        <div class="view-header">
+          <h2>Edit Profile</h2>
+          <div class="view-actions">
+            <button class="btn btn-secondary" (click)="setView('profile')">
+              <mat-icon>arrow_back</mat-icon>
+              Back to Profile
+            </button>
+          </div>
+        </div>
+        
+        <app-profile-edit *ngIf="currentView === 'profile-edit'"></app-profile-edit>
+      </div>
+
     </div>
   </div>
 </div>

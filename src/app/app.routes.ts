@@ -113,7 +113,15 @@ export const routes: Routes = [
       { path: 'inspections', component: CaretakerDashboardComponent },
       { path: 'properties', component: CaretakerDashboardComponent },
       { path: 'messages', component: CaretakerDashboardComponent },
-      { path: 'reports', component: CaretakerDashboardComponent }
+      { path: 'reports', component: CaretakerDashboardComponent },
+      { 
+        path: 'profile',
+        children: [
+          { path: 'view', component: ProfileViewComponent },
+          { path: 'edit', component: ProfileEditComponent },
+          { path: '', redirectTo: 'view', pathMatch: 'full' }
+        ]
+      }
     ]
   },
   {

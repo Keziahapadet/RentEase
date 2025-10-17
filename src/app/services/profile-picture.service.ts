@@ -15,7 +15,7 @@ export interface UserProfile {
   id: string;
   fullName: string;
   email: string;
-  role: 'caretaker' | 'tenant' | 'landlord';
+  role: 'caretaker' | 'tenant' | 'landlord' | 'admin' | 'business' | 'user';
   profilePicture?: string;
   verified: boolean;
   emailVerified: boolean;
@@ -32,7 +32,6 @@ export class ProfilePictureService {
     private authService: AuthService
   ) {}
 
- 
   getCurrentUserProfile(): Observable<UserProfile> {
     const currentUser = this.authService.getCurrentUser();
     
@@ -56,13 +55,12 @@ export class ProfilePictureService {
     return of(userProfile);
   }
 
- 
   getProfilePicture(): Observable<ProfilePictureResponse> {
     const token = this.authService.getToken();
     if (!token) {
       return of({
         success: false,
-        pictureUrl: this.generateDefaultAvatar(),
+        pictureUrl: this.getDefaultAvatar(),
         message: 'No token available'
       });
     }
@@ -76,7 +74,6 @@ export class ProfilePictureService {
           const pictureUrl = response.imageUrl || response.pictureUrl;
           localStorage.setItem('profileImage', pictureUrl!);
           
-         
           const currentUser = this.authService.getCurrentUser();
           if (currentUser) {
             const updatedUser = {
@@ -98,14 +95,13 @@ export class ProfilePictureService {
         }
         return of({
           success: false,
-          pictureUrl: this.generateDefaultAvatar(),
+          pictureUrl: this.getDefaultAvatar(),
           message: 'Using default avatar'
         });
       })
     );
   }
 
- 
   uploadProfilePicture(file: File): Observable<ProfilePictureResponse> {
     const token = this.authService.getToken();
     if (!token) {
@@ -132,7 +128,6 @@ export class ProfilePictureService {
           localStorage.removeItem('profileImage');
           const pictureUrl = response.imageUrl || response.pictureUrl;
           
-         
           const currentUser = this.authService.getCurrentUser();
           if (currentUser) {
             const updatedUser = {
@@ -146,7 +141,6 @@ export class ProfilePictureService {
       catchError(this.handleProfileError)
     );
   }
-
 
   updateProfilePicture(file: File): Observable<ProfilePictureResponse> {
     const token = this.authService.getToken();
@@ -174,7 +168,6 @@ export class ProfilePictureService {
           localStorage.removeItem('profileImage');
           const pictureUrl = response.imageUrl || response.pictureUrl;
           
-         
           const currentUser = this.authService.getCurrentUser();
           if (currentUser) {
             const updatedUser = {
@@ -188,7 +181,6 @@ export class ProfilePictureService {
       catchError(this.handleProfileError)
     );
   }
-
 
   deleteProfilePicture(): Observable<ProfilePictureResponse> {
     const token = this.authService.getToken();
@@ -207,7 +199,6 @@ export class ProfilePictureService {
         if (response.success) {
           localStorage.removeItem('profileImage');
           
-        
           const currentUser = this.authService.getCurrentUser();
           if (currentUser) {
             const updatedUser = {
@@ -222,18 +213,21 @@ export class ProfilePictureService {
     );
   }
 
- 
-  getDefaultAvatar(): string {
+  // FIXED: Make parameter optional
+  getDefaultAvatar(name?: string): string {
     const currentUser = this.authService.getCurrentUser();
-    const name = currentUser?.fullName || 'User';
-    const role = currentUser?.role || 'tenant';
-    const names = name.split(' ');
+    const userName = name || currentUser?.fullName || 'User';
+    const role = currentUser?.role || 'user';
+    const names = userName.split(' ');
     const initials = names.map((n: string) => n.charAt(0).toUpperCase()).join('').slice(0, 2) || 'US';
     
     const colors = {
       caretaker: '#FF6B6B',
       tenant: '#4ECDC4', 
-      landlord: '#45B7D1'
+      landlord: '#45B7D1',
+      admin: '#43e97b',
+      business: '#fa709a',
+      user: '#96CEB4'
     };
     
     const color = colors[role as keyof typeof colors] || '#96CEB4';
@@ -256,10 +250,6 @@ export class ProfilePictureService {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-  }
-
-  private generateDefaultAvatar(): string {
-    return this.getDefaultAvatar();
   }
 
   private handleProfileError = (error: any): Observable<never> => {
