@@ -1,11 +1,19 @@
+
+<div class="mobile-overlay" 
+     [class.active]="isMobile && isMobileMenuOpen"
+     (click)="closeMobileMenu()"></div>
+
 <div class="caretaker-dashboard">
-  <div class="sidebar" [class.sidebar-collapsed]="!isSidebarOpen">
+ 
+  <div class="sidebar" 
+       [class.sidebar-collapsed]="!isSidebarOpen && !isMobile"
+       [class.mobile-open]="isMobileMenuOpen">
     <div class="sidebar-header">
       <div class="logo">
         <mat-icon>handyman</mat-icon>
-        <span class="logo-text" *ngIf="isSidebarOpen">Caretaker Panel</span>
+        <span class="logo-text" *ngIf="isSidebarOpen || isMobile">Caretaker Panel</span>
       </div>
-      <button class="sidebar-toggle" (click)="toggleSidebar()">
+      <button class="sidebar-toggle" (click)="toggleSidebar()" *ngIf="!isMobile">
         <mat-icon>{{isSidebarOpen ? 'chevron_left' : 'chevron_right'}}</mat-icon>
       </button>
     </div>
@@ -16,19 +24,22 @@
          [class.active]="currentView === item.id"
          (click)="setView(item.id)">
         <mat-icon class="nav-icon">{{item.icon}}</mat-icon>
-        <span class="nav-label" *ngIf="isSidebarOpen">{{item.label}}</span>
+        <span class="nav-label" *ngIf="isSidebarOpen || isMobile">{{item.label}}</span>
       </a>
     </nav>
 
     <div class="sidebar-footer">
       <button class="logout-btn" (click)="logout()">
         <mat-icon>logout</mat-icon>
-        <span *ngIf="isSidebarOpen">Logout</span>
+        <span *ngIf="isSidebarOpen || isMobile">Logout</span>
       </button>
     </div>
   </div>
 
-  <div class="main-content" [class.content-expanded]="!isSidebarOpen">
+  <!-- Main Content -->
+  <div class="main-content" 
+       [class.content-expanded]="!isSidebarOpen && !isMobile"
+       [class.sidebar-open]="isMobileMenuOpen">
     <div class="top-header">
       <div class="header-left">
         <button class="menu-toggle" (click)="toggleSidebar()">
@@ -40,10 +51,10 @@
       <div class="header-actions">
         <button class="btn btn-secondary" (click)="refreshData()">
           <mat-icon>refresh</mat-icon>
-          Refresh
+          <span class="btn-text">Refresh</span>
         </button>
         
-        <!-- Updated User Menu with Profile Picture -->
+      
         <div class="user-menu">
           <app-profile-picture
             [editable]="true"
@@ -59,6 +70,7 @@
 
     <div class="dashboard-content">
       
+      <!-- Overview View -->
       <div *ngIf="currentView === 'overview'" class="overview-view">
         <div class="stats-grid">
           <div class="stat-card">
@@ -135,52 +147,7 @@
           </div>
         </div>
 
-        <!-- Comment out recent activity sections for now -->
-        <!--
-        <div class="recent-activity">
-          <div class="activity-section">
-            <h3>Recent Maintenance Requests</h3>
-            <div class="activity-list">
-              <div *ngFor="let request of maintenanceRequests.slice(0, 3)" class="activity-item">
-                <div class="activity-icon" [class]="getPriorityClass(request.priority)">
-                  <mat-icon>build</mat-icon>
-                </div>
-                <div class="activity-content">
-                  <div class="activity-title">{{request.title}}</div>
-                  <div class="activity-details">
-                    <span class="tenant">{{request.tenantName}}</span> • 
-                    <span class="property">{{request.property}}</span>
-                  </div>
-                  <div class="activity-status">
-                    <span class="status-badge" [class]="getStatusClass(request.status)">{{request.status}}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="activity-section">
-            <h3>Upcoming Inspections</h3>
-            <div class="activity-list">
-              <div *ngFor="let inspection of inspections.slice(0, 3)" class="activity-item">
-                <div class="activity-icon" [class]="getInspectionTypeClass(inspection.type)">
-                  <mat-icon>home</mat-icon>
-                </div>
-                <div class="activity-content">
-                  <div class="activity-title">{{inspection.type | titlecase}} Inspection</div>
-                  <div class="activity-details">
-                    <span class="tenant">{{inspection.tenantName}}</span> • 
-                    <span class="property">{{inspection.property}}</span>
-                  </div>
-                  <div class="activity-date">{{formatDate(inspection.date)}}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        -->
-        
-        <!-- Add a placeholder message -->
+        <!-- Coming Soon Message -->
         <div class="coming-soon-section">
           <div class="coming-soon-card">
             <mat-icon>construction</mat-icon>
@@ -191,224 +158,7 @@
         </div>
       </div>
 
-      <!-- Comment out maintenance view for now -->
-      <!--
-      <div *ngIf="currentView === 'maintenance'" class="maintenance-view">
-        <div class="view-header">
-          <h2>Maintenance Management</h2>
-          <div class="view-stats">
-            <span class="stat-badge pending">{{stats.pendingMaintenance}} Pending</span>
-            <span class="stat-badge total">{{maintenanceRequests.length}} Total</span>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table mat-table [dataSource]="maintenanceRequests" class="maintenance-table">
-            <ng-container matColumnDef="title">
-              <th mat-header-cell *matHeaderCellDef>Title</th>
-              <td mat-cell *matCellDef="let request">{{request.title}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="category">
-              <th mat-header-cell *matHeaderCellDef>Category</th>
-              <td mat-cell *matCellDef="let request">{{request.category}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="priority">
-              <th mat-header-cell *matHeaderCellDef>Priority</th>
-              <td mat-cell *matCellDef="let request">
-                <span class="priority-badge" [class]="getPriorityClass(request.priority)">
-                  {{request.priority}}
-                </span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let request">
-                <span class="status-badge" [class]="getStatusClass(request.status)">
-                  {{request.status}}
-                </span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="tenantName">
-              <th mat-header-cell *matHeaderCellDef>Tenant</th>
-              <td mat-cell *matCellDef="let request">{{request.tenantName}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="property">
-              <th mat-header-cell *matHeaderCellDef>Property</th>
-              <td mat-cell *matCellDef="let request">{{request.property}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let request">
-                <div class="action-buttons">
-                  <button *ngIf="request.status === 'submitted'" class="btn-primary" (click)="updateMaintenanceStatus(request, 'in-progress')">
-                    Start
-                  </button>
-                  <button *ngIf="request.status === 'in-progress'" class="btn-success" (click)="updateMaintenanceStatus(request, 'completed')">
-                    Complete
-                  </button>
-                  <button class="btn-secondary">
-                    Details
-                  </button>
-                </div>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedMaintenanceColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedMaintenanceColumns;"></tr>
-          </table>
-        </div>
-      </div>
-      -->
-
-      <!-- Comment out inspections view for now -->
-      <!--
-      <div *ngIf="currentView === 'inspections'" class="inspections-view">
-        <div class="view-header">
-          <h2>Property Inspections</h2>
-          <div class="view-stats">
-            <span class="stat-badge scheduled">{{getScheduledInspectionsCount()}} Scheduled</span>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table mat-table [dataSource]="inspections" class="inspection-table">
-            <ng-container matColumnDef="type">
-              <th mat-header-cell *matHeaderCellDef>Type</th>
-              <td mat-cell *matCellDef="let inspection">
-                <span class="inspection-type" [class]="getInspectionTypeClass(inspection.type)">
-                  {{inspection.type}}
-                </span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="property">
-              <th mat-header-cell *matHeaderCellDef>Property</th>
-              <td mat-cell *matCellDef="let inspection">{{inspection.property}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="tenantName">
-              <th mat-header-cell *matHeaderCellDef>Tenant</th>
-              <td mat-cell *matCellDef="let inspection">{{inspection.tenantName}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef>Date</th>
-              <td mat-cell *matCellDef="let inspection">{{formatDate(inspection.date)}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let inspection">
-                <span class="status-badge" [class]="getStatusClass(inspection.status)">
-                  {{inspection.status}}
-                </span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="depositAmount">
-              <th mat-header-cell *matHeaderCellDef>Deposit</th>
-              <td mat-cell *matCellDef="let inspection">
-                <span *ngIf="inspection.depositAmount > 0">{{formatCurrency(inspection.depositAmount)}}</span>
-                <span *ngIf="inspection.depositAmount === 0" class="no-deposit">-</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let inspection">
-                <div class="action-buttons">
-                  <button *ngIf="inspection.status === 'scheduled'" class="btn-success" (click)="completeInspection(inspection)">
-                    Complete
-                  </button>
-                  <button class="btn-secondary">
-                    Reschedule
-                  </button>
-                </div>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedInspectionColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedInspectionColumns;"></tr>
-          </table>
-        </div>
-      </div>
-      -->
-
-      <!-- Comment out deposits view for now -->
-      <!--
-      <div *ngIf="currentView === 'deposits'" class="deposits-view">
-        <div class="view-header">
-          <h2>Deposit Management</h2>
-          <div class="view-stats">
-            <span class="stat-badge pending">{{getPendingDepositCount()}} Pending</span>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table mat-table [dataSource]="depositCases" class="deposit-table">
-            <ng-container matColumnDef="tenantName">
-              <th mat-header-cell *matHeaderCellDef>Tenant</th>
-              <td mat-cell *matCellDef="let deposit">{{deposit.tenantName}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="property">
-              <th mat-header-cell *matHeaderCellDef>Property</th>
-              <td mat-cell *matCellDef="let deposit">{{deposit.property}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="depositAmount">
-              <th mat-header-cell *matHeaderCellDef>Deposit Amount</th>
-              <td mat-cell *matCellDef="let deposit">{{formatCurrency(deposit.depositAmount)}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let deposit">
-                <span class="status-badge" [class]="getStatusClass(deposit.status)">
-                  {{deposit.status}}
-                </span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="damageAmount">
-              <th mat-header-cell *matHeaderCellDef>Damage Amount</th>
-              <td mat-cell *matCellDef="let deposit">
-                <span *ngIf="deposit.damageAmount > 0" class="damage-amount">{{formatCurrency(deposit.damageAmount)}}</span>
-                <span *ngIf="deposit.damageAmount === 0" class="no-damage">No damage</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let deposit">
-                <div class="action-buttons">
-                  <button *ngIf="deposit.status === 'pending'" class="btn-success" (click)="approveDeposit(deposit)">
-                    Approve
-                  </button>
-                  <button *ngIf="deposit.status === 'pending'" class="btn-danger" (click)="rejectDeposit(deposit)">
-                    Reject
-                  </button>
-                  <button class="btn-secondary">
-                    Details
-                  </button>
-                </div>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedDepositColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedDepositColumns;"></tr>
-          </table>
-        </div>
-      </div>
-      -->
-
-      <!-- Add coming soon views for other sections -->
+      <!-- Coming Soon Views -->
       <div *ngIf="currentView === 'maintenance'" class="coming-soon-view">
         <div class="coming-soon-card large">
           <mat-icon>build</mat-icon>
@@ -463,7 +213,7 @@
         </div>
       </div>
 
-   
+      <!-- Profile View -->
       <div *ngIf="currentView === 'profile'" class="profile-view">
         <div class="view-header">
           <h2>My Profile</h2>
@@ -475,23 +225,29 @@
           </div>
         </div>
         
-    
-        <app-profile-view *ngIf="currentView === 'profile'"></app-profile-view>
+        <app-profile-view 
+          *ngIf="currentView === 'profile'"
+          (editProfile)="navigateToProfileEdit()"
+          (goBack)="setView('overview')">
+        </app-profile-view>
       </div>
 
-     
+      <!-- Profile Edit View -->
       <div *ngIf="currentView === 'profile-edit'" class="profile-edit-view">
         <div class="view-header">
           <h2>Edit Profile</h2>
           <div class="view-actions">
-            <button class="btn btn-secondary" (click)="setView('profile')">
+            <button class="btn btn-secondary" (click)="navigateToProfileView()">
               <mat-icon>arrow_back</mat-icon>
               Back to Profile
             </button>
           </div>
         </div>
         
-        <app-profile-edit *ngIf="currentView === 'profile-edit'"></app-profile-edit>
+        <app-profile-edit 
+          *ngIf="currentView === 'profile-edit'"
+          (goBack)="navigateToProfileView()">
+        </app-profile-edit>
       </div>
 
     </div>

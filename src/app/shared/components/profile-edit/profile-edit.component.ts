@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -36,6 +36,8 @@ import { PropertyService } from '../../../services/property.service';
   styleUrls: ['./profile-edit.component.scss']
 })
 export class ProfileEditComponent implements OnInit, OnDestroy {
+  @Output() goBackEvent = new EventEmitter<void>(); 
+  
   profileForm: FormGroup;
   user: any = null;
   isSubmitting = false;
@@ -117,51 +119,40 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       bio: this.profileForm.value.bio
     };
 
-    // Simulate API call - replace with actual service call
+   
     setTimeout(() => {
       this.isSubmitting = false;
       
-      // Update local user data
       const updatedUser = {
         ...this.user,
         ...updatedData
       };
       
-      // Update in localStorage/sessionStorage
       const isPermanent = !!localStorage.getItem('userData');
       const storage = isPermanent ? localStorage : sessionStorage;
       storage.setItem('userData', JSON.stringify(updatedUser));
       
       this.snackBar.open('Profile updated successfully!', 'Close', { duration: 2000 });
       
-      // Navigate back to profile view
       setTimeout(() => {
-        this.goBack();
+        this.goBack(); 
       }, 500);
       
     }, 1500);
   }
 
+
   goBack(): void {
-    const role = this.user?.role || 'user';
-    if (role === 'landlord') {
-      this.router.navigate(['/landlord-dashboard/profile/view']);
-    } else if (role === 'caretaker') {
-      this.router.navigate(['/caretaker-dashboard/profile/view']);
-    } else if (role === 'tenant') {
-      this.router.navigate(['/tenant-dashboard/profile/view']);
-    } else {
-      this.router.navigate(['/profile/view']);
-    }
+    this.goBackEvent.emit(); 
   }
 
   cancel(): void {
     if (this.profileForm.dirty) {
       if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
-        this.goBack();
+        this.goBack(); 
       }
     } else {
-      this.goBack();
+      this.goBack(); 
     }
   }
 
@@ -177,7 +168,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     return roleMap[role] || 'User';
   }
 
- 
   get fullName() { return this.profileForm.get('fullName'); }
   get email() { return this.profileForm.get('email'); }
   get phoneNumber() { return this.profileForm.get('phoneNumber'); }

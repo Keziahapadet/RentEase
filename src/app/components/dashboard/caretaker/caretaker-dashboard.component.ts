@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -53,6 +53,8 @@ export interface QuickAction {
 export class CaretakerDashboardComponent implements OnInit {
   currentView: string = 'overview';
   isSidebarOpen = true;
+  isMobile = false;
+  isMobileMenuOpen = false;
   userProfile: UserProfile | null = null;
   loading: boolean = true;
   
@@ -119,6 +121,19 @@ export class CaretakerDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserProfile();
+    this.checkMobileView();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.checkMobileView();
+  }
+
+  checkMobileView(): void {
+    this.isMobile = window.innerWidth <= 768;
+    if (!this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
   }
 
   loadUserProfile(): void {
@@ -165,10 +180,23 @@ export class CaretakerDashboardComponent implements OnInit {
 
   setView(view: string): void {
     this.currentView = view;
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
   }
 
   toggleSidebar(): void {
-    this.isSidebarOpen = !this.isSidebarOpen;
+    if (this.isMobile) {
+      this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    } else {
+      this.isSidebarOpen = !this.isSidebarOpen;
+    }
+  }
+
+  closeMobileMenu(): void {
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
   }
 
   refreshData(): void {
@@ -201,6 +229,20 @@ export class CaretakerDashboardComponent implements OnInit {
 
   contactTenant(): void {
     console.log('Contacting tenant...');
+  }
+
+  navigateToProfileEdit(): void {
+    this.currentView = 'profile-edit';
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
+  }
+
+  navigateToProfileView(): void {
+    this.currentView = 'profile';
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
   }
 
   formatNumber(num: number): string {

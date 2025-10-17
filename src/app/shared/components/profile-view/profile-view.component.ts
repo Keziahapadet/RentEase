@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -25,6 +25,9 @@ import { AuthService } from '../../../services/auth.service';
   styleUrls: ['./profile-view.component.scss']
 })
 export class ProfileViewComponent implements OnInit {
+  @Output() editProfileEvent = new EventEmitter<void>(); // CHANGED: Renamed event emitter
+  @Output() goBackEvent = new EventEmitter<void>(); // CHANGED: Renamed event emitter
+  
   user: any = null;
   profileStats = {
     properties: 0,
@@ -51,15 +54,12 @@ export class ProfileViewComponent implements OnInit {
       return;
     }
     
-    // Load demo stats (replace with actual API calls)
     this.loadProfileStats();
   }
 
   private loadProfileStats(): void {
-    // Demo data - replace with actual API calls
     const role = this.user?.role || 'user';
     
-    // Different stats based on user role
     if (role === 'landlord') {
       this.profileStats = {
         properties: 5,
@@ -91,32 +91,14 @@ export class ProfileViewComponent implements OnInit {
     }
   }
 
+  // FIXED: No duplicate identifier
   editProfile(): void {
-    // Navigate based on user role
-    const role = this.user?.role || 'user';
-    if (role === 'landlord') {
-      this.router.navigate(['/landlord-dashboard/profile/edit']);
-    } else if (role === 'caretaker') {
-      this.router.navigate(['/caretaker-dashboard/profile/edit']);
-    } else if (role === 'tenant') {
-      this.router.navigate(['/tenant-dashboard/profile/edit']);
-    } else {
-      this.router.navigate(['/profile/edit']);
-    }
+    this.editProfileEvent.emit(); // CHANGED: Use renamed event emitter
   }
 
+  // FIXED: No duplicate identifier
   goBack(): void {
-    // Navigate back based on user role
-    const role = this.user?.role || 'user';
-    if (role === 'landlord') {
-      this.router.navigate(['/landlord-dashboard/home']);
-    } else if (role === 'caretaker') {
-      this.router.navigate(['/caretaker-dashboard/home']);
-    } else if (role === 'tenant') {
-      this.router.navigate(['/tenant-dashboard/home']);
-    } else {
-      this.router.navigate(['/home']);
-    }
+    this.goBackEvent.emit(); // CHANGED: Use renamed event emitter
   }
 
   getFormattedPhone(phone: string): string {

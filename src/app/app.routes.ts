@@ -98,9 +98,16 @@ export const routes: Routes = [
       { path: 'jobs', component: BusinessDashboardComponent },
       { path: 'earnings', component: BusinessDashboardComponent },
       { path: 'reviews', component: BusinessDashboardComponent },
-      { path: 'profile', component: BusinessDashboardComponent },
       { path: 'services', component: BusinessDashboardComponent },
-      { path: 'messages', component: BusinessDashboardComponent }
+      { path: 'messages', component: BusinessDashboardComponent },
+      { 
+        path: 'profile',
+        children: [
+          { path: 'view', component: ProfileViewComponent },
+          { path: 'edit', component: ProfileEditComponent },
+          { path: '', redirectTo: 'view', pathMatch: 'full' }
+        ]
+      }
     ]
   },
   {
@@ -135,7 +142,15 @@ export const routes: Routes = [
       { path: 'disputes', component: AdminDashboardComponent },
       { path: 'transactions', component: AdminDashboardComponent },
       { path: 'reports', component: AdminDashboardComponent },
-      { path: 'settings', component: AdminDashboardComponent }
+      { path: 'settings', component: AdminDashboardComponent },
+      { 
+        path: 'profile',
+        children: [
+          { path: 'view', component: ProfileViewComponent },
+          { path: 'edit', component: ProfileEditComponent },
+          { path: '', redirectTo: 'view', pathMatch: 'full' }
+        ]
+      }
     ]
   },
   { path: 'landlord', redirectTo: '/landlord-dashboard' },

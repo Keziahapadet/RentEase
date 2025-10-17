@@ -5,6 +5,7 @@
       <p>Update your personal information and preferences</p>
     </div>
     <div class="header-actions">
+     
       <button mat-button (click)="goBack()" class="back-btn">
         <mat-icon>arrow_back</mat-icon>
         Back to Profile
@@ -19,7 +20,7 @@
       </div>
 
       <div class="profile-main">
-        <!-- Profile Picture Section -->
+        
         <div class="profile-avatar-section">
           <div class="avatar-wrapper">
             <app-profile-picture
@@ -42,7 +43,7 @@
           </div>
         </div>
 
-        <!-- Profile Edit Form -->
+      
         <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
           <div class="form-section">
             <h3>
