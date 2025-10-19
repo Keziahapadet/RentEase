@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 
-import { CaretakerService, Property, Unit } from '../../../services/caretaker.service';
+import { CaretakerService } from '../../../services/caretaker.service';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
 import { ProfileViewComponent } from '../../../shared/components/profile-view/profile-view.component';
@@ -43,7 +43,7 @@ export interface QuickAction {
     MatIconModule,
     MatButtonModule,
     MatTableModule,
-    ProfilePictureComponent,
+    ProfilePictureComponent, // Make sure this is imported
     ProfileViewComponent,
     ProfileEditComponent
   ],
@@ -58,6 +58,7 @@ export class CaretakerDashboardComponent implements OnInit {
   userProfile: UserProfile | null = null;
   loading: boolean = true;
   
+  // Navigation items
   navItems: NavItem[] = [
     { id: 'overview', label: 'Dashboard', icon: 'dashboard' },
     { id: 'maintenance', label: 'Maintenance', icon: 'build' },
@@ -69,6 +70,7 @@ export class CaretakerDashboardComponent implements OnInit {
     { id: 'profile', label: 'Profile', icon: 'person' }
   ];
 
+  // Dashboard statistics
   stats: Stats = {
     pendingMaintenance: 5,
     scheduledInspections: 3,
@@ -78,12 +80,13 @@ export class CaretakerDashboardComponent implements OnInit {
     tenantSatisfaction: 4.5
   };
 
+  // Quick actions
   quickActions: QuickAction[] = [
     { 
       id: 'newMaintenance', 
       title: 'New Maintenance', 
       description: 'Create maintenance request', 
-      icon: 'build', 
+      icon: 'add_task', 
       color: '#007bff', 
       action: () => this.createMaintenance() 
     },
@@ -99,8 +102,8 @@ export class CaretakerDashboardComponent implements OnInit {
       id: 'processDeposit', 
       title: 'Process Deposit', 
       description: 'Handle deposit release', 
-      icon: 'account_balance', 
-      color: '#ffc107', 
+      icon: 'payments', 
+      color: '#ff6b35', 
       action: () => this.processDeposit() 
     },
     { 
@@ -108,7 +111,7 @@ export class CaretakerDashboardComponent implements OnInit {
       title: 'Contact Tenant', 
       description: 'Message tenant', 
       icon: 'message', 
-      color: '#17a2b8', 
+      color: '#6f42c1', 
       action: () => this.contactTenant() 
     }
   ];
@@ -129,13 +132,91 @@ export class CaretakerDashboardComponent implements OnInit {
     this.checkMobileView();
   }
 
+  // View management
+  get isProfileView(): boolean {
+    return ['profile-view', 'profile-edit', 'profile'].includes(this.currentView);
+  }
+
+  isActiveView(viewId: string): boolean {
+    if (viewId === 'profile') {
+      return this.isProfileView;
+    }
+    return this.currentView === viewId;
+  }
+
+  getPageTitle(): string {
+    const titleMap: { [key: string]: string } = {
+      'overview': 'Dashboard Overview',
+      'profile-view': 'My Profile',
+      'profile-edit': 'Edit Profile',
+      'profile': 'My Profile',
+      'maintenance': 'Maintenance Management',
+      'inspections': 'Property Inspections',
+      'deposits': 'Deposit Management',
+      'properties': 'Properties',
+      'messages': 'Messages',
+      'reports': 'Reports & Analytics'
+    };
+    return titleMap[this.currentView] || this.currentView;
+  }
+
+  getSectionTitle(): string {
+    const titleMap: { [key: string]: string } = {
+      'maintenance': 'Maintenance Management',
+      'inspections': 'Property Inspections',
+      'deposits': 'Deposit Management',
+      'properties': 'Property Portfolio',
+      'messages': 'Communication Center',
+      'reports': 'Reports & Analytics'
+    };
+    return titleMap[this.currentView] || this.currentView;
+  }
+
+  getSectionDescription(): string {
+    const descMap: { [key: string]: string } = {
+      'maintenance': 'Manage and track maintenance requests across all properties',
+      'inspections': 'Schedule and conduct property inspections',
+      'deposits': 'Handle security deposit transactions and disputes',
+      'properties': 'Overview of all managed properties and units',
+      'messages': 'Communicate with tenants and property owners',
+      'reports': 'Generate reports and view analytics'
+    };
+    return descMap[this.currentView] || `Manage your ${this.currentView.toLowerCase()} activities`;
+  }
+
+  // Mobile responsiveness
   checkMobileView(): void {
     this.isMobile = window.innerWidth <= 768;
     if (!this.isMobile) {
       this.isMobileMenuOpen = false;
+      this.isSidebarOpen = true;
+    } else {
+      this.isSidebarOpen = false;
     }
   }
 
+  toggleSidebar(): void {
+    if (this.isMobile) {
+      this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    } else {
+      this.isSidebarOpen = !this.isSidebarOpen;
+    }
+  }
+
+  closeMobileMenu(): void {
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
+  }
+
+  setView(view: string): void {
+    this.currentView = view;
+    if (this.isMobile) {
+      this.isMobileMenuOpen = false;
+    }
+  }
+
+  // User profile management
   loadUserProfile(): void {
     this.loading = true;
     this.profilePictureService.getCurrentUserProfile().subscribe({
@@ -174,31 +255,41 @@ export class CaretakerDashboardComponent implements OnInit {
     this.showNotification('Profile picture deleted successfully!', 'success');
   }
 
-  private showNotification(message: string, type: 'success' | 'error'): void {
-    alert(message);
+  // Profile navigation
+  handleEditProfile(): void {
+    this.currentView = 'profile-edit';
   }
 
-  setView(view: string): void {
-    this.currentView = view;
-    if (this.isMobile) {
-      this.isMobileMenuOpen = false;
-    }
+  handleViewProfile(): void {
+    this.currentView = 'profile-view';
   }
 
-  toggleSidebar(): void {
-    if (this.isMobile) {
-      this.isMobileMenuOpen = !this.isMobileMenuOpen;
-    } else {
-      this.isSidebarOpen = !this.isSidebarOpen;
-    }
+  handleGoBackFromProfile(): void {
+    this.currentView = 'overview';
   }
 
-  closeMobileMenu(): void {
-    if (this.isMobile) {
-      this.isMobileMenuOpen = false;
-    }
+  // Quick actions
+  createMaintenance(): void {
+    console.log('Creating new maintenance request...');
+    this.setView('maintenance');
   }
 
+  scheduleInspection(): void {
+    console.log('Scheduling inspection...');
+    this.setView('inspections');
+  }
+
+  processDeposit(): void {
+    console.log('Processing deposit...');
+    this.setView('deposits');
+  }
+
+  contactTenant(): void {
+    console.log('Contacting tenant...');
+    this.setView('messages');
+  }
+
+  // Utility methods
   refreshData(): void {
     this.loadUserProfile();
   }
@@ -215,34 +306,12 @@ export class CaretakerDashboardComponent implements OnInit {
     });
   }
 
-  createMaintenance(): void {
-    console.log('Creating new maintenance request...');
+  private showNotification(message: string, type: 'success' | 'error'): void {
+    // You can replace this with a proper snackbar service
+    console.log(`${type.toUpperCase()}: ${message}`);
   }
 
-  scheduleInspection(): void {
-    console.log('Scheduling inspection...');
-  }
-
-  processDeposit(): void {
-    console.log('Processing deposit...');
-  }
-
-  contactTenant(): void {
-    console.log('Contacting tenant...');
-  }
-
-  handleEditProfile(): void {
-    this.currentView = 'profile-edit';
-  }
-
-  handleViewProfile(): void {
-    this.currentView = 'profile-view';
-  }
-
-  handleGoBackFromProfile(): void {
-    this.currentView = 'overview';
-  }
-
+  // Formatting helpers
   formatNumber(num: number): string {
     return num.toLocaleString('en-KE');
   }
@@ -258,38 +327,5 @@ export class CaretakerDashboardComponent implements OnInit {
       month: 'short',
       day: 'numeric'
     });
-  }
-
-  getPriorityClass(priority: string): string {
-    const priorityMap: any = {
-      'low': 'priority-low',
-      'medium': 'priority-medium',
-      'high': 'priority-high',
-      'urgent': 'priority-urgent'
-    };
-    return priorityMap[priority] || 'priority-medium';
-  }
-
-  getStatusClass(status: string): string {
-    const statusMap: any = {
-      'submitted': 'status-pending',
-      'in-progress': 'status-progress',
-      'completed': 'status-completed',
-      'cancelled': 'status-cancelled',
-      'scheduled': 'status-scheduled',
-      'pending': 'status-pending',
-      'approved': 'status-approved',
-      'rejected': 'status-rejected'
-    };
-    return statusMap[status] || 'status-pending';
-  }
-
-  getInspectionTypeClass(type: string): string {
-    const typeMap: any = {
-      'move-in': 'type-move-in',
-      'move-out': 'type-move-out',
-      'routine': 'type-routine'
-    };
-    return typeMap[type] || 'type-routine';
   }
 }

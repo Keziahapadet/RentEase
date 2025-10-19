@@ -1,348 +1,175 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
-import { catchError, tap, map, switchMap } from 'rxjs/operators';
-import { AuthService } from '../../../services/auth.service';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 
-export interface ProfilePictureResponse {
-  success: boolean;
-  message: string;
-  imageUrl?: string;
-  pictureUrl?: string;
-  data?: string;
-}
-
-export interface UploadPictureRequest {
-  file: string; // Base64 encoded string
-}
-
-export interface UserProfile {
-  id: string;
-  fullName: string;
-  email: string;
-  role: 'caretaker' | 'tenant' | 'landlord' | 'admin' | 'business' | 'user';
-  profilePicture?: string;
-  verified: boolean;
-  emailVerified: boolean;
-}
-
-@Injectable({
-  providedIn: 'root'
+@Component({
+  selector: 'app-profile-picture',
+  standalone: true,
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  templateUrl: './profile-picture.component.html',
+  styleUrls: ['./profile-picture.component.scss']
 })
-export class ProfilePictureService {
-  private readonly apiUrl = 'https://rentease-3-sfgx.onrender.com/api';
+export class ProfilePictureComponent implements OnInit {
+  @Input() size: 'small' | 'medium' | 'large' = 'medium';
+  @Input() editable: boolean = false;
+  @Input() showName: boolean = true;
+  @Input() showRole: boolean = true;
+  
+  @Output() pictureUpdated = new EventEmitter<string>();
+  @Output() pictureDeleted = new EventEmitter<void>();
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) {}
+  userProfile: UserProfile | null = null;
+  imageUrl: string | null = null;
+  uploading: boolean = false;
+  loading: boolean = true;
 
-  getCurrentUserProfile(): Observable<UserProfile> {
-    const currentUser = this.authService.getCurrentUser();
-    
-    if (!currentUser) {
-      return throwError(() => ({ 
-        status: 401, 
-        message: 'No user data found' 
-      }));
-    }
+  constructor(private profilePictureService: ProfilePictureService) {}
 
-    const userProfile: UserProfile = {
-      id: currentUser.id,
-      fullName: currentUser.fullName,
-      email: currentUser.email,
-      role: currentUser.role,
-      profilePicture: currentUser.profilePicture,
-      verified: currentUser.verified,
-      emailVerified: currentUser.emailVerified
-    };
-
-    return of(userProfile);
+  ngOnInit(): void {
+    this.loadUserProfile();
   }
 
-  getProfilePicture(): Observable<ProfilePictureResponse> {
-    const token = this.authService.getToken();
-    if (!token) {
-      return of({
-        success: false,
-        pictureUrl: this.getDefaultAvatar(),
-        message: 'No token available'
+  loadUserProfile(): void {
+    this.loading = true;
+    this.profilePictureService.getCurrentUserProfile().subscribe({
+      next: (profile) => {
+        this.userProfile = profile;
+        this.loadProfilePicture();
+      },
+      error: (error) => {
+        console.error('Failed to load user profile:', error);
+        this.loading = false;
+        this.imageUrl = this.profilePictureService.getDefaultAvatar();
+      }
+    });
+  }
+
+  loadProfilePicture(): void {
+    this.profilePictureService.getProfilePicture().subscribe({
+      next: (response) => {
+        this.loading = false;
+        if (response.success && response.pictureUrl) {
+          this.imageUrl = response.pictureUrl;
+        } else {
+          this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
+        }
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Failed to load profile picture:', error);
+        this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
+      }
+    });
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      if (!this.isValidFileType(file)) {
+        alert('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
+        return;
+      }
+      
+      if (!this.isValidFileSize(file)) {
+        alert('File size should be less than 5MB');
+        return;
+      }
+
+      this.uploadProfilePicture(file);
+    }
+  }
+
+  isValidFileType(file: File): boolean {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    return allowedTypes.includes(file.type);
+  }
+
+  isValidFileSize(file: File): boolean {
+    const maxSize = 5 * 1024 * 1024;
+    return file.size <= maxSize;
+  }
+
+  uploadProfilePicture(file: File): void {
+    this.uploading = true;
+    this.profilePictureService.uploadProfilePicture(file).subscribe({
+      next: (response) => {
+        this.uploading = false;
+        if (response.success && response.pictureUrl) {
+          this.imageUrl = response.pictureUrl;
+          this.pictureUpdated.emit(response.pictureUrl);
+          localStorage.setItem('profileImage', response.pictureUrl);
+        } else {
+          alert('Failed to upload profile picture');
+        }
+      },
+      error: (error) => {
+        this.uploading = false;
+        console.error('Upload failed:', error);
+        alert('Failed to upload profile picture. Please try again.');
+      }
+    });
+  }
+
+  deletePicture(): void {
+    if (confirm('Are you sure you want to delete your profile picture?')) {
+      this.profilePictureService.deleteProfilePicture().subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
+            this.pictureDeleted.emit();
+            localStorage.removeItem('profileImage');
+          } else {
+            alert('Failed to delete profile picture');
+          }
+        },
+        error: (error) => {
+          console.error('Delete failed:', error);
+          alert('Failed to delete profile picture. Please try again.');
+        }
       });
     }
-
-    return this.http.get<ProfilePictureResponse>(
-      `${this.apiUrl}/profile/picture`,
-      { headers: this.createHeaders() }
-    ).pipe(
-      map(response => this.normalizeResponse(response)),
-      tap(response => {
-        const pictureUrl = this.extractImageUrl(response);
-        if (response.success && pictureUrl) {
-          localStorage.setItem('profileImage', pictureUrl);
-          
-          const currentUser = this.authService.getCurrentUser();
-          if (currentUser) {
-            const updatedUser = {
-              ...currentUser,
-              profilePicture: pictureUrl
-            };
-            this.updateLocalUserData(updatedUser);
-          }
-        }
-      }),
-      catchError(() => {
-        const cachedImage = localStorage.getItem('profileImage');
-        if (cachedImage && !cachedImage.includes('svg+xml')) {
-          return of({
-            success: true,
-            pictureUrl: cachedImage,
-            message: 'Using cached image'
-          });
-        }
-        return of({
-          success: false,
-          pictureUrl: this.getDefaultAvatar(),
-          message: 'Using default avatar'
-        });
-      })
-    );
   }
 
-  uploadProfilePicture(file: File): Observable<ProfilePictureResponse> {
-    const token = this.authService.getToken();
-    if (!token) {
-      return throwError(() => ({ 
-        status: 401, 
-        message: 'No authentication token found' 
-      }));
-    }
-
-    // Convert file to base64 string
-    return this.fileToBase64(file).pipe(
-      map(base64String => {
-        const uploadRequest: UploadPictureRequest = {
-          file: base64String
-        };
-        return uploadRequest;
-      }),
-      catchError(error => throwError(() => ({ 
-        status: 400, 
-        message: 'Failed to convert image to base64' 
-      }))),
-      switchMap(uploadRequest => 
-        this.http.post<ProfilePictureResponse>(
-          `${this.apiUrl}/profile/upload-picture`,
-          uploadRequest,
-          { headers: this.createHeaders() }
-        ).pipe(
-          map(response => this.normalizeResponse(response)),
-          tap(response => {
-            const pictureUrl = this.extractImageUrl(response);
-            if (response.success && pictureUrl) {
-              localStorage.removeItem('profileImage');
-              localStorage.setItem('profileImage', pictureUrl);
-              
-              const currentUser = this.authService.getCurrentUser();
-              if (currentUser) {
-                const updatedUser = {
-                  ...currentUser,
-                  profilePicture: pictureUrl
-                };
-                this.updateLocalUserData(updatedUser);
-              }
-            }
-          }),
-          catchError(this.handleProfileError)
-        )
-      )
-    );
+  onImageError(): void {
+    this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
   }
 
-  updateProfilePicture(file: File): Observable<ProfilePictureResponse> {
-    const token = this.authService.getToken();
-    if (!token) {
-      return throwError(() => ({ 
-        status: 401, 
-        message: 'No authentication token found' 
-      }));
-    }
-
-    // Convert file to base64 string
-    return this.fileToBase64(file).pipe(
-      map(base64String => {
-        const updateRequest: UploadPictureRequest = {
-          file: base64String
-        };
-        return updateRequest;
-      }),
-      catchError(error => throwError(() => ({ 
-        status: 400, 
-        message: 'Failed to convert image to base64' 
-      }))),
-      switchMap(updateRequest => 
-        this.http.put<ProfilePictureResponse>(
-          `${this.apiUrl}/profile/update-picture`,
-          updateRequest,
-          { headers: this.createHeaders() }
-        ).pipe(
-          map(response => this.normalizeResponse(response)),
-          tap(response => {
-            const pictureUrl = this.extractImageUrl(response);
-            if (response.success && pictureUrl) {
-              localStorage.removeItem('profileImage');
-              localStorage.setItem('profileImage', pictureUrl);
-              
-              const currentUser = this.authService.getCurrentUser();
-              if (currentUser) {
-                const updatedUser = {
-                  ...currentUser,
-                  profilePicture: pictureUrl
-                };
-                this.updateLocalUserData(updatedUser);
-              }
-            }
-          }),
-          catchError(this.handleProfileError)
-        )
-      )
-    );
+  getInitials(): string {
+    if (!this.userProfile?.fullName) return '?';
+    const names = this.userProfile.fullName.split(' ');
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   }
 
-  deleteProfilePicture(): Observable<ProfilePictureResponse> {
-    const token = this.authService.getToken();
-    if (!token) {
-      return throwError(() => ({ 
-        status: 401, 
-        message: 'No authentication token found' 
-      }));
-    }
-
-    return this.http.delete<ProfilePictureResponse>(
-      `${this.apiUrl}/profile/delete-picture`,
-      { headers: this.createHeaders() }
-    ).pipe(
-      tap(response => {
-        if (response.success) {
-          localStorage.removeItem('profileImage');
-          
-          const currentUser = this.authService.getCurrentUser();
-          if (currentUser) {
-            const updatedUser = {
-              ...currentUser,
-              profilePicture: undefined
-            };
-            this.updateLocalUserData(updatedUser);
-          }
-        }
-      }),
-      catchError(this.handleProfileError)
-    );
+  getUserRole(): string {
+    return this.userProfile?.role || 'user';
   }
 
-  // Helper method to convert File to base64 string
-  private fileToBase64(file: File): Observable<string> {
-    return new Observable<string>(observer => {
-      const reader = new FileReader();
-      
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        // Remove the data URL prefix if present (e.g., "data:image/jpeg;base64,")
-        const base64Data = base64String.includes('base64,') 
-          ? base64String.split('base64,')[1] 
-          : base64String;
-        observer.next(base64Data);
-        observer.complete();
-      };
-      
-      reader.onerror = error => {
-        observer.error(error);
-      };
-      
-      reader.readAsDataURL(file);
-    });
+  getUserName(): string {
+    return this.userProfile?.fullName || 'User';
   }
 
-  private normalizeResponse(response: ProfilePictureResponse): ProfilePictureResponse {
-    const imageUrl = this.extractImageUrl(response);
-    return {
-      ...response,
-      pictureUrl: imageUrl,
-      imageUrl: imageUrl
+  getRoleDisplay(): string {
+    const role = this.getUserRole();
+    const roleMap: { [key: string]: string } = {
+      'landlord': 'Landlord',
+      'tenant': 'Tenant', 
+      'caretaker': 'Caretaker',
+      'admin': 'Administrator',
+      'business': 'Business',
+      'user': 'User'
     };
+    return roleMap[role] || 'User';
   }
 
-  private extractImageUrl(response: ProfilePictureResponse): string | undefined {
-    return response.data || response.imageUrl || response.pictureUrl;
+  isDefaultAvatar(): boolean {
+    return !this.imageUrl || this.imageUrl.includes('svg+xml');
   }
 
-  getDefaultAvatar(name?: string): string {
-    const currentUser = this.authService.getCurrentUser();
-    const userName = name || currentUser?.fullName || 'User';
-    const role = currentUser?.role || 'user';
-    const names = userName.split(' ');
-    const initials = names.map((n: string) => n.charAt(0).toUpperCase()).join('').slice(0, 2) || 'US';
-    
-    const colors = {
-      caretaker: '#FF6B6B',
-      tenant: '#4ECDC4', 
-      landlord: '#45B7D1',
-      admin: '#43e97b',
-      business: '#fa709a',
-      user: '#96CEB4'
-    };
-    
-    const color = colors[role as keyof typeof colors] || '#96CEB4';
-    
-    return `data:image/svg+xml;base64,${btoa(`
-      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-        <rect width="200" height="200" fill="${color}" rx="100"/>
-        <text x="100" y="125" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="80" font-weight="bold">${initials}</text>
-      </svg>
-    `)}`;
-  }
-
-  private createHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-    
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-  }
-
-  private handleProfileError = (error: any): Observable<never> => {
-    let errorMessage = 'Profile picture operation failed';
-    
-    if (error.status === 500) {
-      errorMessage = 'Server error - profile picture feature temporarily unavailable';
-    } else if (error.status === 401) {
-      errorMessage = 'Authentication failed';
-      this.authService.logout().subscribe();
-    } else if (error.status === 413) {
-      errorMessage = 'Image file is too large';
-    } else if (error.status === 415) {
-      errorMessage = 'Unsupported image format';
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
-    return throwError(() => ({
-      status: error.status,
-      message: errorMessage,
-      error: error.error
-    }));
-  };
-
-  private updateLocalUserData(user: any): void {
-    const isPermanent = !!localStorage.getItem('userData');
-    const storage = isPermanent ? localStorage : sessionStorage;
-    storage.setItem('userData', JSON.stringify(user));
-   
-    if ((this.authService as any).currentUserSubject) {
-      (this.authService as any).currentUserSubject.next(user);
-    }
+  getSizeClass(): string {
+    return `size-${this.size}`;
   }
 }
