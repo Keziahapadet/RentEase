@@ -72,8 +72,9 @@ export class PropertyService {
       { headers: this.createHeaders(), responseType: 'json' }
     ).pipe(
       tap(response => {
-        if (response.success && response.pictureUrl) {
-          localStorage.setItem('profileImage', response.pictureUrl);
+        const pictureUrl = this.extractImageUrl(response);
+        if (response.success && pictureUrl) {
+          localStorage.setItem('profileImage', pictureUrl);
         }
       }),
       catchError(() => {
@@ -116,8 +117,10 @@ export class PropertyService {
       { headers, responseType: 'json' }
     ).pipe(
       tap(response => {
-        if (response.success) {
-          localStorage.removeItem('profileImage');
+        const pictureUrl = this.extractImageUrl(response);
+        if (response.success && pictureUrl) {
+          localStorage.setItem('profileImage', pictureUrl);
+          this.updateUserProfilePicture(pictureUrl);
         }
       }),
       catchError(this.handleProfileError)
@@ -146,8 +149,10 @@ export class PropertyService {
       { headers, responseType: 'json' }
     ).pipe(
       tap(response => {
-        if (response.success) {
-          localStorage.removeItem('profileImage');
+        const pictureUrl = this.extractImageUrl(response);
+        if (response.success && pictureUrl) {
+          localStorage.setItem('profileImage', pictureUrl);
+          this.updateUserProfilePicture(pictureUrl);
         }
       }),
       catchError(this.handleProfileError)
@@ -170,6 +175,7 @@ export class PropertyService {
       tap(response => {
         if (response.success) {
           localStorage.removeItem('profileImage');
+          this.updateUserProfilePicture(undefined);
         }
       }),
       catchError(this.handleProfileError)
@@ -380,6 +386,21 @@ export class PropertyService {
       }),
       catchError(this.handleError)
     );
+  }
+
+  private extractImageUrl(response: any): string | undefined {
+    return response.data || response.imageUrl || response.pictureUrl;
+  }
+
+  private updateUserProfilePicture(pictureUrl: string | undefined): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        profilePicture: pictureUrl
+      };
+      this.updateLocalUserData(updatedUser);
+    }
   }
 
   private generateDefaultAvatar(): string {
