@@ -1,168 +1,106 @@
 <div class="profile-view-container">
-  <div class="content-header">
-    <div class="header-left">
-      <h1>My Profile</h1>
-      <p>View your personal information and account details</p>
-    </div>
-    <div class="header-actions">
-     
-      <button mat-raised-button color="primary" (click)="editProfile()" class="edit-btn">
-        <mat-icon>edit</mat-icon>
-        Edit Profile
-      </button>
-    
-      <button mat-button (click)="goBack()" class="back-btn">
-        <mat-icon>arrow_back</mat-icon>
-        Back to Dashboard
-      </button>
-    </div>
+  <div class="profile-view-header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Profile</h1>
+    <button mat-icon-button (click)="editProfile()" class="edit-button">
+      <mat-icon>edit</mat-icon>
+    </button>
   </div>
 
-  <div class="profile-content">
-    <div class="profile-card">
-      <div class="profile-banner">
-        <div class="banner-gradient"></div>
-      </div>
-
-      <div class="profile-main">
-        
-        <div class="profile-avatar-section">
-          <div class="avatar-wrapper">
-            <app-profile-picture
-              [editable]="false"
-              [showName]="false"
-              [showRole]="false"
-              size="large">
-            </app-profile-picture>
-            <div class="avatar-badge" *ngIf="user?.verified">
-              <mat-icon>verified</mat-icon>
+  <div class="profile-view-content">
+    <mat-card class="profile-card">
+      <mat-card-content>
+        <div class="profile-header-section">
+          <div class="avatar-wrapper" [class.loading]="loading">
+            <div *ngIf="loading" class="loading-overlay">
+              <mat-spinner diameter="40"></mat-spinner>
+            </div>
+            
+            <div *ngIf="!isDefaultAvatar() && imageUrl" class="avatar-image">
+              <img [src]="imageUrl" (error)="onImageError()" alt="Profile picture">
+            </div>
+            
+            <div *ngIf="isDefaultAvatar()" class="avatar-initials">
+              <span>{{ getInitials() }}</span>
             </div>
           </div>
 
-          <div class="avatar-info">
-            <h2 class="user-name">{{user?.fullName || 'User'}}</h2>
-            <p class="user-role">{{getRoleDisplay(user?.role)}}</p>
-            <p class="user-email">
+          <div class="profile-info">
+            <h2 class="user-name">{{ user?.fullName || 'User' }}</h2>
+            <p class="user-role">{{ getRoleDisplay(user?.role || 'user') }}</p>
+            <p class="user-email">{{ user?.email || 'email@example.com' }}</p>
+          </div>
+
+          <button mat-raised-button color="primary" (click)="editProfile()" class="edit-profile-btn">
+            <mat-icon>edit</mat-icon>
+            Edit Profile
+          </button>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="profile-details-section">
+          <h3>Contact Information</h3>
+          
+          <div class="detail-item">
+            <div class="detail-icon">
               <mat-icon>email</mat-icon>
-              {{user?.email}}
-            </p>
-            <p class="user-joined" *ngIf="user?.createdAt">
-              <mat-icon>calendar_today</mat-icon>
-              Joined {{getFormattedDate(user.createdAt)}}
-            </p>
-          </div>
-        </div>
-
-        <!-- Profile Stats -->
-        <div class="profile-stats">
-          <div class="stat-item">
-            <div class="stat-icon properties">
-              <mat-icon>apartment</mat-icon>
             </div>
-            <div class="stat-info">
-              <div class="stat-value">{{profileStats.properties}}</div>
-              <div class="stat-label">{{getStatLabel('properties')}}</div>
+            <div class="detail-content">
+              <p class="detail-label">Email Address</p>
+              <p class="detail-value">{{ user?.email || 'Not provided' }}</p>
             </div>
           </div>
 
-          <div class="stat-item">
-            <div class="stat-icon tenants">
-              <mat-icon>people</mat-icon>
+          <div class="detail-item">
+            <div class="detail-icon">
+              <mat-icon>phone</mat-icon>
             </div>
-            <div class="stat-info">
-              <div class="stat-value">{{profileStats.tenants}}</div>
-              <div class="stat-label">{{getStatLabel('tenants')}}</div>
-            </div>
-          </div>
-
-          <div class="stat-item">
-            <div class="stat-icon maintenance">
-              <mat-icon>build</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{profileStats.maintenance}}</div>
-              <div class="stat-label">{{getStatLabel('maintenance')}}</div>
+            <div class="detail-content">
+              <p class="detail-label">Phone Number</p>
+              <p class="detail-value">{{ getFormattedPhone(user?.phoneNumber) }}</p>
             </div>
           </div>
 
-          <div class="stat-item">
-            <div class="stat-icon revenue">
-              <mat-icon>attach_money</mat-icon>
+          <div class="detail-item">
+            <div class="detail-icon">
+              <mat-icon>badge</mat-icon>
             </div>
-            <div class="stat-info">
-              <div class="stat-value" *ngIf="user?.role === 'tenant' && profileStats.revenue > 0">
-                {{formatCurrency(profileStats.revenue)}}
-              </div>
-              <div class="stat-value" *ngIf="user?.role !== 'tenant' && profileStats.revenue > 0">
-                {{formatCurrency(profileStats.revenue)}}
-              </div>
-              <div class="stat-value" *ngIf="profileStats.revenue === 0">
-                -
-              </div>
-              <div class="stat-label">{{getStatLabel('revenue')}}</div>
+            <div class="detail-content">
+              <p class="detail-label">Role</p>
+              <p class="detail-value">{{ getRoleDisplay(user?.role || 'user') }}</p>
             </div>
           </div>
         </div>
 
-        <div class="profile-details">
-          <div class="detail-section">
-            <h3>
-              <mat-icon>person</mat-icon>
-              Personal Information
-            </h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Full Name</label>
-                <p>{{user?.fullName || 'Not provided'}}</p>
-              </div>
-              <div class="detail-item">
-                <label>Email Address</label>
-                <p>{{user?.email || 'Not provided'}}</p>
-              </div>
-              <div class="detail-item">
-                <label>Phone Number</label>
-                <p>{{getFormattedPhone(user?.phoneNumber)}}</p>
-              </div>
-              <div class="detail-item">
-                <label>Account Type</label>
-                <p>{{getRoleDisplay(user?.role)}}</p>
-              </div>
-            </div>
-          </div>
+        <mat-divider></mat-divider>
 
-          <div class="detail-section">
-            <h3>
+        <div class="profile-details-section">
+          <h3>About</h3>
+          
+          <div class="detail-item bio-item">
+            <div class="detail-icon">
               <mat-icon>description</mat-icon>
-              About Me
-            </h3>
-            <div class="bio-content">
-              <p>{{getFormattedBio(user?.bio)}}</p>
+            </div>
+            <div class="detail-content">
+              <p class="detail-label">Bio</p>
+              <p class="detail-value bio-text">{{ getFormattedBio(user?.bio) }}</p>
             </div>
           </div>
 
-          <div class="detail-section">
-            <h3>
-              <mat-icon>security</mat-icon>
-              Account Security
-            </h3>
-            <div class="security-items">
-              <div class="security-item verified">
-                <mat-icon>check_circle</mat-icon>
-                <span>Email Verified</span>
-              </div>
-              <div class="security-item" [class.verified]="user?.verified">
-                <mat-icon>{{user?.verified ? 'check_circle' : 'radio_button_unchecked'}}</mat-icon>
-                <span>Account Verified</span>
-              </div>
-              <div class="security-item">
-                <mat-icon>lock</mat-icon>
-                <span>Password</span>
-                <button mat-button color="primary" class="change-btn">Change</button>
-              </div>
+          <div class="detail-item">
+            <div class="detail-icon">
+              <mat-icon>calendar_today</mat-icon>
+            </div>
+            <div class="detail-content">
+              <p class="detail-label">Member Since</p>
+              <p class="detail-value">{{ getFormattedDate(user?.createdAt) }}</p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

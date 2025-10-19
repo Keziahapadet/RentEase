@@ -25,16 +25,16 @@ import { PropertyCreateComponent } from './components/dashboard/landlord/landlor
 import { PropertyListComponent } from './components/dashboard/landlord/landlord-dashboard/property/property-list/property-list.component';
 import { PropertyUnitsComponent } from './components/dashboard/landlord/landlord-dashboard/property/property-units/property-units.component';
 import { LandlordDashboardHomeComponent } from './components/dashboard/landlord/landlord-dashboard/home/landlord-dashboard-home.component';
-import { ProfileViewComponent } from './components/dashboard/landlord/landlord-dashboard/profile/profile-view/profile-view.component';
+import { ProfileViewComponent } from './shared/components/profile-view/profile-view.component';
+import { ProfileEditComponent } from './shared/components/profile-edit/profile-edit.component';
 import { LandlordProfileEditComponent } from './components/dashboard/landlord/landlord-dashboard/profile/landlord-profile-edit/landlord-profile-edit.component';
-import { ProfileEditComponent as SharedProfileEditComponent } from './shared/components/profile-edit/profile-edit.component';
-
 import { ResetPasswordOtpComponent } from './components/auth/otp-verificationreset-password/otp-verificationreset-password.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 import { resetPasswordGuard } from './guards/reset-password.guard';
 import { authGuard } from './guards/auth.guard';
 import { AdminDashboardComponent } from './components/dashboard/admin/admin-dashboard/admin-dashboard.component';
 import { CaretakerDashboardComponent } from './components/dashboard/caretaker/caretaker-dashboard.component';
+import { CaretakerOverviewComponent } from './components/dashboard/caretaker/components/caretaker-overview/caretaker-overview.component';
 import { BusinessDashboardComponent } from './components/dashboard/bussiness/business-dashboard.component';
 
 export const routes: Routes = [
@@ -71,7 +71,7 @@ export const routes: Routes = [
         path: 'profile',
         children: [
           { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: SharedProfileEditComponent }, 
+          { path: 'edit', component: ProfileEditComponent }, 
           { path: '', redirectTo: 'view', pathMatch: 'full' }
         ]
       }
@@ -114,7 +114,7 @@ export const routes: Routes = [
         path: 'profile',
         children: [
           { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: SharedProfileEditComponent }, 
+          { path: 'edit', component: ProfileEditComponent }, 
           { path: '', redirectTo: 'view', pathMatch: 'full' }
         ]
       }
@@ -125,17 +125,18 @@ export const routes: Routes = [
     component: CaretakerDashboardComponent,
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
-      { path: 'overview', component: CaretakerDashboardComponent },
-      { path: 'maintenance', component: CaretakerDashboardComponent },
-      { path: 'inspections', component: CaretakerDashboardComponent },
-      { path: 'properties', component: CaretakerDashboardComponent },
-      { path: 'messages', component: CaretakerDashboardComponent },
-      { path: 'reports', component: CaretakerDashboardComponent },
+      { path: 'overview', component: CaretakerOverviewComponent },
+      { path: 'maintenance', component: CaretakerOverviewComponent },
+      { path: 'inspections', component: CaretakerOverviewComponent },
+      { path: 'deposits', component: CaretakerOverviewComponent },
+      { path: 'properties', component: CaretakerOverviewComponent },
+      { path: 'messages', component: CaretakerOverviewComponent },
+      { path: 'reports', component: CaretakerOverviewComponent },
       { 
         path: 'profile',
         children: [
           { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: SharedProfileEditComponent }, 
+          { path: 'edit', component: ProfileEditComponent }, 
           { path: '', redirectTo: 'view', pathMatch: 'full' }
         ]
       }
@@ -157,7 +158,7 @@ export const routes: Routes = [
         path: 'profile',
         children: [
           { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: SharedProfileEditComponent }, 
+          { path: 'edit', component: ProfileEditComponent }, 
           { path: '', redirectTo: 'view', pathMatch: 'full' }
         ]
       }

@@ -1,254 +1,164 @@
-<div class="mobile-overlay" 
-     [class.active]="isMobile && isMobileMenuOpen"
-     (click)="closeMobileMenu()"></div>
-
-<div class="caretaker-dashboard">
- 
-  <div class="sidebar" 
-       [class.sidebar-collapsed]="!isSidebarOpen && !isMobile"
-       [class.mobile-open]="isMobileMenuOpen">
+<div class="dashboard-container">
+  <aside class="sidebar" [class.open]="isSidebarOpen" [class.mobile-open]="isMobileMenuOpen">
     <div class="sidebar-header">
-      <div class="logo">
-        <mat-icon>handyman</mat-icon>
-        <span class="logo-text" *ngIf="isSidebarOpen || isMobile">Caretaker Panel</span>
-      </div>
-      <button class="sidebar-toggle" (click)="toggleSidebar()" *ngIf="!isMobile">
-        <mat-icon>{{isSidebarOpen ? 'chevron_left' : 'chevron_right'}}</mat-icon>
+      <h2>Caretaker</h2>
+      <button mat-icon-button (click)="toggleSidebar()" class="toggle-btn">
+        <mat-icon>{{ isSidebarOpen ? 'close' : 'menu' }}</mat-icon>
       </button>
     </div>
 
     <nav class="sidebar-nav">
-      <a *ngFor="let item of navItems" 
-         class="nav-item" 
-         [class.active]="currentView === item.id"
-         (click)="setView(item.id)">
-        <mat-icon class="nav-icon">{{item.icon}}</mat-icon>
-        <span class="nav-label" *ngIf="isSidebarOpen || isMobile">{{item.label}}</span>
-      </a>
+      <button 
+        *ngFor="let item of navItems" 
+        mat-button 
+        [class.active]="currentView === item.id || (currentView === 'profile-view' && item.id === 'profile') || (currentView === 'profile-edit' && item.id === 'profile')"
+        (click)="setView(item.id)"
+        class="nav-item">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span>{{ item.label }}</span>
+      </button>
     </nav>
 
     <div class="sidebar-footer">
-      <button class="logout-btn" (click)="logout()">
+      <button mat-button (click)="logout()" class="logout-btn">
         <mat-icon>logout</mat-icon>
-        <span *ngIf="isSidebarOpen || isMobile">Logout</span>
+        <span>Logout</span>
       </button>
     </div>
-  </div>
+  </aside>
 
-  <!-- Main Content -->
-  <div class="main-content" 
-       [class.content-expanded]="!isSidebarOpen && !isMobile"
-       [class.sidebar-open]="isMobileMenuOpen">
-    <div class="top-header">
-      <div class="header-left">
-        <button class="menu-toggle" (click)="toggleSidebar()">
-          <mat-icon>menu</mat-icon>
-        </button>
-        <h1 class="page-title">Caretaker Dashboard</h1>
-      </div>
-      
+  <div class="main-content" [class.sidebar-collapsed]="!isSidebarOpen">
+    <header class="dashboard-header">
+      <button mat-icon-button (click)="toggleSidebar()" class="menu-toggle">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <h1>{{ currentView === 'overview' ? 'Dashboard' : currentView === 'profile-view' ? 'Profile' : currentView === 'profile-edit' ? 'Edit Profile' : currentView | titlecase }}</h1>
       <div class="header-actions">
-        <button class="btn btn-secondary" (click)="refreshData()">
-          <mat-icon>refresh</mat-icon>
-          <span class="btn-text">Refresh</span>
-        </button>
-        
-        <div class="user-menu">
-          <app-profile-picture
-            [editable]="true"
-            [showName]="false"
-            size="small"
-            (pictureUpdated)="onPictureUpdated($event)"
-            (pictureDeleted)="onPictureDeleted()">
-          </app-profile-picture>
-          <span class="user-name">{{userProfile?.fullName || 'Caretaker'}}</span>
-        </div>
+        <app-profile-picture 
+          [size]="'small'" 
+          [editable]="false"
+          [showName]="false"
+          [showRole]="false"
+          (pictureUpdated)="onPictureUpdated($event)"
+          (pictureDeleted)="onPictureDeleted()">
+        </app-profile-picture>
       </div>
-    </div>
+    </header>
 
-    <div class="dashboard-content">
-      
-      <!-- Overview View -->
-      <div *ngIf="currentView === 'overview'" class="overview-view">
+    <div class="content-area">
+      <div *ngIf="currentView === 'overview'" class="overview-content">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon maintenance">
-              <mat-icon>build</mat-icon>
+            <div class="stat-icon" style="background: #e3f2fd;">
+              <mat-icon style="color: #1976d2;">build</mat-icon>
             </div>
-            <div class="stat-info">
-              <div class="stat-value">{{formatNumber(stats.pendingMaintenance)}}</div>
-              <div class="stat-label">Pending Maintenance</div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon inspections">
-              <mat-icon>home</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{formatNumber(stats.scheduledInspections)}}</div>
-              <div class="stat-label">Scheduled Inspections</div>
+            <div class="stat-content">
+              <p class="stat-label">Pending Maintenance</p>
+              <p class="stat-value">{{ stats.pendingMaintenance }}</p>
             </div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon deposits">
-              <mat-icon>account_balance</mat-icon>
+            <div class="stat-icon" style="background: #e8f5e9;">
+              <mat-icon style="color: #388e3c;">home</mat-icon>
             </div>
-            <div class="stat-info">
-              <div class="stat-value">{{formatNumber(stats.activeDepositCases)}}</div>
-              <div class="stat-label">Active Deposit Cases</div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon completed">
-              <mat-icon>check_circle</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{formatNumber(stats.completedJobs)}}</div>
-              <div class="stat-label">Completed Jobs</div>
+            <div class="stat-content">
+              <p class="stat-label">Scheduled Inspections</p>
+              <p class="stat-value">{{ stats.scheduledInspections }}</p>
             </div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon response">
-              <mat-icon>timer</mat-icon>
+            <div class="stat-icon" style="background: #fff3e0;">
+              <mat-icon style="color: #f57c00;">account_balance</mat-icon>
             </div>
-            <div class="stat-info">
-              <div class="stat-value">{{stats.responseRate}}%</div>
-              <div class="stat-label">Response Rate</div>
+            <div class="stat-content">
+              <p class="stat-label">Active Deposit Cases</p>
+              <p class="stat-value">{{ stats.activeDepositCases }}</p>
             </div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon satisfaction">
-              <mat-icon>star</mat-icon>
+            <div class="stat-icon" style="background: #f3e5f5;">
+              <mat-icon style="color: #7b1fa2;">check_circle</mat-icon>
             </div>
-            <div class="stat-info">
-              <div class="stat-value">{{stats.tenantSatisfaction}}/5</div>
-              <div class="stat-label">Tenant Satisfaction</div>
+            <div class="stat-content">
+              <p class="stat-label">Completed Jobs</p>
+              <p class="stat-value">{{ stats.completedJobs }}</p>
             </div>
           </div>
         </div>
 
         <div class="quick-actions-section">
-          <h3>Quick Actions</h3>
-          <div class="actions-grid">
-            <button *ngFor="let action of quickActions" class="action-btn" (click)="action.action()">
-              <div class="action-icon" [style.background-color]="action.color">
-                <mat-icon>{{action.icon}}</mat-icon>
+          <h2>Quick Actions</h2>
+          <div class="quick-actions-grid">
+            <button 
+              *ngFor="let action of quickActions" 
+              mat-raised-button 
+              (click)="action.action()"
+              class="quick-action-card"
+              [style.border-left]="'4px solid ' + action.color">
+              <mat-icon [style.color]="action.color">{{ action.icon }}</mat-icon>
+              <div class="action-content">
+                <p class="action-title">{{ action.title }}</p>
+                <p class="action-description">{{ action.description }}</p>
               </div>
-              <span class="action-label">{{action.title}}</span>
-              <span class="action-description">{{action.description}}</span>
             </button>
           </div>
         </div>
-
-        <!-- Coming Soon Message -->
-        <div class="coming-soon-section">
-          <div class="coming-soon-card">
-            <mat-icon>construction</mat-icon>
-            <h3>Features Coming Soon</h3>
-            <p>Maintenance, Inspections, and Deposit management features will be available soon.</p>
-            <p class="subtext">Currently showing demo data for preview purposes.</p>
-          </div>
-        </div>
       </div>
 
-      <!-- Coming Soon Views -->
-      <div *ngIf="currentView === 'maintenance'" class="coming-soon-view">
-        <div class="coming-soon-card large">
-          <mat-icon>build</mat-icon>
-          <h2>Maintenance Management</h2>
-          <p>This feature is coming soon! You'll be able to manage maintenance requests, track progress, and communicate with tenants.</p>
-          <button class="btn btn-primary" disabled>Coming Soon</button>
-        </div>
-      </div>
-
-      <div *ngIf="currentView === 'inspections'" class="coming-soon-view">
-        <div class="coming-soon-card large">
-          <mat-icon>home</mat-icon>
-          <h2>Property Inspections</h2>
-          <p>This feature is coming soon! Schedule and conduct property inspections, document findings, and manage inspection reports.</p>
-          <button class="btn btn-primary" disabled>Coming Soon</button>
-        </div>
-      </div>
-
-      <div *ngIf="currentView === 'deposits'" class="coming-soon-view">
-        <div class="coming-soon-card large">
-          <mat-icon>account_balance</mat-icon>
-          <h2>Deposit Management</h2>
-          <p>This feature is coming soon! Process security deposits, handle deductions, and manage deposit refunds efficiently.</p>
-          <button class="btn btn-primary" disabled>Coming Soon</button>
-        </div>
-      </div>
-
-      <div *ngIf="currentView === 'properties'" class="coming-soon-view">
-        <div class="coming-soon-card large">
-          <mat-icon>apartment</mat-icon>
-          <h2>Properties Management</h2>
-          <p>This feature is coming soon! View and manage properties under your care, track maintenance schedules, and coordinate with landlords.</p>
-          <button class="btn btn-primary" disabled>Coming Soon</button>
-        </div>
-      </div>
-
-      <div *ngIf="currentView === 'messages'" class="coming-soon-view">
-        <div class="coming-soon-card large">
-          <mat-icon>chat</mat-icon>
-          <h2>Messages</h2>
-          <p>This feature is coming soon! Communicate with tenants, landlords, and maintenance teams through our integrated messaging system.</p>
-          <button class="btn btn-primary" disabled>Coming Soon</button>
-        </div>
-      </div>
-
-      <div *ngIf="currentView === 'reports'" class="coming-soon-view">
-        <div class="coming-soon-card large">
-          <mat-icon>assessment</mat-icon>
-          <h2>Reports & Analytics</h2>
-          <p>This feature is coming soon! Generate detailed reports on maintenance activities, inspection results, and property performance.</p>
-          <button class="btn btn-primary" disabled>Coming Soon</button>
-        </div>
-      </div>
-
-      <!-- Profile View -->
-      <div *ngIf="currentView === 'profile'" class="profile-view">
-        <div class="view-header">
-          <h2>My Profile</h2>
-          <div class="view-actions">
-            <button class="btn btn-primary" (click)="navigateToOverview()">
-              <mat-icon>arrow_back</mat-icon>
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-        
-        <!-- FIXED: Added missing closing bracket ] -->
+      <div *ngIf="currentView === 'profile-view'" class="profile-content">
         <app-profile-view 
-          *ngIf="currentView === 'profile'"
-          (editProfile)="navigateToProfileEdit()"
-          (goBack)="navigateToOverview()">
+          (editProfileEvent)="handleEditProfile()"
+          (goBackEvent)="handleGoBackFromProfile()">
         </app-profile-view>
       </div>
 
-      <!-- Profile Edit View -->
-      <div *ngIf="currentView === 'profile-edit'" class="profile-edit-view">
-        <div class="view-header">
-          <h2>Edit Profile</h2>
-          <div class="view-actions">
-            <button class="btn btn-secondary" (click)="navigateToProfileView()">
-              <mat-icon>arrow_back</mat-icon>
-              Back to Profile
-            </button>
-          </div>
-        </div>
-        
+      <div *ngIf="currentView === 'profile-edit'" class="profile-content">
         <app-profile-edit 
-          *ngIf="currentView === 'profile-edit'"
-          (goBack)="navigateToProfileView()">
+          (goBackEvent)="handleViewProfile()">
         </app-profile-edit>
       </div>
 
+      <div *ngIf="currentView === 'profile'" class="profile-content">
+        <app-profile-view 
+          (editProfileEvent)="handleEditProfile()"
+          (goBackEvent)="handleGoBackFromProfile()">
+        </app-profile-view>
+      </div>
+
+      <div *ngIf="currentView === 'maintenance'" class="section-content">
+        <h2>Maintenance Requests</h2>
+        <p>Maintenance management content goes here...</p>
+      </div>
+
+      <div *ngIf="currentView === 'inspections'" class="section-content">
+        <h2>Property Inspections</h2>
+        <p>Inspections content goes here...</p>
+      </div>
+
+      <div *ngIf="currentView === 'deposits'" class="section-content">
+        <h2>Deposit Management</h2>
+        <p>Deposit management content goes here...</p>
+      </div>
+
+      <div *ngIf="currentView === 'properties'" class="section-content">
+        <h2>Properties</h2>
+        <p>Properties content goes here...</p>
+      </div>
+
+      <div *ngIf="currentView === 'messages'" class="section-content">
+        <h2>Messages</h2>
+        <p>Messages content goes here...</p>
+      </div>
+
+      <div *ngIf="currentView === 'reports'" class="section-content">
+        <h2>Reports</h2>
+        <p>Reports content goes here...</p>
+      </div>
     </div>
   </div>
+
+  <div class="mobile-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
 </div>

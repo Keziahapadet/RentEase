@@ -231,36 +231,16 @@ export class CaretakerDashboardComponent implements OnInit {
     console.log('Contacting tenant...');
   }
 
-
-  navigateToProfileEdit(): void {
-    this.router.navigate(['/caretaker-dashboard/profile/edit']);
-    if (this.isMobile) {
-      this.isMobileMenuOpen = false;
-    }
+  handleEditProfile(): void {
+    this.currentView = 'profile-edit';
   }
 
- 
-  navigateToProfileView(): void {
-    this.router.navigate(['/caretaker-dashboard/profile/view']);
-    if (this.isMobile) {
-      this.isMobileMenuOpen = false;
-    }
+  handleViewProfile(): void {
+    this.currentView = 'profile-view';
   }
 
- 
-  navigateToOverview(): void {
-    this.router.navigate(['/caretaker-dashboard']);
-    if (this.isMobile) {
-      this.isMobileMenuOpen = false;
-    }
-  }
-
-
-  navigateToProfile(): void {
-    this.router.navigate(['/caretaker-dashboard/profile/view']);
-    if (this.isMobile) {
-      this.isMobileMenuOpen = false;
-    }
+  handleGoBackFromProfile(): void {
+    this.currentView = 'overview';
   }
 
   formatNumber(num: number): string {

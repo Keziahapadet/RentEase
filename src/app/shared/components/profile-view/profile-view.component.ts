@@ -6,8 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../services/auth.service';
+import { ProfilePictureService } from '../../../services/profile-picture.service';
 
 @Component({
   selector: 'app-profile-view',
@@ -19,7 +20,7 @@ import { AuthService } from '../../../services/auth.service';
     MatIconModule,
     MatDividerModule,
     MatSnackBarModule,
-    ProfilePictureComponent
+    MatProgressSpinnerModule
   ],
   templateUrl: './profile-view.component.html',
   styleUrls: ['./profile-view.component.scss']
@@ -29,21 +30,19 @@ export class ProfileViewComponent implements OnInit {
   @Output() goBackEvent = new EventEmitter<void>(); 
   
   user: any = null;
-  profileStats = {
-    properties: 0,
-    tenants: 0,
-    maintenance: 0,
-    revenue: 0
-  };
+  imageUrl: string | null = null;
+  loading: boolean = true;
 
   constructor(
     private authService: AuthService,
+    private profilePictureService: ProfilePictureService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.loadUserData();
+    this.loadProfilePicture();
   }
 
   private loadUserData(): void {
@@ -53,50 +52,52 @@ export class ProfileViewComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    
-    this.loadProfileStats();
   }
 
-  private loadProfileStats(): void {
-    const role = this.user?.role || 'user';
-    
-    if (role === 'landlord') {
-      this.profileStats = {
-        properties: 5,
-        tenants: 12,
-        maintenance: 3,
-        revenue: 125000
-      };
-    } else if (role === 'caretaker') {
-      this.profileStats = {
-        properties: 3,
-        tenants: 8,
-        maintenance: 5,
-        revenue: 0
-      };
-    } else if (role === 'tenant') {
-      this.profileStats = {
-        properties: 1,
-        tenants: 0,
-        maintenance: 2,
-        revenue: 0
-      };
-    } else {
-      this.profileStats = {
-        properties: 0,
-        tenants: 0,
-        maintenance: 0,
-        revenue: 0
-      };
-    }
+  private loadProfilePicture(): void {
+    this.profilePictureService.getProfilePicture().subscribe({
+      next: (response) => {
+        this.loading = false;
+        if (response.success && response.pictureUrl) {
+          const timestamp = new Date().getTime();
+          const cacheBustedUrl = response.pictureUrl.includes('?') 
+            ? `${response.pictureUrl}&t=${timestamp}`
+            : `${response.pictureUrl}?t=${timestamp}`;
+          
+          this.imageUrl = cacheBustedUrl;
+        } else {
+          this.imageUrl = this.profilePictureService.getDefaultAvatar(this.user?.fullName);
+        }
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Failed to load profile picture:', error);
+        this.imageUrl = this.profilePictureService.getDefaultAvatar(this.user?.fullName);
+      }
+    });
   }
 
- 
+  onImageError(): void {
+    this.imageUrl = this.profilePictureService.getDefaultAvatar(this.user?.fullName);
+  }
+
+  getInitials(): string {
+    if (!this.user?.fullName) return '?';
+    
+    const names = this.user.fullName.split(' ');
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  }
+
+  isDefaultAvatar(): boolean {
+    return !this.imageUrl || this.imageUrl.includes('svg+xml');
+  }
+
   editProfile(): void {
     this.editProfileEvent.emit(); 
   }
 
- 
   goBack(): void {
     this.goBackEvent.emit(); 
   }
@@ -120,10 +121,6 @@ export class ProfileViewComponent implements OnInit {
     });
   }
 
-  formatCurrency(amount: number): string {
-    return `KSH ${amount.toLocaleString('en-KE')}`;
-  }
-
   getRoleDisplay(role: string): string {
     const roleMap: { [key: string]: string } = {
       'landlord': 'Landlord',
@@ -134,27 +131,5 @@ export class ProfileViewComponent implements OnInit {
       'user': 'User'
     };
     return roleMap[role] || 'User';
-  }
-
-  getStatLabel(stat: string): string {
-    const role = this.user?.role || 'user';
-    
-    if (role === 'tenant') {
-      const tenantLabels: { [key: string]: string } = {
-        'properties': 'Current Property',
-        'tenants': 'Housemates',
-        'maintenance': 'My Requests',
-        'revenue': 'Monthly Rent'
-      };
-      return tenantLabels[stat] || stat;
-    }
-    
-    const defaultLabels: { [key: string]: string } = {
-      'properties': 'Properties',
-      'tenants': 'Tenants',
-      'maintenance': 'Maintenance',
-      'revenue': 'Revenue'
-    };
-    return defaultLabels[stat] || stat;
   }
 }

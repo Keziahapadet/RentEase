@@ -49,10 +49,10 @@ export interface Inspection {
   selector: 'app-overview',
   standalone: true,
   imports: [CommonModule, MatIconModule, MatCardModule, MatButtonModule],
-  templateUrl: './overview.component.html',
-  styleUrls: ['./overview.component.scss']
+  templateUrl: './caretaker-overview.component.html',
+  styleUrls: ['./caretaker-overview.component.scss']
 })
-export class OverviewComponent implements OnInit {
+export class CaretakerOverviewComponent implements OnInit {
   stats: Stats = {
     pendingMaintenance: 0,
     scheduledInspections: 0,

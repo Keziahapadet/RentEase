@@ -1,162 +1,141 @@
 <div class="profile-edit-container">
-  <div class="content-header">
-    <div class="header-left">
-      <h1>Edit Profile</h1>
-      <p>Update your personal information and preferences</p>
-    </div>
+  <div class="profile-edit-header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Edit Profile</h1>
     <div class="header-actions">
-     
-      <button mat-button (click)="goBack()" class="back-btn">
-        <mat-icon>arrow_back</mat-icon>
-        Back to Profile
+      <button mat-button (click)="cancel()" class="cancel-btn">Cancel</button>
+      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSubmitting" class="save-btn">
+        <mat-icon *ngIf="!isSubmitting">check</mat-icon>
+        <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+        <span *ngIf="!isSubmitting">Save Changes</span>
+        <span *ngIf="isSubmitting">Saving...</span>
       </button>
     </div>
   </div>
 
-  <div class="profile-content">
-    <div class="profile-card">
-      <div class="profile-banner">
-        <div class="banner-gradient"></div>
-      </div>
+  <div class="profile-edit-content">
+    <mat-card class="profile-card">
+      <mat-card-content>
+        <div class="picture-section">
+          <h2>Profile Picture</h2>
+          
+          <div class="picture-upload-area">
+            <div class="avatar-container">
+              <div class="avatar-wrapper" [class.loading]="uploading || loading">
+                <div *ngIf="uploading || loading" class="loading-overlay">
+                  <mat-spinner diameter="40"></mat-spinner>
+                </div>
+                
+                <div *ngIf="!isDefaultAvatar() && imageUrl" class="avatar-image">
+                  <img [src]="imageUrl" (error)="onImageError()" alt="Profile picture">
+                </div>
+                
+                <div *ngIf="isDefaultAvatar()" class="avatar-initials">
+                  <span>{{ getInitials() }}</span>
+                </div>
 
-      <div class="profile-main">
-        
-        <div class="profile-avatar-section">
-          <div class="avatar-wrapper">
-            <app-profile-picture
-              [editable]="true"
-              [showName]="false"
-              [showRole]="false"
-              size="large"
-              (pictureUpdated)="onPictureUpdated($event)"
-              (pictureDeleted)="onPictureDeleted()">
-            </app-profile-picture>
-            <div class="avatar-badge" *ngIf="user?.verified">
-              <mat-icon>verified</mat-icon>
+                <button mat-mini-fab class="camera-button" (click)="toggleImageOptions()" [disabled]="uploading">
+                  <mat-icon>camera_alt</mat-icon>
+                </button>
+              </div>
+
+              <div class="image-options" *ngIf="showImageOptions">
+                <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" style="display: none">
+                
+                <button mat-stroked-button (click)="fileInput.click()" class="option-btn upload-btn">
+                  <mat-icon>upload</mat-icon>
+                  <span>Upload Photo</span>
+                </button>
+
+                <button mat-stroked-button (click)="fileInput.click(); fileInput.capture = 'camera'" class="option-btn camera-btn">
+                  <mat-icon>photo_camera</mat-icon>
+                  <span>Take Photo</span>
+                </button>
+
+                <button mat-stroked-button (click)="deletePicture()" *ngIf="!isDefaultAvatar()" class="option-btn delete-btn">
+                  <mat-icon>delete</mat-icon>
+                  <span>Remove Photo</span>
+                </button>
+
+                <button mat-button (click)="toggleImageOptions()" class="option-btn cancel-options-btn">
+                  <span>Cancel</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div class="avatar-info">
-            <h2 class="user-name">{{user?.fullName || 'User'}}</h2>
-            <p class="user-role">{{getRoleDisplay(user?.role)}}</p>
-            <p class="edit-hint">Click on the profile picture to change it</p>
+            <div class="upload-instructions">
+              <p class="main-text">Update your profile picture</p>
+              <p class="sub-text">JPG, PNG, GIF or WEBP. Max size 5MB</p>
+            </div>
           </div>
         </div>
 
-      
-        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
-          <div class="form-section">
-            <h3>
-              <mat-icon>person</mat-icon>
-              Personal Information
-            </h3>
-            <div class="form-grid">
+        <mat-divider></mat-divider>
+
+        <div class="form-section">
+          <h2>Personal Information</h2>
+          
+          <form [formGroup]="profileForm" class="profile-form">
+            <div class="form-row">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Full Name</mat-label>
+                <mat-icon matPrefix>person</mat-icon>
                 <input matInput formControlName="fullName" placeholder="Enter your full name">
-                <mat-icon matPrefix>badge</mat-icon>
-                <mat-error *ngIf="fullName?.hasError('required')">
-                  Full name is required
-                </mat-error>
-                <mat-error *ngIf="fullName?.hasError('minlength')">
-                  Name must be at least 2 characters
-                </mat-error>
-                <mat-error *ngIf="fullName?.hasError('maxlength')">
-                  Name must be less than 100 characters
-                </mat-error>
+                <mat-error *ngIf="fullName?.hasError('required')">Full name is required</mat-error>
+                <mat-error *ngIf="fullName?.hasError('minlength')">Name must be at least 2 characters</mat-error>
+                <mat-error *ngIf="fullName?.hasError('maxlength')">Name cannot exceed 100 characters</mat-error>
               </mat-form-field>
+            </div>
 
+            <div class="form-row">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Email Address</mat-label>
-                <input matInput formControlName="email" placeholder="your.email@example.com" type="email">
+                <mat-label>Email</mat-label>
                 <mat-icon matPrefix>email</mat-icon>
-                <mat-error *ngIf="email?.hasError('required')">
-                  Email is required
-                </mat-error>
-                <mat-error *ngIf="email?.hasError('email')">
-                  Please enter a valid email address
-                </mat-error>
+                <input matInput type="email" formControlName="email" placeholder="Enter your email">
+                <mat-error *ngIf="email?.hasError('required')">Email is required</mat-error>
+                <mat-error *ngIf="email?.hasError('email')">Please enter a valid email</mat-error>
               </mat-form-field>
+            </div>
 
+            <div class="form-row">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Phone Number</mat-label>
-                <input matInput formControlName="phoneNumber" placeholder="+254 700 000 000">
                 <mat-icon matPrefix>phone</mat-icon>
-                <mat-error *ngIf="phoneNumber?.hasError('pattern')">
-                  Please enter a valid phone number
-                </mat-error>
-                <mat-error *ngIf="phoneNumber?.hasError('minlength')">
-                  Phone number must be at least 10 digits
-                </mat-error>
+                <input matInput type="tel" formControlName="phoneNumber" placeholder="Enter your phone number">
+                <mat-error *ngIf="phoneNumber?.hasError('pattern')">Please enter a valid phone number</mat-error>
+                <mat-error *ngIf="phoneNumber?.hasError('minlength')">Phone number must be at least 10 digits</mat-error>
               </mat-form-field>
             </div>
-          </div>
 
-          <div class="form-section">
-            <h3>
-              <mat-icon>description</mat-icon>
-              About You
-            </h3>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Bio</mat-label>
-              <textarea 
-                matInput 
-                formControlName="bio" 
-                placeholder="Tell us about yourself, your interests, or anything you'd like to share..."
-                rows="4"
-                maxlength="500">
-              </textarea>
-              <mat-hint align="end">{{bio?.value?.length || 0}}/500</mat-hint>
-              <mat-error *ngIf="bio?.hasError('maxlength')">
-                Bio must be less than 500 characters
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <div class="form-section">
-            <h3>
-              <mat-icon>security</mat-icon>
-              Account Security
-            </h3>
-            <div class="security-actions">
-              <button type="button" mat-stroked-button class="security-btn">
-                <mat-icon>lock</mat-icon>
-                Change Password
-              </button>
-              <button type="button" mat-stroked-button class="security-btn">
-                <mat-icon>notifications</mat-icon>
-                Notification Settings
-              </button>
-              <button type="button" mat-stroked-button class="security-btn">
-                <mat-icon>privacy_tip</mat-icon>
-                Privacy Settings
-              </button>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Bio</mat-label>
+                <mat-icon matPrefix>description</mat-icon>
+                <textarea matInput formControlName="bio" placeholder="Tell us about yourself" rows="4"></textarea>
+                <mat-hint align="end">{{ bio?.value?.length || 0 }}/500</mat-hint>
+                <mat-error *ngIf="bio?.hasError('maxlength')">Bio cannot exceed 500 characters</mat-error>
+              </mat-form-field>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div class="form-actions">
-            <button 
-              type="button" 
-              mat-stroked-button 
-              (click)="cancel()" 
-              [disabled]="isSubmitting" 
-              class="cancel-btn">
-              <mat-icon>close</mat-icon>
-              Cancel
-            </button>
-            <button 
-              mat-raised-button 
-              color="primary" 
-              type="submit" 
-              [disabled]="isSubmitting || profileForm.invalid" 
-              class="save-btn">
-              <mat-icon *ngIf="!isSubmitting">save</mat-icon>
-              <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
-              {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <mat-divider></mat-divider>
+
+        <div class="form-actions">
+          <button mat-stroked-button (click)="cancel()" class="cancel-action-btn">
+            <mat-icon>close</mat-icon>
+            Cancel
+          </button>
+          <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSubmitting || profileForm.invalid" class="save-action-btn">
+            <mat-icon *ngIf="!isSubmitting">save</mat-icon>
+            <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+            <span *ngIf="!isSubmitting">Save Changes</span>
+            <span *ngIf="isSubmitting">Saving...</span>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>
