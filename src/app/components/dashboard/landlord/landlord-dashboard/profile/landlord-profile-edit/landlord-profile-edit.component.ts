@@ -256,14 +256,17 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
           console.log('=== COMPONENT UPLOAD RESPONSE ===');
           console.log('Response:', response);
           
-          if (response.success && response.pictureUrl) {
+          // FIX: Check data field first, then pictureUrl
+          const imageUrl = response.data || response.pictureUrl;
+          
+          if (response.success && imageUrl) {
             this.snackBar.open('Profile photo updated successfully', 'Close', { duration: 2000 });
             
             // Update the image immediately with cache busting
             const timestamp = new Date().getTime();
-            const cacheBustedUrl = response.pictureUrl.includes('?') 
-              ? `${response.pictureUrl}&t=${timestamp}`
-              : `${response.pictureUrl}?t=${timestamp}`;
+            const cacheBustedUrl = imageUrl.includes('?') 
+              ? `${imageUrl}&t=${timestamp}`
+              : `${imageUrl}?t=${timestamp}`;
             
             this.profileImage = cacheBustedUrl;
             localStorage.setItem('profileImage', cacheBustedUrl);
@@ -443,14 +446,17 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         this.isUploadingPhoto = false;
         
-        if (response.success && response.pictureUrl) {
+        // FIX: Check data field first, then pictureUrl
+        const imageUrl = response.data || response.pictureUrl;
+        
+        if (response.success && imageUrl) {
           this.snackBar.open('Photo captured successfully', 'Close', { duration: 2000 });
           
           // Update the image immediately with cache busting
           const timestamp = new Date().getTime();
-          const cacheBustedUrl = response.pictureUrl.includes('?') 
-            ? `${response.pictureUrl}&t=${timestamp}`
-            : `${response.pictureUrl}?t=${timestamp}`;
+          const cacheBustedUrl = imageUrl.includes('?') 
+            ? `${imageUrl}&t=${timestamp}`
+            : `${imageUrl}?t=${timestamp}`;
           
           this.profileImage = cacheBustedUrl;
           localStorage.setItem('profileImage', cacheBustedUrl);
