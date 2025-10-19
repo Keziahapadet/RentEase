@@ -86,7 +86,7 @@ export const routes: Routes = [
       { path: 'home', component: LandlordDashboardHomeComponent },
       { path: 'profile', redirectTo: 'profile/view', pathMatch: 'full' },
       { path: 'profile/view', component: ProfileViewComponent },
-      { path: 'profile/edit', component: LandlordProfileEditComponent }, // Use landlord-specific component
+      { path: 'profile/edit', component: LandlordProfileEditComponent }, 
       { path: 'property', redirectTo: 'property/list', pathMatch: 'full' },
       { path: 'property/create', component: PropertyCreateComponent },
       { path: 'property/list', component: PropertyListComponent },

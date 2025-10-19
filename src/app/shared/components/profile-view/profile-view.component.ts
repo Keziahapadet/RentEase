@@ -25,8 +25,8 @@ import { AuthService } from '../../../services/auth.service';
   styleUrls: ['./profile-view.component.scss']
 })
 export class ProfileViewComponent implements OnInit {
-  @Output() editProfileEvent = new EventEmitter<void>(); // CHANGED: Renamed event emitter
-  @Output() goBackEvent = new EventEmitter<void>(); // CHANGED: Renamed event emitter
+  @Output() editProfileEvent = new EventEmitter<void>(); 
+  @Output() goBackEvent = new EventEmitter<void>(); 
   
   user: any = null;
   profileStats = {
@@ -91,14 +91,14 @@ export class ProfileViewComponent implements OnInit {
     }
   }
 
-  // FIXED: No duplicate identifier
+ 
   editProfile(): void {
-    this.editProfileEvent.emit(); // CHANGED: Use renamed event emitter
+    this.editProfileEvent.emit(); 
   }
 
-  // FIXED: No duplicate identifier
+ 
   goBack(): void {
-    this.goBackEvent.emit(); // CHANGED: Use renamed event emitter
+    this.goBackEvent.emit(); 
   }
 
   getFormattedPhone(phone: string): string {

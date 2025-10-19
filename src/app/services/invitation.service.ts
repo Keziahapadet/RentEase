@@ -31,7 +31,7 @@ export class InvitationService {
     
     if (error.status === 401) {
       errorMessage = 'Please check your authentication';
-      // No auto-logout - this prevents the app crash
+
     } else if (error.status === 404) {
       errorMessage = 'Feature not available yet';
     } else if (error.error?.message) {

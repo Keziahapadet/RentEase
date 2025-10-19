@@ -22,7 +22,7 @@ export interface Unit {
   propertyId: number;
 }
 
-// Comment out unused interfaces for now
+
 /*
 export interface MaintenanceRequest {
   id: string;
@@ -67,7 +67,7 @@ export class CaretakerService {
     private authService: AuthService
   ) {}
 
-  // Create proper headers with authentication
+ 
   private createHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     const headersConfig: any = {
@@ -101,14 +101,14 @@ export class CaretakerService {
     }));
   }
 
-  // Authentication
+
   logout(): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/logout`, {}, {
       headers: this.createHeaders()
     }).pipe(catchError(this.handleError));
   }
 
-  // Property methods
+
   getProperties(): Observable<Property[]> {
     return this.http.get<Property[]>(`${this.apiUrl}/caretaker/properties`, {
       headers: this.createHeaders()
@@ -136,7 +136,7 @@ export class CaretakerService {
     }).pipe(catchError(this.handleError));
   }
 
-  // Comment out Maintenance methods for now
+
   /*
   getMaintenanceRequests(): Observable<MaintenanceRequest[]> {
     return this.http.get<MaintenanceRequest[]>(`${this.apiUrl}/caretaker/maintenance`, {
@@ -155,7 +155,7 @@ export class CaretakerService {
   }
   */
 
-  // Comment out Inspection methods for now
+ 
   /*
   getInspections(): Observable<Inspection[]> {
     return this.http.get<Inspection[]>(`${this.apiUrl}/caretaker/inspections`, {
@@ -174,7 +174,7 @@ export class CaretakerService {
   }
   */
 
-  // Comment out Deposit methods for now
+
   /*
   getDepositCases(): Observable<DepositCase[]> {
     return this.http.get<DepositCase[]>(`${this.apiUrl}/caretaker/deposits`, {

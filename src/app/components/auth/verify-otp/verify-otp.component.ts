@@ -128,7 +128,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       const response = await firstValueFrom(this.authService.verifyOtp(verifyRequest));
 
       if (response.success) {
-        this.showMessage('Verification successful! Logging you in...', 'success');
+        this.showMessage('Verification successful! Redirecting to dashboard...', 'success');
         await this.handleSuccessfulVerification(response);
       } else {
         throw new Error(response.message || 'Verification failed');
@@ -156,23 +156,18 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
 
     const userRole = response.user?.role || this.userType;
     
-    if (!response.token || !response.user) {
-      this.showMessage('Verification successful! Please login.', 'success');
-      await this.router.navigate(['/login'], {
-        queryParams: {
-          email: this.email,
-          verified: 'true',
-          message: 'Email verified! Please login.'
-        }
-      });
-      return;
+    // Store authentication data if available
+    if (response.token) {
+      localStorage.setItem('authToken', response.token);
+    }
+    if (response.user) {
+      localStorage.setItem('userData', JSON.stringify(response.user));
     }
 
-    this.showMessage('Verification successful! Redirecting to dashboard...', 'success');
+    // Always redirect to dashboard after successful verification
+    const dashboardRoute = this.getDashboardRoute(userRole);
     
     await new Promise(resolve => setTimeout(resolve, 500));
-
-    const dashboardRoute = this.getDashboardRoute(userRole);
     await this.router.navigate([dashboardRoute], { replaceUrl: true });
   }
 
@@ -185,7 +180,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
       case 'TENANT':
         return '/tenant-dashboard';
       case 'CARETAKER':
-        return '/caretaker-dashboard';
+        return '/caretaker-dashboard/';
       case 'BUSINESS':
         return '/business-dashboard';
       case 'ADMIN':
@@ -206,11 +201,11 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     } else if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
       this.showMessage('Account not found. Please check your email or register.', 'error');
     } else if (errorMsg.includes('already verified')) {
-      this.showMessage('Account already verified. Redirecting to login...', 'info');
+      this.showMessage('Account already verified. Redirecting to dashboard...', 'info');
       setTimeout(() => {
-        this.router.navigate(['/login'], {
-          queryParams: { email: this.email }
-        });
+        const userRole = this.userType;
+        const dashboardRoute = this.getDashboardRoute(userRole);
+        this.router.navigate([dashboardRoute]);
       }, 2000);
     } else {
       this.showMessage(error.message || 'Verification failed. Please try again.', 'error');

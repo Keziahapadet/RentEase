@@ -213,7 +213,7 @@ export class ProfilePictureService {
     );
   }
 
-  // FIXED: Make parameter optional
+ 
   getDefaultAvatar(name?: string): string {
     const currentUser = this.authService.getCurrentUser();
     const userName = name || currentUser?.fullName || 'User';
