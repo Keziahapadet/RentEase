@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
-
 import { CaretakerService } from '../../../services/caretaker.service';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
@@ -43,7 +42,7 @@ export interface QuickAction {
     MatIconModule,
     MatButtonModule,
     MatTableModule,
-    ProfilePictureComponent, // Make sure this is imported
+    ProfilePictureComponent,
     ProfileViewComponent,
     ProfileEditComponent
   ],
@@ -58,7 +57,6 @@ export class CaretakerDashboardComponent implements OnInit {
   userProfile: UserProfile | null = null;
   loading: boolean = true;
   
-  // Navigation items
   navItems: NavItem[] = [
     { id: 'overview', label: 'Dashboard', icon: 'dashboard' },
     { id: 'maintenance', label: 'Maintenance', icon: 'build' },
@@ -70,7 +68,6 @@ export class CaretakerDashboardComponent implements OnInit {
     { id: 'profile', label: 'Profile', icon: 'person' }
   ];
 
-  // Dashboard statistics
   stats: Stats = {
     pendingMaintenance: 5,
     scheduledInspections: 3,
@@ -80,7 +77,6 @@ export class CaretakerDashboardComponent implements OnInit {
     tenantSatisfaction: 4.5
   };
 
-  // Quick actions
   quickActions: QuickAction[] = [
     { 
       id: 'newMaintenance', 
@@ -132,7 +128,6 @@ export class CaretakerDashboardComponent implements OnInit {
     this.checkMobileView();
   }
 
-  // View management
   get isProfileView(): boolean {
     return ['profile-view', 'profile-edit', 'profile'].includes(this.currentView);
   }
@@ -184,7 +179,6 @@ export class CaretakerDashboardComponent implements OnInit {
     return descMap[this.currentView] || `Manage your ${this.currentView.toLowerCase()} activities`;
   }
 
-  // Mobile responsiveness
   checkMobileView(): void {
     this.isMobile = window.innerWidth <= 768;
     if (!this.isMobile) {
@@ -216,7 +210,6 @@ export class CaretakerDashboardComponent implements OnInit {
     }
   }
 
-  // User profile management
   loadUserProfile(): void {
     this.loading = true;
     this.profilePictureService.getCurrentUserProfile().subscribe({
@@ -255,7 +248,6 @@ export class CaretakerDashboardComponent implements OnInit {
     this.showNotification('Profile picture deleted successfully!', 'success');
   }
 
-  // Profile navigation
   handleEditProfile(): void {
     this.currentView = 'profile-edit';
   }
@@ -268,7 +260,6 @@ export class CaretakerDashboardComponent implements OnInit {
     this.currentView = 'overview';
   }
 
-  // Quick actions
   createMaintenance(): void {
     console.log('Creating new maintenance request...');
     this.setView('maintenance');
@@ -289,7 +280,6 @@ export class CaretakerDashboardComponent implements OnInit {
     this.setView('messages');
   }
 
-  // Utility methods
   refreshData(): void {
     this.loadUserProfile();
   }
@@ -307,11 +297,9 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   private showNotification(message: string, type: 'success' | 'error'): void {
-    // You can replace this with a proper snackbar service
     console.log(`${type.toUpperCase()}: ${message}`);
   }
 
-  // Formatting helpers
   formatNumber(num: number): string {
     return num.toLocaleString('en-KE');
   }
