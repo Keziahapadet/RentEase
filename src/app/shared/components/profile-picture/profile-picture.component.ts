@@ -51,8 +51,10 @@ export class ProfilePictureComponent implements OnInit {
     this.profilePictureService.getProfilePicture().subscribe({
       next: (response) => {
         this.loading = false;
-        if (response.success && response.pictureUrl) {
-          this.imageUrl = response.pictureUrl;
+        const pictureUrl = response.data || response.pictureUrl;
+        
+        if (response.success && pictureUrl) {
+          this.imageUrl = pictureUrl;
         } else {
           this.imageUrl = this.profilePictureService.getDefaultAvatar(this.userProfile?.fullName);
         }
@@ -97,10 +99,12 @@ export class ProfilePictureComponent implements OnInit {
     this.profilePictureService.uploadProfilePicture(file).subscribe({
       next: (response) => {
         this.uploading = false;
-        if (response.success && response.pictureUrl) {
-          this.imageUrl = response.pictureUrl;
-          this.pictureUpdated.emit(response.pictureUrl);
-          localStorage.setItem('profileImage', response.pictureUrl);
+        const pictureUrl = response.data || response.pictureUrl;
+        
+        if (response.success && pictureUrl) {
+          this.imageUrl = pictureUrl;
+          this.pictureUpdated.emit(pictureUrl);
+          localStorage.setItem('profileImage', pictureUrl);
         } else {
           alert('Failed to upload profile picture');
         }

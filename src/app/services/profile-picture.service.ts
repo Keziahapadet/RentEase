@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 export interface ProfilePictureResponse {
   success: boolean;
   message: string;
+  data?: string;        
   imageUrl?: string;
   pictureUrl?: string;
 }
@@ -70,9 +71,11 @@ export class ProfilePictureService {
       { headers: this.createHeaders() }
     ).pipe(
       tap(response => {
-        if (response.success && (response.imageUrl || response.pictureUrl)) {
-          const pictureUrl = response.imageUrl || response.pictureUrl;
-          localStorage.setItem('profileImage', pictureUrl!);
+        // Check data field first, then fallback to imageUrl/pictureUrl
+        const pictureUrl = response.data || response.imageUrl || response.pictureUrl;
+        
+        if (response.success && pictureUrl) {
+          localStorage.setItem('profileImage', pictureUrl);
           
           const currentUser = this.authService.getCurrentUser();
           if (currentUser) {
@@ -124,9 +127,11 @@ export class ProfilePictureService {
       { headers }
     ).pipe(
       tap(response => {
-        if (response.success && (response.imageUrl || response.pictureUrl)) {
+        // Check data field first, then fallback to imageUrl/pictureUrl
+        const pictureUrl = response.data || response.imageUrl || response.pictureUrl;
+        
+        if (response.success && pictureUrl) {
           localStorage.removeItem('profileImage');
-          const pictureUrl = response.imageUrl || response.pictureUrl;
           
           const currentUser = this.authService.getCurrentUser();
           if (currentUser) {
@@ -164,9 +169,11 @@ export class ProfilePictureService {
       { headers }
     ).pipe(
       tap(response => {
-        if (response.success && (response.imageUrl || response.pictureUrl)) {
+        // Check data field first, then fallback to imageUrl/pictureUrl
+        const pictureUrl = response.data || response.imageUrl || response.pictureUrl;
+        
+        if (response.success && pictureUrl) {
           localStorage.removeItem('profileImage');
-          const pictureUrl = response.imageUrl || response.pictureUrl;
           
           const currentUser = this.authService.getCurrentUser();
           if (currentUser) {
@@ -213,7 +220,6 @@ export class ProfilePictureService {
     );
   }
 
- 
   getDefaultAvatar(name?: string): string {
     const currentUser = this.authService.getCurrentUser();
     const userName = name || currentUser?.fullName || 'User';

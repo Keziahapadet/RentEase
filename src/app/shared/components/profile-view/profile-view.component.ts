@@ -58,11 +58,13 @@ export class ProfileViewComponent implements OnInit {
     this.profilePictureService.getProfilePicture().subscribe({
       next: (response) => {
         this.loading = false;
-        if (response.success && response.pictureUrl) {
+        const pictureUrl = response.data || response.pictureUrl;
+        
+        if (response.success && pictureUrl) {
           const timestamp = new Date().getTime();
-          const cacheBustedUrl = response.pictureUrl.includes('?') 
-            ? `${response.pictureUrl}&t=${timestamp}`
-            : `${response.pictureUrl}?t=${timestamp}`;
+          const cacheBustedUrl = pictureUrl.includes('?') 
+            ? `${pictureUrl}&t=${timestamp}`
+            : `${pictureUrl}?t=${timestamp}`;
           
           this.imageUrl = cacheBustedUrl;
         } else {
