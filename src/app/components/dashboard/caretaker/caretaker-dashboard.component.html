@@ -9,6 +9,16 @@
       </button>
     </div>
 
+    <div class="sidebar-profile">
+      <app-profile-picture 
+        [size]="'medium'" 
+        [editable]="false"
+        [showName]="isSidebarOpen"
+        [showRole]="isSidebarOpen"
+        (click)="setView('profile')">
+      </app-profile-picture>
+    </div>
+
     <nav class="sidebar-nav">
       <button 
         *ngFor="let item of navItems" 
@@ -41,14 +51,9 @@
       </div>
       
       <div class="header-actions">
-        <app-profile-picture 
-          [size]="'small'" 
-          [editable]="false"
-          [showName]="false"
-          [showRole]="false"
-          (pictureUpdated)="onPictureUpdated($event)"
-          (pictureDeleted)="onPictureDeleted()">
-        </app-profile-picture>
+        <button mat-icon-button>
+          <mat-icon>notifications</mat-icon>
+        </button>
       </div>
     </header>
 

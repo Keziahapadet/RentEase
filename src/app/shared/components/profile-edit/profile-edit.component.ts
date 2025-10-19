@@ -250,25 +250,23 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       bio: this.profileForm.value.bio
     };
 
+    const updatedUser = {
+      ...this.user,
+      ...updatedData
+    };
+    
+    const isPermanent = !!localStorage.getItem('userData');
+    const storage = isPermanent ? localStorage : sessionStorage;
+    storage.setItem('userData', JSON.stringify(updatedUser));
+    
     setTimeout(() => {
       this.isSubmitting = false;
-      
-      const updatedUser = {
-        ...this.user,
-        ...updatedData
-      };
-      
-      const isPermanent = !!localStorage.getItem('userData');
-      const storage = isPermanent ? localStorage : sessionStorage;
-      storage.setItem('userData', JSON.stringify(updatedUser));
-      
       this.snackBar.open('Profile updated successfully!', 'Close', { duration: 2000 });
       
       setTimeout(() => {
         this.goBack(); 
       }, 500);
-      
-    }, 1500);
+    }, 800);
   }
 
   goBack(): void {
