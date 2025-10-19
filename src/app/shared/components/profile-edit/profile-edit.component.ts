@@ -80,7 +80,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.profilePictureService.getProfilePicture().subscribe({
       next: (response) => {
         this.loading = false;
-        const pictureUrl = response.data || response.pictureUrl;
+        const pictureUrl = response.data || response.imageUrl || response.pictureUrl;
         
         if (response.success && pictureUrl) {
           const timestamp = new Date().getTime();
@@ -156,13 +156,16 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   }
 
   uploadProfilePicture(file: File): void {
+    console.log('Starting upload with file:', file.name, file.type, file.size);
     this.uploading = true;
     this.showImageOptions = false;
 
     this.profilePictureService.uploadProfilePicture(file).subscribe({
       next: (response) => {
+        console.log('Upload SUCCESS - Full response:', JSON.stringify(response, null, 2));
         this.uploading = false;
-        const pictureUrl = response.data || response.pictureUrl;
+        const pictureUrl = response.data || response.imageUrl || response.pictureUrl;
+        console.log('Extracted picture URL:', pictureUrl);
         
         if (response.success && pictureUrl) {
           const timestamp = new Date().getTime();
@@ -170,18 +173,22 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
             ? `${pictureUrl}&t=${timestamp}`
             : `${pictureUrl}?t=${timestamp}`;
           
+          console.log('Setting image URL to:', cacheBustedUrl);
           this.imageUrl = cacheBustedUrl;
           this.snackBar.open('Profile picture updated successfully!', 'Close', { duration: 3000 });
           
           localStorage.setItem('profileImage', cacheBustedUrl);
           window.dispatchEvent(new Event('profileImageUpdated'));
         } else {
+          console.error('Upload failed - no picture URL in response. Full response:', response);
           this.snackBar.open('Failed to upload profile picture', 'Close', { duration: 3000 });
         }
       },
       error: (error) => {
         this.uploading = false;
-        console.error('Upload failed:', error);
+        console.error('Upload ERROR - Full error:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
         this.snackBar.open('Failed to upload profile picture. Please try again.', 'Close', { duration: 3000 });
       }
     });
