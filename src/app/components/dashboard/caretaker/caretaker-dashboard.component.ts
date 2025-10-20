@@ -4,8 +4,10 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
+import { MatChipsModule } from '@angular/material/chips';
 import { CaretakerService } from '../../../services/caretaker.service';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
+import { AuthService } from '../../../services/auth.service';
 import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
 import { ProfileViewComponent } from '../../../shared/components/profile-view/profile-view.component';
 import { ProfileEditComponent } from '../../../shared/components/profile-edit/profile-edit.component'; 
@@ -42,6 +44,7 @@ export interface QuickAction {
     MatIconModule,
     MatButtonModule,
     MatTableModule,
+    MatChipsModule,
     ProfilePictureComponent,
     ProfileViewComponent,
     ProfileEditComponent
@@ -55,6 +58,7 @@ export class CaretakerDashboardComponent implements OnInit {
   isMobile = false;
   isMobileMenuOpen = false;
   userProfile: UserProfile | null = null;
+  userRole: 'caretaker' | 'tenant' | 'landlord' | 'admin' | 'business' | 'user' = 'user';
   loading: boolean = true;
   
   navItems: NavItem[] = [
@@ -115,6 +119,7 @@ export class CaretakerDashboardComponent implements OnInit {
   constructor(
     private caretakerService: CaretakerService,
     private profilePictureService: ProfilePictureService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -215,21 +220,88 @@ export class CaretakerDashboardComponent implements OnInit {
     this.profilePictureService.getCurrentUserProfile().subscribe({
       next: (profile) => {
         this.userProfile = profile;
+        
+        // Determine the actual user role
+        this.determineActualUserRole();
+        
+        console.log('🔍 DASHBOARD - User profile:', profile);
+        console.log('🔍 DASHBOARD - Final determined role:', this.userRole);
+        
         this.loading = false;
       },
       error: (error) => {
         console.error('Failed to load user profile:', error);
         this.loading = false;
+        
+        // Determine role even if profile fails
+        this.determineActualUserRole();
+        
         this.userProfile = {
           id: 'unknown',
           fullName: 'Caretaker',
           email: '',
-          role: 'caretaker',
+          role: this.userRole,
           verified: false,
           emailVerified: false
         };
       }
     });
+  }
+
+  private determineActualUserRole(): void {
+    // Method 1: Use AuthService role checking methods to determine actual role
+    if (this.authService.isTenant()) {
+      this.userRole = 'tenant';
+      console.log('✅ DASHBOARD - User is a Tenant (from token)');
+    } else if (this.authService.isCaretaker()) {
+      this.userRole = 'caretaker';
+      console.log('✅ DASHBOARD - User is a Caretaker (from token)');
+    } else if (this.authService.isLandlord()) {
+      this.userRole = 'landlord';
+      console.log('✅ DASHBOARD - User is a Landlord (from token)');
+    } else if (this.authService.isBusiness()) {
+      this.userRole = 'business';
+      console.log('✅ DASHBOARD - User is a Business (from token)');
+    } else if (this.authService.isAdmin()) {
+      this.userRole = 'admin';
+      console.log('✅ DASHBOARD - User is an Admin (from token)');
+    } else {
+      this.userRole = 'user';
+      console.log('⚠️ DASHBOARD - Default role: user');
+    }
+
+    // Update the user profile with the correct role
+    if (this.userProfile) {
+      // Create a new object with the correct role type
+      this.userProfile = {
+        ...this.userProfile,
+        role: this.userRole
+      };
+    }
+  }
+
+  getRoleDisplay(): string {
+    const roleMap: { [key: string]: string } = {
+      'landlord': 'Landlord',
+      'tenant': 'Tenant',
+      'caretaker': 'Caretaker',
+      'admin': 'Administrator',
+      'business': 'Business',
+      'user': 'User'
+    };
+    return roleMap[this.userRole] || 'User';
+  }
+
+  getRoleColor(): string {
+    const colorMap: { [key: string]: string } = {
+      'landlord': '#ff6b35',
+      'tenant': '#4CAF50',
+      'caretaker': '#2196F3',
+      'admin': '#9C27B0',
+      'business': '#FF9800',
+      'user': '#666'
+    };
+    return colorMap[this.userRole] || '#666';
   }
 
   onPictureUpdated(imageUrl: string): void {

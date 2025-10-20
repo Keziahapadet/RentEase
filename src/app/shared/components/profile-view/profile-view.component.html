@@ -12,6 +12,20 @@
   <div class="profile-view-content">
     <mat-card class="profile-card">
       <mat-card-content>
+        <!-- User Type Badge Section -->
+        <div class="user-type-section">
+          <div class="user-type-badge" [style.background]="getRoleColor() + '15'" [style.border-color]="getRoleColor()">
+            <mat-icon class="badge-icon" [style.color]="getRoleColor()">badge</mat-icon>
+            <div class="badge-content">
+              <span class="badge-label">Account Type</span>
+              <span class="badge-value" [style.color]="getRoleColor()">{{ getRoleDisplay() }}</span>
+            </div>
+          </div>
+          <p class="user-type-note">Your account type determines the features and permissions available to you</p>
+        </div>
+
+        <mat-divider></mat-divider>
+
         <div class="profile-header-section">
           <div class="avatar-wrapper" [class.loading]="loading">
             <div *ngIf="loading" class="loading-overlay">
@@ -29,7 +43,13 @@
 
           <div class="profile-info">
             <h2 class="user-name">{{ user?.fullName || 'User' }}</h2>
-            <p class="user-role">{{ getRoleDisplay(user?.role || 'user') }}</p>
+            
+            <!-- User Role Chip -->
+            <mat-chip class="user-role-chip" [style.background]="getRoleColor()" color="primary">
+              <mat-icon class="chip-icon">person</mat-icon>
+              {{ getRoleDisplay() }}
+            </mat-chip>
+            
             <p class="user-email">{{ user?.email || 'email@example.com' }}</p>
           </div>
 
@@ -70,7 +90,9 @@
             </div>
             <div class="detail-content">
               <p class="detail-label">Account Type</p>
-              <p class="detail-value">{{ getRoleDisplay(user?.role || 'user') }}</p>
+              <p class="detail-value role-value" [style.color]="getRoleColor()">
+                {{ getRoleDisplay() }}
+              </p>
             </div>
           </div>
         </div>

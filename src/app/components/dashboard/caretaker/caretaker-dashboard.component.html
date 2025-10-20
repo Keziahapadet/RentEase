@@ -19,6 +19,14 @@
       </app-profile-picture>
     </div>
 
+    <!-- User Role Display in Sidebar -->
+    <div class="sidebar-role" *ngIf="isSidebarOpen">
+      <mat-chip class="user-role-chip" [style.background]="getRoleColor()">
+        <mat-icon class="chip-icon">badge</mat-icon>
+        {{ getRoleDisplay() }}
+      </mat-chip>
+    </div>
+
     <nav class="sidebar-nav">
       <button 
         *ngFor="let item of navItems" 
@@ -48,6 +56,12 @@
           <mat-icon>menu</mat-icon>
         </button>
         <h1 class="page-title">{{ getPageTitle() }}</h1>
+        
+        <!-- User Role Badge in Header -->
+        <mat-chip class="header-role-chip" [style.background]="getRoleColor()" *ngIf="!isSidebarOpen">
+          <mat-icon class="chip-icon">badge</mat-icon>
+          {{ getRoleDisplay() }}
+        </mat-chip>
       </div>
       
       <div class="header-actions">
@@ -59,10 +73,24 @@
 
     <div class="content-area">
       <section *ngIf="currentView === 'overview'" class="overview-section">
+        <!-- User Role Welcome Section -->
+        <div class="user-role-welcome" *ngIf="userRole">
+          <div class="role-badge" [style.background]="getRoleColor() + '20'" [style.border-color]="getRoleColor()">
+            <mat-icon [style.color]="getRoleColor()">verified</mat-icon>
+            <span>You are logged in as <strong [style.color]="getRoleColor()">{{ getRoleDisplay() }}</strong></span>
+          </div>
+        </div>
+
         <div class="welcome-banner">
           <div class="welcome-content">
             <h2>Welcome back, {{ userProfile?.fullName || 'Caretaker' }}! 👋</h2>
             <p>Here's what's happening with your properties today.</p>
+            
+            <!-- User Role Info -->
+            <div class="user-role-info">
+              <mat-icon>person</mat-icon>
+              <span>Account Type: <strong>{{ getRoleDisplay() }}</strong></span>
+            </div>
           </div>
           <div class="welcome-stats">
             <div class="stat-badge">
@@ -121,7 +149,7 @@
         <div class="quick-actions-section">
           <div class="section-header">
             <h3>Quick Actions</h3>
-            <p>Frequently used tasks</p>
+            <p>Frequently used tasks for {{ getRoleDisplay().toLowerCase() }}s</p>
           </div>
           <div class="quick-actions-grid">
             <button 

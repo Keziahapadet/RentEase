@@ -45,6 +45,56 @@
   }
 }
 
+/* User Type Section Styles */
+.user-type-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  color: white;
+
+  .user-type-badge {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px;
+    padding: 16px;
+
+    .badge-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+
+    .badge-content {
+      display: flex;
+      flex-direction: column;
+      
+      .badge-label {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 4px;
+      }
+
+      .badge-value {
+        font-size: 20px;
+        font-weight: 600;
+        color: white !important;
+      }
+    }
+  }
+
+  .user-type-note {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+    font-style: italic;
+  }
+}
+
 .profile-header-section {
   display: flex;
   flex-direction: column;
@@ -117,16 +167,21 @@
     font-size: 24px;
     font-weight: 600;
     color: #1a1a1a;
-    margin: 0 0 8px 0;
+    margin: 0 0 12px 0;
   }
 
-  .user-role {
-    font-size: 14px;
-    color: #666;
-    margin: 0 0 4px 0;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  .user-role-chip {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 20px;
+    
+    .chip-icon {
+      margin-right: 8px;
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
   }
 
   .user-email {
@@ -210,6 +265,13 @@
           color: #444;
           line-height: 1.6;
         }
+
+        &.role-value {
+          font-weight: 600;
+          padding: 4px 12px;
+          border-radius: 12px;
+          display: inline-block;
+        }
       }
     }
   }
@@ -217,6 +279,37 @@
 
 mat-divider {
   margin: 32px 0;
+}
+
+/* Role-specific colors */
+.role-landlord {
+  background: #ff6b35 !important;
+  color: white !important;
+}
+
+.role-tenant {
+  background: #4CAF50 !important;
+  color: white !important;
+}
+
+.role-caretaker {
+  background: #2196F3 !important;
+  color: white !important;
+}
+
+.role-admin {
+  background: #9C27B0 !important;
+  color: white !important;
+}
+
+.role-business {
+  background: #FF9800 !important;
+  color: white !important;
+}
+
+.role-user {
+  background: #666 !important;
+  color: white !important;
 }
 
 @media (max-width: 768px) {
@@ -238,6 +331,23 @@ mat-divider {
     }
   }
 
+  .user-type-section {
+    padding: 16px;
+    
+    .user-type-badge {
+      gap: 12px;
+      padding: 12px;
+      
+      .badge-icon {
+        font-size: 24px;
+      }
+      
+      .badge-value {
+        font-size: 18px;
+      }
+    }
+  }
+
   .profile-header-section {
     margin-bottom: 24px;
   }
@@ -255,6 +365,11 @@ mat-divider {
   .profile-info {
     .user-name {
       font-size: 20px;
+    }
+
+    .user-role-chip {
+      padding: 6px 12px;
+      font-size: 12px;
     }
   }
 

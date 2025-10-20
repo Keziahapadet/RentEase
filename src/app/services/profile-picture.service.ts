@@ -11,7 +11,6 @@ export interface ProfilePictureResponse {
   imageUrl?: string;
   pictureUrl?: string;
 }
-
 export interface UserProfile {
   id: string;
   fullName: string;
@@ -20,8 +19,10 @@ export interface UserProfile {
   profilePicture?: string;
   verified: boolean;
   emailVerified: boolean;
+  phoneNumber?: string;
+  bio?: string;
+  createdAt?: string;
 }
-
 @Injectable({
   providedIn: 'root'
 })
