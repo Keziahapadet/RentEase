@@ -1157,7 +1157,7 @@
   }
 }
 
-/* Animation for role badges */
+
 @keyframes rolePulse {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
@@ -1171,7 +1171,7 @@
   animation: rolePulse 2s infinite;
 }
 
-/* Print styles */
+
 @media print {
   .sidebar,
   .dashboard-header,

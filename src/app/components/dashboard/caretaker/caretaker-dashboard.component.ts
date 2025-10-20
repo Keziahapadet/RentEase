@@ -58,7 +58,7 @@ export class CaretakerDashboardComponent implements OnInit {
   isMobile = false;
   isMobileMenuOpen = false;
   userProfile: UserProfile | null = null;
-  userRole: 'caretaker' | 'tenant' | 'landlord' | 'admin' | 'business' | 'user' = 'user';
+  userRole: 'caretaker' | 'tenant' | 'landlord' | 'admin' | 'business' | 'user' = 'caretaker';
   loading: boolean = true;
   
   navItems: NavItem[] = [
@@ -220,22 +220,13 @@ export class CaretakerDashboardComponent implements OnInit {
     this.profilePictureService.getCurrentUserProfile().subscribe({
       next: (profile) => {
         this.userProfile = profile;
-        
-        // Determine the actual user role
         this.determineActualUserRole();
-        
-        console.log('🔍 DASHBOARD - User profile:', profile);
-        console.log('🔍 DASHBOARD - Final determined role:', this.userRole);
-        
         this.loading = false;
       },
       error: (error) => {
         console.error('Failed to load user profile:', error);
         this.loading = false;
-        
-        // Determine role even if profile fails
         this.determineActualUserRole();
-        
         this.userProfile = {
           id: 'unknown',
           fullName: 'Caretaker',
@@ -249,30 +240,21 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   private determineActualUserRole(): void {
-    // Method 1: Use AuthService role checking methods to determine actual role
     if (this.authService.isTenant()) {
       this.userRole = 'tenant';
-      console.log('✅ DASHBOARD - User is a Tenant (from token)');
     } else if (this.authService.isCaretaker()) {
       this.userRole = 'caretaker';
-      console.log('✅ DASHBOARD - User is a Caretaker (from token)');
     } else if (this.authService.isLandlord()) {
       this.userRole = 'landlord';
-      console.log('✅ DASHBOARD - User is a Landlord (from token)');
     } else if (this.authService.isBusiness()) {
       this.userRole = 'business';
-      console.log('✅ DASHBOARD - User is a Business (from token)');
     } else if (this.authService.isAdmin()) {
       this.userRole = 'admin';
-      console.log('✅ DASHBOARD - User is an Admin (from token)');
     } else {
-      this.userRole = 'user';
-      console.log('⚠️ DASHBOARD - Default role: user');
+      this.userRole = 'caretaker';
     }
 
-    // Update the user profile with the correct role
     if (this.userProfile) {
-      // Create a new object with the correct role type
       this.userProfile = {
         ...this.userProfile,
         role: this.userRole
@@ -289,7 +271,7 @@ export class CaretakerDashboardComponent implements OnInit {
       'business': 'Business',
       'user': 'User'
     };
-    return roleMap[this.userRole] || 'User';
+    return roleMap[this.userRole] || 'Caretaker';
   }
 
   getRoleColor(): string {
@@ -301,23 +283,19 @@ export class CaretakerDashboardComponent implements OnInit {
       'business': '#FF9800',
       'user': '#666'
     };
-    return colorMap[this.userRole] || '#666';
+    return colorMap[this.userRole] || '#2196F3';
   }
 
   onPictureUpdated(imageUrl: string): void {
-    console.log('Profile picture updated:', imageUrl);
     if (this.userProfile) {
       this.userProfile.profilePicture = imageUrl;
     }
-    this.showNotification('Profile picture updated successfully!', 'success');
   }
 
   onPictureDeleted(): void {
-    console.log('Profile picture deleted');
     if (this.userProfile) {
       this.userProfile.profilePicture = undefined;
     }
-    this.showNotification('Profile picture deleted successfully!', 'success');
   }
 
   handleEditProfile(): void {
@@ -333,22 +311,18 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   createMaintenance(): void {
-    console.log('Creating new maintenance request...');
     this.setView('maintenance');
   }
 
   scheduleInspection(): void {
-    console.log('Scheduling inspection...');
     this.setView('inspections');
   }
 
   processDeposit(): void {
-    console.log('Processing deposit...');
     this.setView('deposits');
   }
 
   contactTenant(): void {
-    console.log('Contacting tenant...');
     this.setView('messages');
   }
 
