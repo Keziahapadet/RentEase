@@ -168,7 +168,7 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     const dashboardRoute = this.getDashboardRoute(userRole);
     
     await new Promise(resolve => setTimeout(resolve, 500));
-    await this.router.navigate([dashboardRoute], { replaceUrl: true });
+    this.router.navigate([dashboardRoute], { replaceUrl: true });
   }
 
   private getDashboardRoute(role: string): string {
@@ -176,11 +176,11 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     
     switch (normalizedRole) {
       case 'LANDLORD':
-        return '/landlord-dashboard/home';
+        return '/landlord-dashboard';
       case 'TENANT':
         return '/tenant-dashboard';
       case 'CARETAKER':
-        return '/caretaker-dashboard/';
+        return '/caretaker-dashboard';
       case 'BUSINESS':
         return '/business-dashboard';
       case 'ADMIN':

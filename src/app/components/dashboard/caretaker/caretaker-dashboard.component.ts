@@ -1,6 +1,6 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -9,13 +9,12 @@ import { CaretakerService, Property, Unit } from '../../../services/caretaker.se
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 import { AuthService } from '../../../services/auth.service';
 import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
-import { ProfileViewComponent } from '../../../shared/components/profile-view/profile-view.component';
-import { ProfileEditComponent } from '../../../shared/components/profile-edit/profile-edit.component';
 
 export interface NavItem {
   id: string;
   label: string;
   icon: string;
+  route: string;
 }
 
 export interface Stats {
@@ -37,7 +36,7 @@ export interface QuickAction {
   description: string;
   icon: string;
   color: string;
-  action: () => void;
+  route: string;
 }
 
 export interface Activity {
@@ -55,19 +54,17 @@ export interface Activity {
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     MatIconModule,
     MatButtonModule,
     MatTableModule,
     MatChipsModule,
-    ProfilePictureComponent,
-    ProfileViewComponent,
-    ProfileEditComponent
+    ProfilePictureComponent
   ],
   templateUrl: './caretaker-dashboard.component.html',
   styleUrls: ['./caretaker-dashboard.component.scss']
 })
 export class CaretakerDashboardComponent implements OnInit {
-  currentView: string = 'overview';
   isSidebarOpen = true;
   isMobile = false;
   isMobileMenuOpen = false;
@@ -80,14 +77,14 @@ export class CaretakerDashboardComponent implements OnInit {
   recentActivities: Activity[] = [];
 
   navItems: NavItem[] = [
-    { id: 'overview', label: 'Dashboard', icon: 'dashboard' },
-    { id: 'maintenance', label: 'Maintenance', icon: 'build' },
-    { id: 'inspections', label: 'Inspections', icon: 'home' },
-    { id: 'deposits', label: 'Deposits', icon: 'account_balance' },
-    { id: 'properties', label: 'Properties', icon: 'apartment' },
-    { id: 'messages', label: 'Messages', icon: 'chat' },
-    { id: 'reports', label: 'Reports', icon: 'assessment' },
-    { id: 'profile', label: 'Profile', icon: 'person' }
+    { id: 'overview', label: 'Dashboard', icon: 'dashboard', route: '/caretaker-dashboard/overview' },
+    { id: 'maintenance', label: 'Maintenance', icon: 'build', route: '/caretaker-dashboard/maintenance' },
+    { id: 'inspections', label: 'Inspections', icon: 'home', route: '/caretaker-dashboard/inspections' },
+    { id: 'deposits', label: 'Deposits', icon: 'account_balance', route: '/caretaker-dashboard/deposits' },
+    { id: 'properties', label: 'Properties', icon: 'apartment', route: '/caretaker-dashboard/properties' },
+    { id: 'messages', label: 'Messages', icon: 'chat', route: '/caretaker-dashboard/messages' },
+    { id: 'reports', label: 'Reports', icon: 'assessment', route: '/caretaker-dashboard/reports' },
+    { id: 'profile', label: 'Profile', icon: 'person', route: '/caretaker-dashboard/profile' }
   ];
 
   stats: Stats = {
@@ -110,7 +107,7 @@ export class CaretakerDashboardComponent implements OnInit {
       description: 'Create maintenance request', 
       icon: 'add_task', 
       color: '#007bff', 
-      action: () => this.createMaintenance() 
+      route: '/caretaker-dashboard/maintenance'
     },
     { 
       id: 'scheduleInspection', 
@@ -118,7 +115,7 @@ export class CaretakerDashboardComponent implements OnInit {
       description: 'Schedule property inspection', 
       icon: 'calendar_today', 
       color: '#28a745', 
-      action: () => this.scheduleInspection() 
+      route: '/caretaker-dashboard/inspections'
     },
     { 
       id: 'processDeposit', 
@@ -126,7 +123,7 @@ export class CaretakerDashboardComponent implements OnInit {
       description: 'Handle deposit release', 
       icon: 'payments', 
       color: '#ff6b35', 
-      action: () => this.processDeposit() 
+      route: '/caretaker-dashboard/deposits'
     },
     { 
       id: 'contactTenant', 
@@ -134,7 +131,7 @@ export class CaretakerDashboardComponent implements OnInit {
       description: 'Message tenant', 
       icon: 'message', 
       color: '#6f42c1', 
-      action: () => this.contactTenant() 
+      route: '/caretaker-dashboard/messages'
     }
   ];
 
@@ -244,57 +241,6 @@ export class CaretakerDashboardComponent implements OnInit {
     ];
   }
 
-  get isProfileView(): boolean {
-    return ['profile-view', 'profile-edit', 'profile'].includes(this.currentView);
-  }
-
-  isActiveView(viewId: string): boolean {
-    if (viewId === 'profile') {
-      return this.isProfileView;
-    }
-    return this.currentView === viewId;
-  }
-
-  getPageTitle(): string {
-    const titleMap: { [key: string]: string } = {
-      'overview': 'Dashboard Overview',
-      'profile-view': 'My Profile',
-      'profile-edit': 'Edit Profile',
-      'profile': 'My Profile',
-      'maintenance': 'Maintenance Management',
-      'inspections': 'Property Inspections',
-      'deposits': 'Deposit Management',
-      'properties': 'Properties',
-      'messages': 'Messages',
-      'reports': 'Reports & Analytics'
-    };
-    return titleMap[this.currentView] || this.currentView;
-  }
-
-  getSectionTitle(): string {
-    const titleMap: { [key: string]: string } = {
-      'maintenance': 'Maintenance Management',
-      'inspections': 'Property Inspections',
-      'deposits': 'Deposit Management',
-      'properties': 'Property Portfolio',
-      'messages': 'Communication Center',
-      'reports': 'Reports & Analytics'
-    };
-    return titleMap[this.currentView] || this.currentView;
-  }
-
-  getSectionDescription(): string {
-    const descMap: { [key: string]: string } = {
-      'maintenance': 'Manage and track maintenance requests across all properties',
-      'inspections': 'Schedule and conduct property inspections',
-      'deposits': 'Handle security deposit transactions and disputes',
-      'properties': 'Overview of all managed properties and units',
-      'messages': 'Communicate with tenants and property owners',
-      'reports': 'Generate reports and view analytics'
-    };
-    return descMap[this.currentView] || `Manage your ${this.currentView.toLowerCase()} activities`;
-  }
-
   checkMobileView(): void {
     this.isMobile = window.innerWidth <= 768;
     if (!this.isMobile) {
@@ -314,13 +260,6 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   closeMobileMenu(): void {
-    if (this.isMobile) {
-      this.isMobileMenuOpen = false;
-    }
-  }
-
-  setView(view: string): void {
-    this.currentView = view;
     if (this.isMobile) {
       this.isMobileMenuOpen = false;
     }
@@ -404,34 +343,6 @@ export class CaretakerDashboardComponent implements OnInit {
     if (this.userProfile) {
       this.userProfile.profilePicture = undefined;
     }
-  }
-
-  handleEditProfile(): void {
-    this.currentView = 'profile-edit';
-  }
-
-  handleViewProfile(): void {
-    this.currentView = 'profile-view';
-  }
-
-  handleGoBackFromProfile(): void {
-    this.currentView = 'overview';
-  }
-
-  createMaintenance(): void {
-    this.setView('maintenance');
-  }
-
-  scheduleInspection(): void {
-    this.setView('inspections');
-  }
-
-  processDeposit(): void {
-    this.setView('deposits');
-  }
-
-  contactTenant(): void {
-    this.setView('messages');
   }
 
   refreshData(): void {

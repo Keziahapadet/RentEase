@@ -15,7 +15,7 @@
         [editable]="false"
         [showName]="isSidebarOpen"
         [showRole]="false"
-        (click)="setView('profile')">
+        [routerLink]="['/caretaker-dashboard/profile']">
       </app-profile-picture>
     </div>
 
@@ -27,15 +27,15 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button 
+      <a 
         *ngFor="let item of navItems" 
         mat-button 
-        [class.active]="isActiveView(item.id)"
-        (click)="setView(item.id)"
+        [routerLink]="item.route"
+        routerLinkActive="active"
         class="nav-item">
         <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
         <span class="nav-label">{{ item.label }}</span>
-      </button>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -54,7 +54,7 @@
         <button mat-icon-button (click)="toggleSidebar()" class="menu-toggle">
           <mat-icon>menu</mat-icon>
         </button>
-        <h1 class="page-title">{{ getPageTitle() }}</h1>
+        <h1 class="page-title">Caretaker Dashboard</h1>
         
         <mat-chip class="header-role-chip" [style.background]="getRoleColor()" *ngIf="!isSidebarOpen && !isMobile">
           <mat-icon class="chip-icon">verified</mat-icon>
@@ -70,152 +70,7 @@
     </header>
 
     <div class="content-area">
-      <section *ngIf="currentView === 'overview'" class="overview-section">
-        <div class="welcome-banner">
-          <div class="welcome-content">
-            <h2>Welcome back, {{ userProfile?.fullName || getRoleDisplay() }}! 👋</h2>
-            <p>Here's what's happening with your properties today.</p>
-            
-            <div class="user-role-info">
-              <mat-icon>verified_user</mat-icon>
-              <span>Account Type: <strong>{{ getRoleDisplay() }}</strong></span>
-            </div>
-          </div>
-          <div class="welcome-stats">
-            <div class="stat-badge">
-              <span class="stat-number">{{ stats.pendingMaintenance }}</span>
-              <span class="stat-label">Pending Tasks</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card maintenance">
-            <div class="stat-icon">
-              <mat-icon>build_circle</mat-icon>
-            </div>
-            <div class="stat-content">
-              <h3 class="stat-value">{{ stats.pendingMaintenance }}</h3>
-              <p class="stat-label">Pending Maintenance</p>
-              <span class="stat-trend">+2 today</span>
-            </div>
-          </div>
-
-          <div class="stat-card inspections">
-            <div class="stat-icon">
-              <mat-icon>home_work</mat-icon>
-            </div>
-            <div class="stat-content">
-              <h3 class="stat-value">{{ stats.scheduledInspections }}</h3>
-              <p class="stat-label">Scheduled Inspections</p>
-              <span class="stat-trend">Next: Tomorrow</span>
-            </div>
-          </div>
-
-          <div class="stat-card deposits">
-            <div class="stat-icon">
-              <mat-icon>account_balance_wallet</mat-icon>
-            </div>
-            <div class="stat-content">
-              <h3 class="stat-value">{{ stats.activeDepositCases }}</h3>
-              <p class="stat-label">Active Deposit Cases</p>
-              <span class="stat-trend">Requires attention</span>
-            </div>
-          </div>
-
-          <div class="stat-card completed">
-            <div class="stat-icon">
-              <mat-icon>task_alt</mat-icon>
-            </div>
-            <div class="stat-content">
-              <h3 class="stat-value">{{ stats.completedJobs }}</h3>
-              <p class="stat-label">Completed Jobs</p>
-              <span class="stat-trend positive">+92% satisfaction</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="quick-actions-section">
-          <div class="section-header">
-            <h3>Quick Actions</h3>
-            <p>Frequently used tasks for {{ getRoleDisplay().toLowerCase() }}s</p>
-          </div>
-          <div class="quick-actions-grid">
-            <button 
-              *ngFor="let action of quickActions" 
-              mat-raised-button 
-              (click)="action.action()"
-              class="quick-action-card"
-              [style.background]="action.color + '15'"
-              [style.border-color]="action.color">
-              <mat-icon [style.color]="action.color">{{ action.icon }}</mat-icon>
-              <div class="action-content">
-                <span class="action-title">{{ action.title }}</span>
-                <span class="action-description">{{ action.description }}</span>
-              </div>
-              <mat-icon class="action-arrow">arrow_forward</mat-icon>
-            </button>
-          </div>
-        </div>
-
-        <div class="recent-activity-section">
-          <div class="section-header">
-            <h3>Recent Activity</h3>
-            <button mat-button color="primary">View All</button>
-          </div>
-          <div class="activity-list">
-            <div class="activity-item">
-              <div class="activity-icon maintenance">
-                <mat-icon>build</mat-icon>
-              </div>
-              <div class="activity-content">
-                <p class="activity-title">Maintenance Request Submitted</p>
-                <p class="activity-details">Kitchen sink leakage - Unit 4B</p>
-                <span class="activity-time">2 hours ago</span>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="activity-icon inspection">
-                <mat-icon>home</mat-icon>
-              </div>
-              <div class="activity-content">
-                <p class="activity-title">Inspection Completed</p>
-                <p class="activity-details">Routine check - Block A</p>
-                <span class="activity-time">5 hours ago</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section *ngIf="isProfileView" class="profile-section">
-        <app-profile-view 
-          *ngIf="currentView === 'profile-view' || currentView === 'profile'"
-          (editProfileEvent)="handleEditProfile()"
-          (goBackEvent)="handleGoBackFromProfile()">
-        </app-profile-view>
-
-        <app-profile-edit 
-          *ngIf="currentView === 'profile-edit'"
-          (goBackEvent)="handleViewProfile()">
-        </app-profile-edit>
-      </section>
-
-      <section *ngIf="!isProfileView && currentView !== 'overview'" class="content-section">
-        <div class="section-header">
-          <h2>{{ getSectionTitle() }}</h2>
-          <p>{{ getSectionDescription() }}</p>
-        </div>
-        
-        <div class="section-placeholder">
-          <mat-icon class="placeholder-icon">construction</mat-icon>
-          <h3>{{ getSectionTitle() }} Coming Soon</h3>
-          <p>This section is under development and will be available soon.</p>
-          <button mat-raised-button color="primary" (click)="setView('overview')">
-            Back to Dashboard
-          </button>
-        </div>
-      </section>
+      <router-outlet></router-outlet>
     </div>
   </main>
 </div>
