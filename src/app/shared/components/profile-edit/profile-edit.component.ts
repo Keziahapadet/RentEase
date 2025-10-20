@@ -41,6 +41,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   
   profileForm: FormGroup;
   user: any = null;
+  userRole: string = 'user'; // Track role separately
   isSubmitting = false;
   isLoadingUserData = false;
   
@@ -69,16 +70,57 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
   private loadUserData(): void {
     this.user = this.authService.getCurrentUser();
+    
+    console.log('🔍 DEBUG - Raw user data from storage:', this.user);
+    
     if (!this.user) {
       this.snackBar.open('Please log in to continue', 'Close', { duration: 3000 });
       this.router.navigate(['/login']);
       return;
     }
 
-    console.log('Current User Data:', this.user); // Debug log
-    console.log('User Role:', this.user?.role); // Debug log
+    // Determine the actual user role
+    this.determineActualUserRole();
+    
+    console.log('🔍 DEBUG - Final determined role:', this.userRole);
     
     this.populateForm();
+  }
+
+  private determineActualUserRole(): void {
+    // Method 1: Check if role exists in stored user data
+    if (this.user?.role && this.user.role !== 'user') {
+      this.userRole = this.user.role;
+      console.log('✅ Role from user data:', this.userRole);
+      return;
+    }
+
+    // Method 2: Use AuthService role checking methods to determine actual role
+    // These methods check the token payload, not the stored user data
+    if (this.authService.isTenant()) {
+      this.userRole = 'tenant';
+      console.log('✅ User is a Tenant (from token)');
+    } else if (this.authService.isCaretaker()) {
+      this.userRole = 'caretaker';
+      console.log('✅ User is a Caretaker (from token)');
+    } else if (this.authService.isLandlord()) {
+      this.userRole = 'landlord';
+      console.log('✅ User is a Landlord (from token)');
+    } else if (this.authService.isBusiness()) {
+      this.userRole = 'business';
+      console.log('✅ User is a Business (from token)');
+    } else if (this.authService.isAdmin()) {
+      this.userRole = 'admin';
+      console.log('✅ User is an Admin (from token)');
+    } else {
+      this.userRole = 'user';
+      console.log('⚠️ Default role: user');
+    }
+
+    // Update the user object with the correct role for display
+    if (this.user) {
+      this.user.role = this.userRole;
+    }
   }
 
   private loadProfilePicture(): void {
@@ -239,7 +281,9 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     return !this.imageUrl || this.imageUrl.includes('svg+xml');
   }
 
-  getRoleDisplay(role: string): string {
+  getRoleDisplay(role?: string): string {
+    // Use the determined role if no specific role is passed
+    const actualRole = role || this.userRole;
     const roleMap: { [key: string]: string } = {
       'landlord': 'Landlord',
       'tenant': 'Tenant',
@@ -248,7 +292,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       'business': 'Business',
       'user': 'User'
     };
-    return roleMap[role?.toLowerCase()] || 'User';
+    return roleMap[actualRole?.toLowerCase()] || 'User';
   }
 
   onSubmit(): void {
@@ -269,7 +313,8 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
     const updatedUser = {
       ...this.user,
-      ...updatedData
+      ...updatedData,
+      role: this.userRole // Ensure role is included when saving
     };
     
     const isPermanent = !!localStorage.getItem('userData');
