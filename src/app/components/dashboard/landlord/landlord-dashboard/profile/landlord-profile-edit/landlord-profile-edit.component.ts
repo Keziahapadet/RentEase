@@ -14,7 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PropertyService } from '../../../../../../services/property.service';
 import { AuthService } from '../../../../../../services/auth.service';
-import { ExtendedUser, UpdatePhoneRequest, ApiResponse, User } from '../../../../../../services/auth-interfaces';
+import { ExtendedUser, ApiResponse, User } from '../../../../../../services/auth-interfaces';
 
 @Component({
   selector: 'app-profile-edit',
@@ -511,10 +511,8 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   }
 
   private updatePhoneNumber(newPhoneNumber: string): void {
-    const updatePhoneRequest: UpdatePhoneRequest = { newPhoneNumber };
-
-    this.authService.updatePhoneNumber(updatePhoneRequest).subscribe({
-      next: (response: ApiResponse) => {
+    this.authService.updatePhone(newPhoneNumber).subscribe({
+      next: (response: any) => {
         if (response.success) {
           this.updateUserProfile();
         } else {
