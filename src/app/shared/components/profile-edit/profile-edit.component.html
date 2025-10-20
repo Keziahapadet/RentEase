@@ -18,6 +18,20 @@
   <div class="profile-edit-content">
     <mat-card class="profile-card">
       <mat-card-content>
+        <!-- User Type Display Section -->
+        <div class="user-type-section">
+          <div class="user-type-badge">
+            <mat-icon class="badge-icon">badge</mat-icon>
+            <div class="badge-content">
+              <span class="badge-label">User Type</span>
+              <span class="badge-value">{{ getRoleDisplay(user?.role) }}</span>
+            </div>
+          </div>
+          <p class="user-type-note">Your account type determines the features available to you</p>
+        </div>
+
+        <mat-divider></mat-divider>
+
         <div class="picture-section">
           <h2>Profile Picture</h2>
           
@@ -68,6 +82,12 @@
             <div class="upload-instructions">
               <p class="main-text">Update your profile picture</p>
               <p class="sub-text">JPG, PNG, GIF or WEBP. Max size 5MB</p>
+              
+              <!-- User Role Info -->
+              <div class="user-role-info">
+                <mat-icon>info</mat-icon>
+                <span>You are registered as a <strong>{{ getRoleDisplay(user?.role) }}</strong></span>
+              </div>
             </div>
           </div>
         </div>
@@ -122,6 +142,38 @@
         </div>
 
         <mat-divider></mat-divider>
+
+        <!-- Account Type Summary -->
+        <div class="account-summary">
+          <h3>Account Summary</h3>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <mat-icon class="summary-icon">person</mat-icon>
+              <div class="summary-content">
+                <span class="summary-label">User Type</span>
+                <span class="summary-value">{{ getRoleDisplay(user?.role) }}</span>
+              </div>
+            </div>
+            <div class="summary-item">
+              <mat-icon class="summary-icon">verified</mat-icon>
+              <div class="summary-content">
+                <span class="summary-label">Verification Status</span>
+                <span class="summary-value" [class.verified]="user?.verified" [class.unverified]="!user?.verified">
+                  {{ user?.verified ? 'Verified' : 'Not Verified' }}
+                </span>
+              </div>
+            </div>
+            <div class="summary-item">
+              <mat-icon class="summary-icon">email</mat-icon>
+              <div class="summary-content">
+                <span class="summary-label">Email Status</span>
+                <span class="summary-value" [class.verified]="user?.emailVerified" [class.unverified]="!user?.emailVerified">
+                  {{ user?.emailVerified ? 'Verified' : 'Not Verified' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="form-actions">
           <button mat-stroked-button (click)="cancel()" class="cancel-action-btn">

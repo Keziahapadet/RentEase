@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
 import { AuthService } from '../../../services/auth.service';
 import { PropertyService } from '../../../services/property.service';
 import { ProfilePictureService } from '../../../services/profile-picture.service';
@@ -29,7 +30,8 @@ import { ProfilePictureService } from '../../../services/profile-picture.service
     MatInputModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatChipsModule
   ],
   templateUrl: './profile-edit.component.html',
   styleUrls: ['./profile-edit.component.scss']
@@ -73,6 +75,9 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       return;
     }
 
+    console.log('Current User Data:', this.user); // Debug log
+    console.log('User Role:', this.user?.role); // Debug log
+    
     this.populateForm();
   }
 
@@ -234,6 +239,18 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     return !this.imageUrl || this.imageUrl.includes('svg+xml');
   }
 
+  getRoleDisplay(role: string): string {
+    const roleMap: { [key: string]: string } = {
+      'landlord': 'Landlord',
+      'tenant': 'Tenant',
+      'caretaker': 'Caretaker',
+      'admin': 'Administrator',
+      'business': 'Business',
+      'user': 'User'
+    };
+    return roleMap[role?.toLowerCase()] || 'User';
+  }
+
   onSubmit(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
@@ -281,18 +298,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     } else {
       this.goBack(); 
     }
-  }
-
-  getRoleDisplay(role: string): string {
-    const roleMap: { [key: string]: string } = {
-      'landlord': 'Landlord',
-      'tenant': 'Tenant',
-      'caretaker': 'Caretaker',
-      'admin': 'Administrator',
-      'business': 'Business',
-      'user': 'User'
-    };
-    return roleMap[role] || 'User';
   }
 
   get fullName() { return this.profileForm.get('fullName'); }

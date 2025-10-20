@@ -15,7 +15,7 @@ import { AuthService } from '../../../../services/auth.service';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule, // Add this for ngModel and ngForm
+    FormsModule, 
     MatIconModule,
     ProfilePictureComponent,
     ProfileViewComponent,
@@ -30,11 +30,11 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  // Dashboard state
+ 
   activeSection: string = 'dashboard';
   isMobileMenuOpen: boolean = false;
   
-  // User data
+
   userProfile: UserProfile | null = null;
   profileImage: string | null = null;
   userName: string = 'Tenant';
@@ -42,24 +42,23 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
   propertyAddress: string = 'Loading...';
   landlordName: string = 'Loading...';
   
-  // Dashboard data
+
   depositAmount: number = 0;
   rentAmount: number = 0;
   nextRentDueDate: string = '';
   unreadNotifications: number = 0;
   
-  // Collapsible sections
+
   collapsedSections: Set<string> = new Set();
   animatingSections: Set<string> = new Set();
   
-  // Payment status
+ 
   paymentStatus = {
     status: 'Pending',
     className: 'status-pending',
     daysLeft: 5
   };
-  
-  // Navigation
+
   navigationItems = [
     { id: 'deposit', text: 'Deposit', icon: 'account_balance_wallet' },
     { id: 'payments', text: 'Payments', icon: 'payments' },
@@ -71,7 +70,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     { id: 'settings', text: 'Settings', icon: 'settings' }
   ];
   
-  // Quick actions
+ 
   quickActions = [
     { id: 'payRent', title: 'Pay Rent', description: 'Make rent payment', icon: 'payments', color: '#4CAF50' },
     { id: 'maintenance', title: 'Maintenance', description: 'Submit request', icon: 'build', color: '#FF9800' },
@@ -79,7 +78,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     { id: 'documents', title: 'Documents', description: 'View lease', icon: 'description', color: '#9C27B0' }
   ];
   
-  // Deposit timeline
+ 
   depositTimeline = [
     { title: 'Deposit Paid', date: '2024-01-15', completed: true, description: 'Initial security deposit payment' },
     { title: 'Lease Signed', date: '2024-01-20', completed: true, description: 'Rental agreement executed' },
@@ -88,14 +87,14 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     { title: 'Deposit Certificate', date: 'Pending', completed: false, description: 'Receive protection certificate' }
   ];
   
-  // Recent activities
+  
   recentActivities = [
     { id: 1, type: 'payment', title: 'Rent Payment', description: 'January rent payment completed', time: '2 days ago', icon: 'payments' },
     { id: 2, type: 'maintenance', title: 'Maintenance Request', description: 'Kitchen sink repair requested', time: '1 week ago', icon: 'build' },
     { id: 3, type: 'message', title: 'New Message', description: 'Message from landlord', time: '1 week ago', icon: 'chat' }
   ];
   
-  // Maintenance request
+
   newMaintenanceRequest = {
     title: '',
     description: '',
@@ -156,7 +155,6 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadDashboardData(): void {
-    // Load tenant-specific data
     this.tenantService.getTenantDashboardData().subscribe({
       next: (data: any) => {
         this.propertyAddress = data.propertyAddress || '123 Main Street, Nairobi';
@@ -166,12 +164,11 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
         this.nextRentDueDate = data.nextRentDueDate || '2024-02-01';
         this.unreadNotifications = data.unreadNotifications || 3;
         
-        // Update payment status
+    
         this.updatePaymentStatus();
       },
       error: (error) => {
         console.error('Failed to load dashboard data:', error);
-        // Set default values
         this.propertyAddress = '123 Main Street, Nairobi';
         this.landlordName = 'John Doe';
         this.depositAmount = 50000;
@@ -197,7 +194,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Navigation methods
+ 
   setActiveSection(section: string): void {
     this.activeSection = section;
     if (this.isMobileMenuOpen) {
@@ -213,7 +210,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     this.isMobileMenuOpen = false;
   }
 
-  // Collapsible sections
+
   toggleSection(section: string): void {
     if (this.collapsedSections.has(section)) {
       this.collapsedSections.delete(section);
@@ -257,7 +254,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     return this.isSectionCollapsed(section) ? `Expand ${section} section` : `Collapse ${section} section`;
   }
 
-  // Quick actions
+
   executeQuickAction(actionId: string): void {
     switch (actionId) {
       case 'payRent':
@@ -275,7 +272,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Deposit methods
+
   getDepositStatusText(): string {
     return 'Protected';
   }
@@ -300,7 +297,6 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     this.setActiveSection('payments');
   }
 
-  // Activity methods
   hasRecentActivities(): boolean {
     return this.recentActivities && this.recentActivities.length > 0;
   }
@@ -321,15 +317,14 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     this.loadDashboardData();
   }
 
-  // Maintenance methods
   submitMaintenanceRequest(): void {
     if (this.newMaintenanceRequest.title && this.newMaintenanceRequest.description) {
       this.tenantService.submitMaintenanceRequest(this.newMaintenanceRequest).subscribe({
         next: (response: any) => {
           if (response.success) {
-            // Reset form
+         
             this.newMaintenanceRequest = { title: '', description: '', priority: 'medium' };
-            // Show success message
+         
             alert('Maintenance request submitted successfully!');
           } else {
             alert('Failed to submit maintenance request: ' + response.message);
@@ -342,7 +337,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Utility methods
+ 
   getInitials(name: string): string {
     if (!name) return 'T';
     const names = name.split(' ');
@@ -359,7 +354,7 @@ export class TenantDashboardComponent implements OnInit, OnDestroy {
   }
 
   toggleNotifications(): void {
-    // Implement notification toggle logic
+   
     console.log('Toggle notifications');
   }
 
