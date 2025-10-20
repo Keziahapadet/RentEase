@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 export interface Property {
@@ -20,6 +20,12 @@ export interface Unit {
   deposit: number;
   isOccupied: boolean;
   propertyId: number;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
 }
 
 @Injectable({
@@ -73,33 +79,48 @@ export class CaretakerService {
   }
 
   getProperties(): Observable<Property[]> {
-    return this.http.get<Property[]>(`${this.apiUrl}/caretaker/properties`, {
+    return this.http.get<ApiResponse<Property[]>>(`${this.apiUrl}/caretaker/properties`, {
       headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
   }
 
   getPropertyDetails(propertyId: number): Observable<Property> {
-    return this.http.get<Property>(`${this.apiUrl}/caretaker/properties/${propertyId}`, {
+    return this.http.get<ApiResponse<Property>>(`${this.apiUrl}/caretaker/properties/${propertyId}`, {
       headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
   }
 
   getPropertyUnits(propertyId: number): Observable<Unit[]> {
-    return this.http.get<Unit[]>(`${this.apiUrl}/caretaker/properties/${propertyId}/units`, {
+    return this.http.get<ApiResponse<Unit[]>>(`${this.apiUrl}/caretaker/properties/${propertyId}/units`, {
       headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
   }
 
   createUnit(propertyId: number, unit: Omit<Unit, 'id'>): Observable<Unit> {
-    return this.http.post<Unit>(`${this.apiUrl}/caretaker/properties/${propertyId}/units`, unit, {
+    return this.http.post<ApiResponse<Unit>>(`${this.apiUrl}/caretaker/properties/${propertyId}/units`, unit, {
       headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
   }
 
   getAllUnits(): Observable<Unit[]> {
-    return this.http.get<Unit[]>(`${this.apiUrl}/caretaker/units`, {
+    return this.http.get<ApiResponse<Unit[]>>(`${this.apiUrl}/caretaker/units`, {
       headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
+    }).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
   }
 
   inviteTenant(tenantEmail: string, unitId: number): Observable<any> {

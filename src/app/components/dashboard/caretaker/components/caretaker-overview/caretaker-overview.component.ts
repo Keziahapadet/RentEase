@@ -46,7 +46,7 @@ export interface Inspection {
 }
 
 @Component({
-  selector: 'app-overview',
+  selector: 'app-caretaker-overview',
   standalone: true,
   imports: [CommonModule, MatIconModule, MatCardModule, MatButtonModule],
   templateUrl: './caretaker-overview.component.html',

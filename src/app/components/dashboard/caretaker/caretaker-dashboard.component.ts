@@ -73,7 +73,7 @@ export class CaretakerDashboardComponent implements OnInit {
   loading: boolean = true;
   
   properties: Property[] = [];
-  units: Unit[] = [];
+  units: any = []; // Changed to any to handle both array and object responses
   recentActivities: Activity[] = [];
 
   navItems: NavItem[] = [
@@ -174,8 +174,15 @@ export class CaretakerDashboardComponent implements OnInit {
   loadProperties(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.caretakerService.getProperties().subscribe({
-        next: (properties) => {
-          this.properties = properties;
+        next: (response) => {
+          // Handle both array response and object with data property
+          if (Array.isArray(response)) {
+            this.properties = response;
+          } else if (response && Array.isArray((response as any).data)) {
+            this.properties = (response as any).data;
+          } else {
+            this.properties = [];
+          }
           resolve();
         },
         error: (error) => {
@@ -190,8 +197,15 @@ export class CaretakerDashboardComponent implements OnInit {
   loadUnits(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.caretakerService.getAllUnits().subscribe({
-        next: (units) => {
-          this.units = units;
+        next: (response) => {
+          // Handle both array response and object with data property
+          if (Array.isArray(response)) {
+            this.units = response;
+          } else if (response && Array.isArray((response as any).data)) {
+            this.units = (response as any).data;
+          } else {
+            this.units = [];
+          }
           resolve();
         },
         error: (error) => {
@@ -204,10 +218,22 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   calculateStatistics(): void {
-    this.stats.totalProperties = this.properties.length;
-    this.stats.totalUnits = this.units.length;
-    this.stats.occupiedUnits = this.units.filter(unit => unit.isOccupied).length;
+    // Handle properties data structure
+    const propertiesArray = Array.isArray(this.properties) ? this.properties : 
+                           (this.properties && Array.isArray((this.properties as any).data)) ? 
+                           (this.properties as any).data : [];
+    
+    // Handle units data structure
+    const unitsArray = Array.isArray(this.units) ? this.units : 
+                      (this.units && Array.isArray((this.units as any).data)) ? 
+                      (this.units as any).data : [];
+    
+    this.stats.totalProperties = propertiesArray.length;
+    this.stats.totalUnits = unitsArray.length;
+    this.stats.occupiedUnits = unitsArray.filter((unit: Unit) => unit.isOccupied).length;
     this.stats.vacantUnits = this.stats.totalUnits - this.stats.occupiedUnits;
+    
+    // Mock data for other stats
     this.stats.pendingMaintenance = 5;
     this.stats.scheduledInspections = 3;
     this.stats.completedJobs = 12;
