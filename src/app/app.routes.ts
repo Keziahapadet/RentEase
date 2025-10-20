@@ -41,6 +41,7 @@ import { BusinessDashboardComponent } from './components/dashboard/bussiness/bus
 import { AllUnitsComponent } from './components/dashboard/caretaker/components/properties/all-units/all-units.component';
 import { PropertyDetailsComponent } from './components/dashboard/caretaker/components/properties/property-details/property-details.component';
 import { PropertyUnitsComponent as CaretakerPropertyUnitsComponent } from './components/dashboard/caretaker/components/properties/property-units/property-units.component';
+import { PropertiesListComponent } from './components/dashboard/caretaker/components/properties/properties-list/properties-list.component';
 
 
 export const routes: Routes = [
@@ -126,37 +127,36 @@ export const routes: Routes = [
       }
     ]
   },
-  {
-    path: 'caretaker-dashboard',
-    component: CaretakerDashboardComponent,
-    children: [
-      { path: '', redirectTo: 'overview', pathMatch: 'full' },
-      { path: 'overview', component: CaretakerOverviewComponent },
-      { path: 'maintenance', component: CaretakerOverviewComponent },
-      { path: 'inspections', component: CaretakerOverviewComponent },
-      { path: 'deposits', component: CaretakerOverviewComponent },
-      { 
-        path: 'properties',
-        children: [
-          { path: '', redirectTo: 'all-units', pathMatch: 'full' },
-          { path: 'all-units', component: AllUnitsComponent },
-          { path: ':id', component: PropertyDetailsComponent },
-          { path: ':id/units', component: CaretakerPropertyUnitsComponent },
-         
-        ]
-      },
-      { path: 'messages', component: CaretakerOverviewComponent },
-      { path: 'reports', component: CaretakerOverviewComponent },
-      { 
-        path: 'profile',
-        children: [
-          { path: 'view', component: ProfileViewComponent },
-          { path: 'edit', component: ProfileEditComponent }, 
-          { path: '', redirectTo: 'view', pathMatch: 'full' }
-        ]
-      }
-    ]
-  },
+ {
+  path: 'caretaker-dashboard',
+  component: CaretakerDashboardComponent,
+  children: [
+    { path: '', redirectTo: 'overview', pathMatch: 'full' },
+    { path: 'overview', component: CaretakerOverviewComponent },
+    { path: 'maintenance', component: CaretakerOverviewComponent },
+    { path: 'inspections', component: CaretakerOverviewComponent },
+    { path: 'deposits', component: CaretakerOverviewComponent },
+    { 
+      path: 'properties',
+      children: [
+        { path: '', component: PropertiesListComponent },
+        { path: 'all-units', component: AllUnitsComponent },
+        { path: ':id', component: PropertyDetailsComponent },
+        { path: ':id/units', component: CaretakerPropertyUnitsComponent },
+      ]
+    },
+    { path: 'messages', component: CaretakerOverviewComponent },
+    { path: 'reports', component: CaretakerOverviewComponent },
+    { 
+      path: 'profile',
+      children: [
+        { path: 'view', component: ProfileViewComponent },
+        { path: 'edit', component: ProfileEditComponent }, 
+        { path: '', redirectTo: 'view', pathMatch: 'full' }
+      ]
+    }
+  ]
+},
   {
     path: 'admin-dashboard',
     component: AdminDashboardComponent,
