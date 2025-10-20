@@ -133,38 +133,32 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   }
 
   private loadProfilePicture(): void {
-    console.log('=== LOADING PROFILE PICTURE ===');
-    
     this.propertyService.getProfilePicture().subscribe({
       next: (response: any) => {
-        console.log('=== GET PICTURE RESPONSE ===');
-        console.log('Response:', response);
+        const imageUrl = response.data || response.pictureUrl;
         
-        if (response.success && response.pictureUrl) {
-          const timestamp = new Date().getTime();
-          const cacheBustedUrl = response.pictureUrl.includes('?') 
-            ? `${response.pictureUrl}&t=${timestamp}`
-            : `${response.pictureUrl}?t=${timestamp}`;
+        if (response.success && imageUrl) {
+          this.profileImage = imageUrl;
+          localStorage.setItem('profileImage', imageUrl);
           
-          this.profileImage = cacheBustedUrl;
-          localStorage.setItem('profileImage', cacheBustedUrl);
-          console.log('Profile image loaded with cache busting:', cacheBustedUrl);
+          setTimeout(() => {
+            const timestamp = new Date().getTime();
+            const cacheBustedUrl = imageUrl.includes('?') 
+              ? `${imageUrl}&t=${timestamp}`
+              : `${imageUrl}?t=${timestamp}`;
+            
+            this.profileImage = cacheBustedUrl;
+          }, 100);
         } else {
           this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
-          console.log('Using default avatar - no valid picture URL');
         }
       },
       error: (error: any) => {
-        console.error('=== GET PICTURE ERROR ===');
-        console.error('Error:', error);
-        
         const cachedImage = localStorage.getItem('profileImage');
         if (cachedImage) {
           this.profileImage = cachedImage;
-          console.log('Using cached image due to error:', cachedImage);
         } else {
           this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
-          console.log('Using default avatar due to error');
         }
       }
     });
@@ -253,41 +247,31 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           this.isUploadingPhoto = false;
           
-          console.log('=== COMPONENT UPLOAD RESPONSE ===');
-          console.log('Response:', response);
-          
-          // FIX: Check data field first, then pictureUrl
           const imageUrl = response.data || response.pictureUrl;
           
           if (response.success && imageUrl) {
             this.snackBar.open('Profile photo updated successfully', 'Close', { duration: 2000 });
             
-            // Update the image immediately with cache busting
-            const timestamp = new Date().getTime();
-            const cacheBustedUrl = imageUrl.includes('?') 
-              ? `${imageUrl}&t=${timestamp}`
-              : `${imageUrl}?t=${timestamp}`;
+            this.profileImage = imageUrl;
+            localStorage.setItem('profileImage', imageUrl);
             
-            this.profileImage = cacheBustedUrl;
-            localStorage.setItem('profileImage', cacheBustedUrl);
+            setTimeout(() => {
+              const timestamp = new Date().getTime();
+              const cacheBustedUrl = imageUrl.includes('?') 
+                ? `${imageUrl}&t=${timestamp}`
+                : `${imageUrl}?t=${timestamp}`;
+              
+              this.profileImage = cacheBustedUrl;
+            }, 100);
             
-            console.log('Image updated immediately:', cacheBustedUrl);
-            
-            // Dispatch event to notify other components
             window.dispatchEvent(new Event('profileImageUpdated'));
             
-            // Also reload the profile picture to ensure consistency
-            setTimeout(() => {
-              this.loadProfilePicture();
-            }, 500);
           } else {
             this.snackBar.open(response.message || 'Failed to upload photo', 'Close', { duration: 3000 });
           }
         },
         error: (error: any) => {
           this.isUploadingPhoto = false;
-          console.error('=== COMPONENT UPLOAD ERROR ===');
-          console.error('Error:', error);
           
           let errorMessage = 'Failed to upload profile photo';
           if (error.status === 500) {
@@ -308,7 +292,6 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       });
     }).catch(error => {
       this.isUploadingPhoto = false;
-      console.error('Image compression error:', error);
       this.snackBar.open('Error processing image', 'Close', { duration: 3000 });
     });
   }
@@ -446,22 +429,23 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         this.isUploadingPhoto = false;
         
-        // FIX: Check data field first, then pictureUrl
         const imageUrl = response.data || response.pictureUrl;
         
         if (response.success && imageUrl) {
           this.snackBar.open('Photo captured successfully', 'Close', { duration: 2000 });
           
-          // Update the image immediately with cache busting
-          const timestamp = new Date().getTime();
-          const cacheBustedUrl = imageUrl.includes('?') 
-            ? `${imageUrl}&t=${timestamp}`
-            : `${imageUrl}?t=${timestamp}`;
+          this.profileImage = imageUrl;
+          localStorage.setItem('profileImage', imageUrl);
           
-          this.profileImage = cacheBustedUrl;
-          localStorage.setItem('profileImage', cacheBustedUrl);
+          setTimeout(() => {
+            const timestamp = new Date().getTime();
+            const cacheBustedUrl = imageUrl.includes('?') 
+              ? `${imageUrl}&t=${timestamp}`
+              : `${imageUrl}?t=${timestamp}`;
+            
+            this.profileImage = cacheBustedUrl;
+          }, 100);
           
-          // Dispatch event to notify other components
           window.dispatchEvent(new Event('profileImageUpdated'));
           
           this.stopCamera();
@@ -471,7 +455,6 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isUploadingPhoto = false;
-        console.error('Capture upload error:', error);
         this.snackBar.open(error.message || 'Failed to upload captured photo', 'Close', { duration: 3000 });
         this.stopCamera();
       }
@@ -494,7 +477,6 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
           this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
           localStorage.removeItem('profileImage');
           
-          // Dispatch event to notify other components
           window.dispatchEvent(new Event('profileImageUpdated'));
           
           this.snackBar.open('Profile photo removed', 'Close', { duration: 2000 });
@@ -504,7 +486,6 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isDeletingPhoto = false;
-        console.error('Delete photo error:', error);
         this.snackBar.open('Failed to remove profile photo', 'Close', { duration: 3000 });
       }
     });
@@ -598,7 +579,6 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   }
 
   handleImageError(): void {
-    console.error('Error loading profile image, using default avatar');
     this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
   }
 
