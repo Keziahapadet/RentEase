@@ -1,5 +1,4 @@
 <div class="modern-dashboard">
--
   <aside class="sidebar" [class.sidebar-open]="isMobileMenuOpen">
     <div class="sidebar-header">
       <div class="logo">
@@ -8,7 +7,6 @@
     </div>
 
     <nav class="sidebar-nav">
-   
       <div class="nav-primary">
         <a 
           href="javascript:void(0)" 
@@ -30,7 +28,6 @@
         </a>
       </div>
 
-    
       <div class="nav-secondary">
         <a href="javascript:void(0)" class="nav-item nav-item-logout" (click)="logout()">
           <mat-icon class="nav-icon">logout</mat-icon>
@@ -40,7 +37,6 @@
     </nav>
   </aside>
 
- 
   <div 
     class="mobile-overlay" 
     [class.mobile-overlay-active]="isMobileMenuOpen"
@@ -62,11 +58,15 @@
           
           <div class="welcome-section">
             <div class="profile-section">
-              <img 
-                src="/images/keziah.png" 
-                alt="{{userName}}'s profile picture" 
-                class="profile-picture"
-              />
+              <!-- Replace static image with ProfilePictureComponent -->
+              <app-profile-picture
+                [size]="'small'"
+                [editable]="false"
+                [showName]="false"
+                [showRole]="false"
+                (pictureUpdated)="onPictureUpdated($event)"
+                (pictureDeleted)="onPictureDeleted()">
+              </app-profile-picture>
               <div class="welcome-content">
                 <h1 class="welcome-title">Welcome back, {{userName}}!</h1>
                 <p class="welcome-subtitle">{{propertyAddress}}</p>

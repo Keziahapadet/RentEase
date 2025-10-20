@@ -1,262 +1,287 @@
-import { Component } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DepositComponent } from '../deposit/deposit.component';
-import { PaymentsComponent } from '../payments/payments.component';
-import { MaintenanceComponent } from '../maintenance/maintenance.component';
-import { DocumentsComponent } from '../documents/documents.component';
-import { MessagesComponent } from '../messages/messages.component';
-import { ReviewComponent } from '../review/review.component';
-import { SettingsComponent } from '../settings/settings.component';
-
-interface TimelineEvent {
-  title: string;
-  date: string;
-  description?: string;
-  completed: boolean;
-}
-
-interface QuickAction {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  color: string;
-}
-
-interface Activity {
-  id: number;
-  type: string;
-  title: string;
-  description: string;
-  icon: string;
-  time: string;
-}
-
-interface MaintenanceRequest {
-  id: string;
-  title: string;
-  category: string;
-  priority: string;
-  description: string;
-  status: string;
-  dateSubmitted: string;
-}
-
-interface Conversation {
-  id: string;
-  name: string;
-  avatarText: string;
-  lastMessage: string;
-  time: string;
-}
-
-interface Message {
-  recipient: string;
-  subject: string;
-  content: string;
-}
-
-interface MarketplaceItem {
-  title: string;
-  description: string;
-  price: number;
-  location: string;
-  seller: string;
-}
-
-interface Review {
-  reviewer: string;
-  date: string;
-  rating: number;
-  content: string;
-}
+import { MatIconModule } from '@angular/material/icon';
+import { TenantService } from '../../../../services/tenant.service';
+import { ProfilePictureService, UserProfile } from '../../../../services/profile-picture.service';
+import { ProfilePictureComponent } from '../../../../shared/components/profile-picture/profile-picture.component';
+import { ProfileViewComponent } from '../../../../shared/components/profile-view/profile-view.component';
+import { ProfileEditComponent } from '../../../../shared/components/profile-edit/profile-edit.component';
+import { AuthService } from '../../../../services/auth.service';
 
 @Component({
   selector: 'app-tenant-dashboard',
   standalone: true,
   imports: [
-    MatIconModule, 
-    CommonModule, 
-    FormsModule,
-    DepositComponent, 
-    PaymentsComponent,
-    MaintenanceComponent,
-    DocumentsComponent,
-    MessagesComponent,
-   
-    ReviewComponent,
-    SettingsComponent
+    CommonModule,
+    FormsModule, // Add this for ngModel and ngForm
+    MatIconModule,
+    ProfilePictureComponent,
+    ProfileViewComponent,
+    ProfileEditComponent
   ],
   templateUrl: './tenant-dashboard.component.html',
   styleUrls: ['./tenant-dashboard.component.scss']
 })
-export class TenantDashboardComponent {
-  // Sidebar & navigation
-  isMobileMenuOpen = false;
-  activeSection: string = 'dashboard';
+export class TenantDashboardComponent implements OnInit, OnDestroy {
+  private tenantService = inject(TenantService);
+  private profilePictureService = inject(ProfilePictureService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
+  // Dashboard state
+  activeSection: string = 'dashboard';
+  isMobileMenuOpen: boolean = false;
+  
+  // User data
+  userProfile: UserProfile | null = null;
+  profileImage: string | null = null;
+  userName: string = 'Tenant';
+  userInitials: string = 'T';
+  propertyAddress: string = 'Loading...';
+  landlordName: string = 'Loading...';
+  
+  // Dashboard data
+  depositAmount: number = 0;
+  rentAmount: number = 0;
+  nextRentDueDate: string = '';
+  unreadNotifications: number = 0;
+  
+  // Collapsible sections
+  collapsedSections: Set<string> = new Set();
+  animatingSections: Set<string> = new Set();
+  
+  // Payment status
+  paymentStatus = {
+    status: 'Pending',
+    className: 'status-pending',
+    daysLeft: 5
+  };
+  
+  // Navigation
   navigationItems = [
-    { id: 'deposit', text: 'Deposit', icon: 'account_balance' },
-    { id: 'payments', text: 'Payments', icon: 'payment' },
+    { id: 'deposit', text: 'Deposit', icon: 'account_balance_wallet' },
+    { id: 'payments', text: 'Payments', icon: 'payments' },
     { id: 'maintenance', text: 'Maintenance', icon: 'build' },
     { id: 'documents', text: 'Documents', icon: 'description' },
     { id: 'messages', text: 'Messages', icon: 'chat' },
     { id: 'marketplace', text: 'Marketplace', icon: 'store' },
     { id: 'reviews', text: 'Reviews', icon: 'star' },
-    { id: 'settings', text: 'Settings', icon: 'settings' },
+    { id: 'settings', text: 'Settings', icon: 'settings' }
   ];
-
-  // User Info
-  userName = 'John Doe';
-  userInitials = 'JD';
-  userProfilePictureUrl = 'https://via.placeholder.com/40';
-  propertyAddress = '123 Nairobi Street';
-  landlordName = 'Mr. Smith';
-  caretakerName = 'David Kamau';
-
-  // Deposit
-  depositAmount = 100000;
-  depositTimeline: TimelineEvent[] = [
-    { title: 'Deposit Paid', date: '01 Jan 2025', completed: true, description: 'Security deposit payment received' },
-    { title: 'Verification', date: '05 Jan 2025', completed: true, description: 'Payment verification completed' },
-    { title: 'Protection Activated', date: '10 Jan 2025', completed: true, description: 'Government deposit protection enabled' },
-    { title: 'Documentation Complete', date: '15 Jan 2025', completed: false, description: 'All required documents processed' }
+  
+  // Quick actions
+  quickActions = [
+    { id: 'payRent', title: 'Pay Rent', description: 'Make rent payment', icon: 'payments', color: '#4CAF50' },
+    { id: 'maintenance', title: 'Maintenance', description: 'Submit request', icon: 'build', color: '#FF9800' },
+    { id: 'message', title: 'Message', description: 'Contact landlord', icon: 'chat', color: '#2196F3' },
+    { id: 'documents', title: 'Documents', description: 'View lease', icon: 'description', color: '#9C27B0' }
   ];
-
-  // Rental
-  rentAmount = 50000;
-  nextRentDueDate = '01 March 2025';
-  paymentStatus = { status: 'Paid', daysLeft: 15, className: 'status-success' };
-
-  // Quick Actions
-  quickActions: QuickAction[] = [
-    { id: 'payRent', title: 'Pay Rent', description: 'Send your monthly rent', icon: 'payment', color: '#10b981' },
-    { id: 'requestRepair', title: 'Request Repair', description: 'Submit a maintenance request', icon: 'build', color: '#f59e0b' },
-    { id: 'contactLandlord', title: 'Contact Landlord', description: 'Message your landlord', icon: 'message', color: '#3b82f6' },
-    { id: 'uploadDoc', title: 'View Documents', description: 'Access rental documents', icon: 'folder', color: '#8b5cf6' },
+  
+  // Deposit timeline
+  depositTimeline = [
+    { title: 'Deposit Paid', date: '2024-01-15', completed: true, description: 'Initial security deposit payment' },
+    { title: 'Lease Signed', date: '2024-01-20', completed: true, description: 'Rental agreement executed' },
+    { title: 'Property Inspection', date: '2024-01-25', completed: true, description: 'Move-in inspection completed' },
+    { title: 'Deposit Protection', date: 'Pending', completed: false, description: 'Government protection registration' },
+    { title: 'Deposit Certificate', date: 'Pending', completed: false, description: 'Receive protection certificate' }
   ];
-
-  // Activities
-  recentActivities: Activity[] = [
-    { id: 1, type: 'payment', title: 'February rent payment received', description: 'Payment confirmed via M-Pesa', icon: 'check', time: '2 days ago' },
-    { id: 2, type: 'maintenance', title: 'Maintenance request submitted', description: 'Kitchen faucet repair request', icon: 'build', time: '5 days ago' },
-    { id: 3, type: 'document', title: 'Message from landlord', description: 'Property inspection scheduled', icon: 'mail', time: '1 week ago' },
+  
+  // Recent activities
+  recentActivities = [
+    { id: 1, type: 'payment', title: 'Rent Payment', description: 'January rent payment completed', time: '2 days ago', icon: 'payments' },
+    { id: 2, type: 'maintenance', title: 'Maintenance Request', description: 'Kitchen sink repair requested', time: '1 week ago', icon: 'build' },
+    { id: 3, type: 'message', title: 'New Message', description: 'Message from landlord', time: '1 week ago', icon: 'chat' }
   ];
-
-  // Notifications
-  unreadNotifications = 3;
-
-  // Collapsible Sections
-  collapsedSections: { [key: string]: boolean } = {};
-  animatingSections: { [key: string]: boolean } = {};
-
-  // Maintenance
+  
+  // Maintenance request
   newMaintenanceRequest = {
     title: '',
-    category: '',
-    priority: 'medium',
-    description: ''
+    description: '',
+    priority: 'medium'
   };
 
-  maintenanceRequests: MaintenanceRequest[] = [
-    {
-      id: '1',
-      title: 'Kitchen faucet repair',
-      category: 'Plumbing',
-      priority: 'medium',
-      description: 'The kitchen faucet is leaking and needs repair',
-      status: 'in-progress',
-      dateSubmitted: 'Feb 8, 2024'
-    },
-    {
-      id: '2',
-      title: 'Bedroom window lock',
-      category: 'General Repairs',
-      priority: 'low',
-      description: 'Window lock is loose and needs tightening',
-      status: 'completed',
-      dateSubmitted: 'Jan 25, 2024'
+  ngOnInit(): void {
+    this.loadUserData();
+    this.loadDashboardData();
+  }
+
+  ngOnDestroy(): void {}
+
+  private loadUserData(): void {
+    this.profilePictureService.getCurrentUserProfile().subscribe({
+      next: (profile: UserProfile) => {
+        this.userProfile = profile;
+        this.userName = profile.fullName || 'Tenant';
+        this.userInitials = this.getInitials(this.userName);
+        this.loadProfilePicture();
+      },
+      error: (error) => {
+        console.error('Failed to load user profile:', error);
+        this.loadUserDataFromLocalStorage();
+      }
+    });
+  }
+
+  private loadUserDataFromLocalStorage(): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser) {
+      this.userName = currentUser.fullName || 'Tenant';
+      this.userInitials = this.getInitials(this.userName);
     }
-  ];
+  }
 
-  // Messages
-  conversations: Conversation[] = [
-    { id: '1', name: 'Sarah Johnson', avatarText: 'SJ', lastMessage: 'Thank you for the payment confirmation', time: '2 hours ago' },
-    { id: '2', name: 'David Kamau', avatarText: 'DK', lastMessage: 'Maintenance scheduled for tomorrow', time: '1 day ago' },
-    { id: '3', name: 'Property Management', avatarText: 'PM', lastMessage: 'Monthly newsletter attached', time: '3 days ago' }
-  ];
+  private loadProfilePicture(): void {
+    this.profilePictureService.getProfilePicture().subscribe({
+      next: (response: any) => {
+        const imageUrl = response.data || response.pictureUrl;
+        
+        if (response.success && imageUrl) {
+          this.profileImage = imageUrl;
+          localStorage.setItem('profileImage', imageUrl);
+        } else {
+          this.profileImage = this.profilePictureService.getDefaultAvatar(this.userName);
+        }
+      },
+      error: (error: any) => {
+        const cachedImage = localStorage.getItem('profileImage');
+        if (cachedImage) {
+          this.profileImage = cachedImage;
+        } else {
+          this.profileImage = this.profilePictureService.getDefaultAvatar(this.userName);
+        }
+      }
+    });
+  }
 
-  activeConversationId: string = '';
+  private loadDashboardData(): void {
+    // Load tenant-specific data
+    this.tenantService.getTenantDashboardData().subscribe({
+      next: (data: any) => {
+        this.propertyAddress = data.propertyAddress || '123 Main Street, Nairobi';
+        this.landlordName = data.landlordName || 'John Doe';
+        this.depositAmount = data.depositAmount || 50000;
+        this.rentAmount = data.rentAmount || 25000;
+        this.nextRentDueDate = data.nextRentDueDate || '2024-02-01';
+        this.unreadNotifications = data.unreadNotifications || 3;
+        
+        // Update payment status
+        this.updatePaymentStatus();
+      },
+      error: (error) => {
+        console.error('Failed to load dashboard data:', error);
+        // Set default values
+        this.propertyAddress = '123 Main Street, Nairobi';
+        this.landlordName = 'John Doe';
+        this.depositAmount = 50000;
+        this.rentAmount = 25000;
+        this.nextRentDueDate = '2024-02-01';
+        this.unreadNotifications = 3;
+        this.updatePaymentStatus();
+      }
+    });
+  }
 
-  newMessage: Message = {
-    recipient: '',
-    subject: '',
-    content: ''
-  };
+  private updatePaymentStatus(): void {
+    const today = new Date();
+    const dueDate = new Date(this.nextRentDueDate);
+    const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilDue <= 0) {
+      this.paymentStatus = { status: 'Overdue', className: 'status-overdue', daysLeft: 0 };
+    } else if (daysUntilDue <= 7) {
+      this.paymentStatus = { status: 'Due Soon', className: 'status-warning', daysLeft: daysUntilDue };
+    } else {
+      this.paymentStatus = { status: 'Paid', className: 'status-success', daysLeft: daysUntilDue };
+    }
+  }
 
-  // Marketplace
-  activeMarketplaceTab: string = 'items';
+  // Navigation methods
+  setActiveSection(section: string): void {
+    this.activeSection = section;
+    if (this.isMobileMenuOpen) {
+      this.closeMobileMenu();
+    }
+  }
 
-  marketplaceItems = {
-    items: [
-      { title: 'Sofa Set', description: 'Comfortable 3-seater sofa in good condition', price: 25000, location: 'Westlands', seller: 'Jane Smith' },
-      { title: 'Dining Table', description: '6-seater wooden dining table', price: 15000, location: 'Kilimani', seller: 'Mike Johnson' }
-    ],
-    services: [
-      { title: 'House Cleaning', description: 'Professional cleaning services', price: 2000, location: 'Nairobi', seller: 'Clean Co.' },
-      { title: 'Plumbing Services', description: 'Licensed plumber available', price: 3000, location: 'CBD', seller: 'Fix It Pro' }
-    ],
-    housing: [
-      { title: 'Studio Apartment', description: 'Modern studio in secure building', price: 35000, location: 'Karen', seller: 'Property Plus' }
-    ]
-  };
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 
-  // Reviews
-  averageRating: number = 4.2;
-  recentReviews: Review[] = [
-    { reviewer: 'Alice Johnson', date: 'Feb 10, 2024', rating: 5, content: 'Excellent property management and quick response to issues.' },
-    { reviewer: 'Bob Smith', date: 'Jan 28, 2024', rating: 4, content: 'Great location and well-maintained facilities.' },
-    { reviewer: 'Carol Davis', date: 'Jan 15, 2024', rating: 4, content: 'Good value for money, friendly landlord.' }
-  ];
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
 
-  // Collapsible Section Methods
-  toggleSection(section: string) {
-    this.animatingSections[section] = true;
-    this.collapsedSections[section] = !this.collapsedSections[section];
-    setTimeout(() => (this.animatingSections[section] = false), 300);
+  // Collapsible sections
+  toggleSection(section: string): void {
+    if (this.collapsedSections.has(section)) {
+      this.collapsedSections.delete(section);
+    } else {
+      this.collapsedSections.add(section);
+    }
+    
+    this.animatingSections.add(section);
+    setTimeout(() => {
+      this.animatingSections.delete(section);
+    }, 300);
   }
 
   isSectionCollapsed(section: string): boolean {
-    return this.collapsedSections[section] || false;
+    return this.collapsedSections.has(section);
   }
 
   isAnimating(section: string): boolean {
-    return this.animatingSections[section] || false;
+    return this.animatingSections.has(section);
   }
 
-  expandAllSections() {
-    Object.keys(this.collapsedSections).forEach(key => this.collapsedSections[key] = false);
+  expandAllSections(): void {
+    this.collapsedSections.clear();
   }
 
-  collapseAllSections() {
-    const sectionsToCollapse = ['deposit', 'rental', 'quickActions', 'activity'];
-    sectionsToCollapse.forEach(section => this.collapsedSections[section] = true);
+  collapseAllSections(): void {
+    this.navigationItems.forEach(item => {
+      this.collapsedSections.add(item.id);
+    });
+    this.collapsedSections.add('deposit');
+    this.collapsedSections.add('rental');
+    this.collapsedSections.add('quickActions');
+    this.collapsedSections.add('activity');
   }
 
   getCollapsedCount(): number {
-    return Object.values(this.collapsedSections).filter(c => c).length;
+    return this.collapsedSections.size;
   }
 
-  // Deposit Helpers
+  getAriaLabel(section: string): string {
+    return this.isSectionCollapsed(section) ? `Expand ${section} section` : `Collapse ${section} section`;
+  }
+
+  // Quick actions
+  executeQuickAction(actionId: string): void {
+    switch (actionId) {
+      case 'payRent':
+        this.setActiveSection('payments');
+        break;
+      case 'maintenance':
+        this.setActiveSection('maintenance');
+        break;
+      case 'message':
+        this.setActiveSection('messages');
+        break;
+      case 'documents':
+        this.setActiveSection('documents');
+        break;
+    }
+  }
+
+  // Deposit methods
   getDepositStatusText(): string {
-    const completed = this.depositTimeline.filter(e => e.completed).length;
-    return completed === this.depositTimeline.length ? 'Completed' : 'Protected';
+    return 'Protected';
   }
 
   getCompletedTimelineCount(): number {
-    return this.depositTimeline.filter(e => e.completed).length;
+    return this.depositTimeline.filter(event => event.completed).length;
   }
 
   getTotalTimelineCount(): number {
@@ -264,185 +289,97 @@ export class TenantDashboardComponent {
   }
 
   getTimelineCompletionPercentage(): number {
-    return Math.round((this.getCompletedTimelineCount() / this.getTotalTimelineCount()) * 100);
+    return (this.getCompletedTimelineCount() / this.getTotalTimelineCount()) * 100;
   }
 
-  // Activities
-  hasRecentActivities(): boolean {
-    return this.recentActivities.length > 0;
-  }
-
-  getRecentActivitiesCount(): number {
-    return this.recentActivities.length;
-  }
-
-  trackByActivityId(index: number, activity: Activity) {
-    return activity.id;
-  }
-
-  getActivityIconClass(type: string): string {
-    switch (type) {
-      case 'payment': return 'activity-success';
-      case 'maintenance': return 'activity-info';
-      case 'document': return 'activity-info';
-      default: return 'activity-info';
-    }
-  }
-
-  // Actions
-  viewDepositDetails() { 
+  viewDepositDetails(): void {
     this.setActiveSection('deposit');
   }
 
-  viewPaymentHistory() { 
+  viewPaymentHistory(): void {
     this.setActiveSection('payments');
   }
 
-  executeQuickAction(actionId: string) { 
-    switch (actionId) {
-      case 'payRent':
-        this.setActiveSection('payments');
-        break;
-      case 'requestRepair':
-        this.setActiveSection('maintenance');
-        break;
-      case 'contactLandlord':
-        this.setActiveSection('messages');
-        break;
-      case 'uploadDoc':
-        this.setActiveSection('documents');
-        break;
-    }
+  // Activity methods
+  hasRecentActivities(): boolean {
+    return this.recentActivities && this.recentActivities.length > 0;
   }
 
-  refreshData() { 
-    console.log('Refreshing data...');
-    // Simulate refresh
+  getRecentActivitiesCount(): number {
+    return this.recentActivities ? this.recentActivities.length : 0;
   }
 
-  // Maintenance Methods
+  getActivityIconClass(type: string): string {
+    return `activity-${type}`;
+  }
+
+  trackByActivityId(index: number, activity: any): number {
+    return activity.id;
+  }
+
+  refreshData(): void {
+    this.loadDashboardData();
+  }
+
+  // Maintenance methods
   submitMaintenanceRequest(): void {
-    if (!this.newMaintenanceRequest.title || !this.newMaintenanceRequest.description) {
-      return;
+    if (this.newMaintenanceRequest.title && this.newMaintenanceRequest.description) {
+      this.tenantService.submitMaintenanceRequest(this.newMaintenanceRequest).subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            // Reset form
+            this.newMaintenanceRequest = { title: '', description: '', priority: 'medium' };
+            // Show success message
+            alert('Maintenance request submitted successfully!');
+          } else {
+            alert('Failed to submit maintenance request: ' + response.message);
+          }
+        },
+        error: (error) => {
+          alert('Error submitting maintenance request: ' + error.message);
+        }
+      });
     }
-
-    const request: MaintenanceRequest = {
-      id: Date.now().toString(),
-      title: this.newMaintenanceRequest.title,
-      category: this.newMaintenanceRequest.category,
-      priority: this.newMaintenanceRequest.priority,
-      description: this.newMaintenanceRequest.description,
-      status: 'submitted',
-      dateSubmitted: new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      })
-    };
-
-    this.maintenanceRequests.unshift(request);
-
-    // Reset form
-    this.newMaintenanceRequest = {
-      title: '',
-      category: '',
-      priority: 'medium',
-      description: ''
-    };
-
-    alert('Maintenance request submitted successfully!');
   }
 
-  getStatusClass(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'completed': 'status-success',
-      'in-progress': 'status-warning',
-      'submitted': 'status-info',
-      'cancelled': 'status-danger'
-    };
-    return statusMap[status] || 'status-secondary';
+  // Utility methods
+  getInitials(name: string): string {
+    if (!name) return 'T';
+    const names = name.split(' ');
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
   }
 
-  getPriorityClass(priority: string): string {
-    const priorityMap: { [key: string]: string } = {
-      'urgent': 'priority-urgent',
-      'high': 'priority-high',
-      'medium': 'priority-medium',
-      'low': 'priority-low'
-    };
-    return priorityMap[priority] || 'priority-medium';
-  }
-
-  // Message Methods
-  setActiveConversation(conversationId: string): void {
-    this.activeConversationId = conversationId;
-  }
-
-  sendMessage(): void {
-    if (!this.newMessage.recipient || !this.newMessage.content) {
-      return;
-    }
-
-    console.log('Sending message:', this.newMessage);
-
-    // Reset form
-    this.newMessage = {
-      recipient: '',
-      subject: '',
-      content: ''
-    };
-
-    alert('Message sent successfully!');
-  }
-
-  // Marketplace Methods
-  setActiveMarketplaceTab(tab: string): void {
-    this.activeMarketplaceTab = tab;
-  }
-
-  getMarketplaceItems(): MarketplaceItem[] {
-    const items = this.marketplaceItems as any;
-    return items[this.activeMarketplaceTab] || [];
-  }
-
-  // Helpers
   formatNumber(num: number): string {
-    return new Intl.NumberFormat('en-KE').format(num);
+    return num.toLocaleString('en-KE');
   }
 
-  formatCurrency(num: number): string {
-    return 'KSH ' + this.formatNumber(num);
+  formatCurrency(amount: number): string {
+    return `KSH ${this.formatNumber(amount)}`;
   }
 
-  // Sidebar controls
-  toggleMobileMenu() { 
-    this.isMobileMenuOpen = !this.isMobileMenuOpen; 
+  toggleNotifications(): void {
+    // Implement notification toggle logic
+    console.log('Toggle notifications');
   }
 
-  closeMobileMenu() { 
-    this.isMobileMenuOpen = false; 
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+      },
+      error: (error) => {
+        console.error('Logout error:', error);
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
-  setActiveSection(section: string) { 
-    this.activeSection = section; 
-    this.closeMobileMenu(); 
+  onPictureUpdated(imageUrl: string): void {
+    this.profileImage = imageUrl;
   }
 
-  // Notifications
-  toggleNotifications() { 
-    console.log('Toggle notifications panel');
-  }
-
-  // Logout
-  logout() { 
-    if (confirm('Are you sure you want to logout?')) {
-      alert('Logging out...');
-      // Add actual logout logic here
-    }
-  }
-
-  // ARIA
-  getAriaLabel(section: string): string {
-    return this.isSectionCollapsed(section) ? `Expand ${section}` : `Collapse ${section}`;
+  onPictureDeleted(): void {
+    this.profileImage = this.profilePictureService.getDefaultAvatar(this.userName);
   }
 }
