@@ -214,25 +214,45 @@ export class AuthService {
     ).pipe(catchError(this.handleError));
   }
 
-  updatePhoneNumber(request: any): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/update-phone`,
-      request,
-      { headers: this.getAuthHeaders() }
-    ).pipe(
+  // Phone number update method - UPDATED
+  updatePhone(newPhoneNumber: string): Observable<any> {
+    const payload = { newPhoneNumber };
+    
+    return this.http.put<any>(`${this.apiUrl}/update-phone`, payload, {
+      headers: this.getAuthHeaders()
+    }).pipe(
       tap(response => {
-        if (response.success && this.isBrowser) {
+        console.log('Phone update response:', response);
+        if (response.success) {
           const currentUser = this.getCurrentUser();
           if (currentUser) {
             const updatedUser = { 
               ...currentUser, 
-              phoneNumber: request.newPhoneNumber 
+              phoneNumber: newPhoneNumber 
             };
             const isPermanent = !!localStorage.getItem('userData');
             this.setInStorage('userData', JSON.stringify(updatedUser), isPermanent);
             this.currentUserSubject.next(updatedUser);
           }
         }
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  // Password update method - UPDATED
+  updatePassword(currentPassword: string, newPassword: string, confirmNewPassword: string): Observable<any> {
+    const payload = {
+      currentPassword,
+      newPassword,
+      confirmNewPassword
+    };
+    
+    return this.http.put<any>(`${this.apiUrl}/update-password`, payload, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap(response => {
+        console.log('Password update response:', response);
       }),
       catchError(this.handleError)
     );

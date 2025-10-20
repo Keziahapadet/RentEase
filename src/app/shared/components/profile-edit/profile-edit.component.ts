@@ -12,9 +12,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthService } from '../../../services/auth.service';
 import { PropertyService } from '../../../services/property.service';
 import { ProfilePictureService } from '../../../services/profile-picture.service';
+import { ChangePasswordDialogComponent } from '../../../shared/change-password-dialog/change-password-dialog.component';
 
 @Component({
   selector: 'app-profile-edit',
@@ -31,7 +33,8 @@ import { ProfilePictureService } from '../../../services/profile-picture.service
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatDialogModule
   ],
   templateUrl: './profile-edit.component.html',
   styleUrls: ['./profile-edit.component.scss']
@@ -41,7 +44,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   
   profileForm: FormGroup;
   user: any = null;
-  userRole: string = 'user'; // Track role separately
+  userRole: string = 'user';
   isSubmitting = false;
   isLoadingUserData = false;
   
@@ -56,7 +59,8 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     private propertyService: PropertyService,
     private profilePictureService: ProfilePictureService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.profileForm = this.createForm();
   }
@@ -79,45 +83,32 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Determine the actual user role
     this.determineActualUserRole();
-    
     console.log('🔍 DEBUG - Final determined role:', this.userRole);
-    
     this.populateForm();
   }
 
   private determineActualUserRole(): void {
-    // Method 1: Check if role exists in stored user data
     if (this.user?.role && this.user.role !== 'user') {
       this.userRole = this.user.role;
       console.log('✅ Role from user data:', this.userRole);
       return;
     }
 
-    // Method 2: Use AuthService role checking methods to determine actual role
-    // These methods check the token payload, not the stored user data
     if (this.authService.isTenant()) {
       this.userRole = 'tenant';
-      console.log('✅ User is a Tenant (from token)');
     } else if (this.authService.isCaretaker()) {
       this.userRole = 'caretaker';
-      console.log('✅ User is a Caretaker (from token)');
     } else if (this.authService.isLandlord()) {
       this.userRole = 'landlord';
-      console.log('✅ User is a Landlord (from token)');
     } else if (this.authService.isBusiness()) {
       this.userRole = 'business';
-      console.log('✅ User is a Business (from token)');
     } else if (this.authService.isAdmin()) {
       this.userRole = 'admin';
-      console.log('✅ User is an Admin (from token)');
     } else {
       this.userRole = 'user';
-      console.log('⚠️ Default role: user');
     }
 
-    // Update the user object with the correct role for display
     if (this.user) {
       this.user.role = this.userRole;
     }
@@ -125,7 +116,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
   private loadProfilePicture(): void {
     this.profilePictureService.getProfilePicture().subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.loading = false;
         const pictureUrl = response.data || response.imageUrl || response.pictureUrl;
         
@@ -171,6 +162,51 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Phone number update method
+  updatePhoneNumber(): void {
+    const phoneNumber = this.phoneNumber?.value;
+    if (!phoneNumber) {
+      this.snackBar.open('Please enter a phone number', 'Close', { duration: 3000 });
+      return;
+    }
+
+    if (this.phoneNumber?.invalid) {
+      this.snackBar.open('Please enter a valid phone number', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.authService.updatePhone(phoneNumber).subscribe({
+      next: (response: any) => {
+        this.isSubmitting = false;
+        if (response.success) {
+          this.snackBar.open('Phone number updated successfully!', 'Close', { duration: 3000 });
+          // Form is already updated via the tap operator in the service
+        } else {
+          this.snackBar.open(response.message || 'Failed to update phone number', 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.snackBar.open(error.message || 'Failed to update phone number', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  // Open change password dialog
+  openChangePasswordDialog(): void {
+    const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
+      width: '400px',
+      data: { userId: this.user?.id }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'success') {
+        this.snackBar.open('Password updated successfully!', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
   toggleImageOptions(): void {
     this.showImageOptions = !this.showImageOptions;
   }
@@ -208,7 +244,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
     this.showImageOptions = false;
 
     this.profilePictureService.uploadProfilePicture(file).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('Upload SUCCESS - Full response:', JSON.stringify(response, null, 2));
         this.uploading = false;
         const pictureUrl = response.data || response.imageUrl || response.pictureUrl;
@@ -244,7 +280,7 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   deletePicture(): void {
     if (confirm('Are you sure you want to delete your profile picture?')) {
       this.profilePictureService.deleteProfilePicture().subscribe({
-        next: (response) => {
+        next: (response: any) => {
           if (response.success) {
             this.imageUrl = this.profilePictureService.getDefaultAvatar(this.user?.fullName);
             this.showImageOptions = false;
@@ -282,7 +318,6 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
   }
 
   getRoleDisplay(role?: string): string {
-    // Use the determined role if no specific role is passed
     const actualRole = role || this.userRole;
     const roleMap: { [key: string]: string } = {
       'landlord': 'Landlord',
@@ -304,31 +339,37 @@ export class ProfileEditComponent implements OnInit, OnDestroy {
 
     this.isSubmitting = true;
 
-    const updatedData = {
-      fullName: this.profileForm.value.fullName,
-      email: this.profileForm.value.email,
-      phoneNumber: this.profileForm.value.phoneNumber,
-      bio: this.profileForm.value.bio
-    };
+    // Update phone number if changed
+    if (this.phoneNumber?.value !== this.user?.phoneNumber) {
+      this.updatePhoneNumber();
+    } else {
+      // Just update local data for other fields
+      const updatedData = {
+        fullName: this.profileForm.value.fullName,
+        email: this.profileForm.value.email,
+        phoneNumber: this.profileForm.value.phoneNumber,
+        bio: this.profileForm.value.bio
+      };
 
-    const updatedUser = {
-      ...this.user,
-      ...updatedData,
-      role: this.userRole // Ensure role is included when saving
-    };
-    
-    const isPermanent = !!localStorage.getItem('userData');
-    const storage = isPermanent ? localStorage : sessionStorage;
-    storage.setItem('userData', JSON.stringify(updatedUser));
-    
-    setTimeout(() => {
-      this.isSubmitting = false;
-      this.snackBar.open('Profile updated successfully!', 'Close', { duration: 2000 });
+      const updatedUser = {
+        ...this.user,
+        ...updatedData,
+        role: this.userRole
+      };
+      
+      const isPermanent = !!localStorage.getItem('userData');
+      const storage = isPermanent ? localStorage : sessionStorage;
+      storage.setItem('userData', JSON.stringify(updatedUser));
       
       setTimeout(() => {
-        this.goBack(); 
-      }, 500);
-    }, 800);
+        this.isSubmitting = false;
+        this.snackBar.open('Profile updated successfully!', 'Close', { duration: 2000 });
+        
+        setTimeout(() => {
+          this.goBack(); 
+        }, 500);
+      }, 800);
+    }
   }
 
   goBack(): void {

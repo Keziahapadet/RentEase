@@ -138,6 +138,17 @@
                 <mat-error *ngIf="bio?.hasError('maxlength')">Bio cannot exceed 500 characters</mat-error>
               </mat-form-field>
             </div>
+
+            <!-- Change Password Section -->
+            <div class="form-row">
+              <div class="password-section">
+                <h3>Password</h3>
+                <button mat-stroked-button type="button" (click)="openChangePasswordDialog()" class="change-password-btn">
+                  <mat-icon>lock</mat-icon>
+                  Change Password
+                </button>
+              </div>
+            </div>
           </form>
         </div>
 
