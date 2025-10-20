@@ -22,40 +22,6 @@ export interface Unit {
   propertyId: number;
 }
 
-
-/*
-export interface MaintenanceRequest {
-  id: string;
-  title: string;
-  category: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  description: string;
-  status: 'submitted' | 'in-progress' | 'completed' | 'cancelled';
-  dateSubmitted: string;
-  tenantName: string;
-  property: string;
-}
-
-export interface Inspection {
-  id: string;
-  type: 'move-in' | 'move-out' | 'routine';
-  property: string;
-  tenantName: string;
-  date: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  depositAmount: number;
-}
-
-export interface DepositCase {
-  id: string;
-  tenantName: string;
-  property: string;
-  depositAmount: number;
-  status: 'pending' | 'approved' | 'rejected';
-  damageAmount: number;
-}
-*/
-
 @Injectable({
   providedIn: 'root'
 })
@@ -67,7 +33,6 @@ export class CaretakerService {
     private authService: AuthService
   ) {}
 
- 
   private createHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     const headersConfig: any = {
@@ -101,16 +66,20 @@ export class CaretakerService {
     }));
   }
 
-
   logout(): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/logout`, {}, {
       headers: this.createHeaders()
     }).pipe(catchError(this.handleError));
   }
 
-
   getProperties(): Observable<Property[]> {
     return this.http.get<Property[]>(`${this.apiUrl}/caretaker/properties`, {
+      headers: this.createHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  getPropertyDetails(propertyId: number): Observable<Property> {
+    return this.http.get<Property>(`${this.apiUrl}/caretaker/properties/${propertyId}`, {
       headers: this.createHeaders()
     }).pipe(catchError(this.handleError));
   }
@@ -127,6 +96,12 @@ export class CaretakerService {
     }).pipe(catchError(this.handleError));
   }
 
+  getAllUnits(): Observable<Unit[]> {
+    return this.http.get<Unit[]>(`${this.apiUrl}/caretaker/units`, {
+      headers: this.createHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
   inviteTenant(tenantEmail: string, unitId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/caretaker/invite-tenant`, { 
       tenantEmail, 
@@ -135,71 +110,4 @@ export class CaretakerService {
       headers: this.createHeaders()
     }).pipe(catchError(this.handleError));
   }
-
-
-  /*
-  getMaintenanceRequests(): Observable<MaintenanceRequest[]> {
-    return this.http.get<MaintenanceRequest[]>(`${this.apiUrl}/caretaker/maintenance`, {
-      headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
-  }
-
-  updateMaintenanceStatus(requestId: string, status: string): Observable<MaintenanceRequest> {
-    return this.http.put<MaintenanceRequest>(
-      `${this.apiUrl}/caretaker/maintenance/${requestId}`, 
-      { status }, 
-      {
-        headers: this.createHeaders()
-      }
-    ).pipe(catchError(this.handleError));
-  }
-  */
-
- 
-  /*
-  getInspections(): Observable<Inspection[]> {
-    return this.http.get<Inspection[]>(`${this.apiUrl}/caretaker/inspections`, {
-      headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
-  }
-
-  completeInspection(inspectionId: string): Observable<Inspection> {
-    return this.http.put<Inspection>(
-      `${this.apiUrl}/caretaker/inspections/${inspectionId}/complete`, 
-      {}, 
-      {
-        headers: this.createHeaders()
-      }
-    ).pipe(catchError(this.handleError));
-  }
-  */
-
-
-  /*
-  getDepositCases(): Observable<DepositCase[]> {
-    return this.http.get<DepositCase[]>(`${this.apiUrl}/caretaker/deposits`, {
-      headers: this.createHeaders()
-    }).pipe(catchError(this.handleError));
-  }
-
-  approveDeposit(depositId: string): Observable<DepositCase> {
-    return this.http.put<DepositCase>(
-      `${this.apiUrl}/caretaker/deposits/${depositId}/approve`, 
-      {}, 
-      {
-        headers: this.createHeaders()
-      }
-    ).pipe(catchError(this.handleError));
-  }
-
-  rejectDeposit(depositId: string): Observable<DepositCase> {
-    return this.http.put<DepositCase>(
-      `${this.apiUrl}/caretaker/deposits/${depositId}/reject`, 
-      {}, 
-      {
-        headers: this.createHeaders()
-      }
-    ).pipe(catchError(this.handleError));
-  }
-  */
 }

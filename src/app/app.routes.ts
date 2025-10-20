@@ -37,6 +37,12 @@ import { CaretakerDashboardComponent } from './components/dashboard/caretaker/ca
 import { CaretakerOverviewComponent } from './components/dashboard/caretaker/components/caretaker-overview/caretaker-overview.component';
 import { BusinessDashboardComponent } from './components/dashboard/bussiness/business-dashboard.component';
 
+// Add these missing components
+import { AllUnitsComponent } from './components/dashboard/caretaker/components/properties/all-units/all-units.component';
+import { PropertyDetailsComponent } from './components/dashboard/caretaker/components/properties/property-details/property-details.component';
+import { PropertyUnitsComponent as CaretakerPropertyUnitsComponent } from './components/dashboard/caretaker/components/properties/property-units/property-units.component';
+
+
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: 'registration', component: RegistrationComponent },
@@ -129,7 +135,16 @@ export const routes: Routes = [
       { path: 'maintenance', component: CaretakerOverviewComponent },
       { path: 'inspections', component: CaretakerOverviewComponent },
       { path: 'deposits', component: CaretakerOverviewComponent },
-      { path: 'properties', component: CaretakerOverviewComponent },
+      { 
+        path: 'properties',
+        children: [
+          { path: '', redirectTo: 'all-units', pathMatch: 'full' },
+          { path: 'all-units', component: AllUnitsComponent },
+          { path: ':id', component: PropertyDetailsComponent },
+          { path: ':id/units', component: CaretakerPropertyUnitsComponent },
+         
+        ]
+      },
       { path: 'messages', component: CaretakerOverviewComponent },
       { path: 'reports', component: CaretakerOverviewComponent },
       { 

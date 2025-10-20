@@ -1,0 +1,50 @@
+<div class="properties-container">
+  <div class="section-header">
+    <h2>Managed Properties</h2>
+    <p>Properties you are responsible for managing</p>
+  </div>
+
+  <div class="loading-spinner" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div class="error-message" *ngIf="error && !loading">
+    <mat-icon>error</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
+  <div class="properties-grid" *ngIf="!loading && !error">
+    <mat-card class="property-card" *ngFor="let property of properties">
+      <mat-card-content>
+        <h3 class="property-name">{{ property.name }}</h3>
+        <p class="property-address">{{ property.address }}</p>
+        
+        <div class="property-stats">
+          <div class="stat">
+            <span class="stat-value">{{ property.units?.length || 0 }}</span>
+            <span class="stat-label">Total Units</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ getOccupancyRate(property) }}%</span>
+            <span class="stat-label">Occupancy</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="viewPropertyDetails(property.id)">
+          View Details
+        </button>
+        <button mat-button (click)="manageUnits(property.id)">
+          Manage Units
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !error && properties.length === 0">
+    <mat-icon>apartment</mat-icon>
+    <h3>No Properties Assigned</h3>
+    <p>You haven't been assigned to manage any properties yet.</p>
+  </div>
+</div>

@@ -5,12 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
-import { CaretakerService } from '../../../services/caretaker.service';
+import { CaretakerService, Property, Unit } from '../../../services/caretaker.service';
 import { ProfilePictureService, UserProfile } from '../../../services/profile-picture.service';
 import { AuthService } from '../../../services/auth.service';
 import { ProfilePictureComponent } from '../../../shared/components/profile-picture/profile-picture.component';
 import { ProfileViewComponent } from '../../../shared/components/profile-view/profile-view.component';
-import { ProfileEditComponent } from '../../../shared/components/profile-edit/profile-edit.component'; 
+import { ProfileEditComponent } from '../../../shared/components/profile-edit/profile-edit.component';
 
 export interface NavItem {
   id: string;
@@ -25,6 +25,10 @@ export interface Stats {
   completedJobs: number;
   responseRate: number;
   tenantSatisfaction: number;
+  totalProperties: number;
+  totalUnits: number;
+  occupiedUnits: number;
+  vacantUnits: number;
 }
 
 export interface QuickAction {
@@ -34,6 +38,16 @@ export interface QuickAction {
   icon: string;
   color: string;
   action: () => void;
+}
+
+export interface Activity {
+  id: string;
+  type: 'maintenance' | 'inspection' | 'deposit' | 'message';
+  title: string;
+  details: string;
+  time: string;
+  propertyId?: number;
+  unitId?: number;
 }
 
 @Component({
@@ -61,6 +75,10 @@ export class CaretakerDashboardComponent implements OnInit {
   userRole: 'caretaker' | 'tenant' | 'landlord' | 'admin' | 'business' | 'user' = 'caretaker';
   loading: boolean = true;
   
+  properties: Property[] = [];
+  units: Unit[] = [];
+  recentActivities: Activity[] = [];
+
   navItems: NavItem[] = [
     { id: 'overview', label: 'Dashboard', icon: 'dashboard' },
     { id: 'maintenance', label: 'Maintenance', icon: 'build' },
@@ -73,12 +91,16 @@ export class CaretakerDashboardComponent implements OnInit {
   ];
 
   stats: Stats = {
-    pendingMaintenance: 5,
-    scheduledInspections: 3,
-    activeDepositCases: 2,
-    completedJobs: 12,
-    responseRate: 92,
-    tenantSatisfaction: 4.5
+    pendingMaintenance: 0,
+    scheduledInspections: 0,
+    activeDepositCases: 0,
+    completedJobs: 0,
+    responseRate: 0,
+    tenantSatisfaction: 0,
+    totalProperties: 0,
+    totalUnits: 0,
+    occupiedUnits: 0,
+    vacantUnits: 0
   };
 
   quickActions: QuickAction[] = [
@@ -126,11 +148,100 @@ export class CaretakerDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserProfile();
     this.checkMobileView();
+    this.loadDashboardData();
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.checkMobileView();
+  }
+
+  loadDashboardData(): void {
+    this.loading = true;
+    
+    Promise.all([
+      this.loadProperties(),
+      this.loadUnits()
+    ]).then(() => {
+      this.calculateStatistics();
+      this.generateRecentActivities();
+      this.loading = false;
+    }).catch(error => {
+      console.error('Error loading dashboard data:', error);
+      this.calculateStatistics();
+      this.generateRecentActivities();
+      this.loading = false;
+    });
+  }
+
+  loadProperties(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.caretakerService.getProperties().subscribe({
+        next: (properties) => {
+          this.properties = properties;
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error loading properties:', error);
+          this.properties = [];
+          resolve();
+        }
+      });
+    });
+  }
+
+  loadUnits(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.caretakerService.getAllUnits().subscribe({
+        next: (units) => {
+          this.units = units;
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error loading units:', error);
+          this.units = [];
+          resolve();
+        }
+      });
+    });
+  }
+
+  calculateStatistics(): void {
+    this.stats.totalProperties = this.properties.length;
+    this.stats.totalUnits = this.units.length;
+    this.stats.occupiedUnits = this.units.filter(unit => unit.isOccupied).length;
+    this.stats.vacantUnits = this.stats.totalUnits - this.stats.occupiedUnits;
+    this.stats.pendingMaintenance = 5;
+    this.stats.scheduledInspections = 3;
+    this.stats.completedJobs = 12;
+    this.stats.responseRate = 92;
+    this.stats.tenantSatisfaction = 4.5;
+  }
+
+  generateRecentActivities(): void {
+    this.recentActivities = [
+      {
+        id: '1',
+        type: 'maintenance',
+        title: 'Maintenance Request Submitted',
+        details: 'Kitchen sink leakage - Unit 4B',
+        time: '2 hours ago'
+      },
+      {
+        id: '2',
+        type: 'inspection',
+        title: 'Inspection Completed',
+        details: 'Routine check - Block A',
+        time: '5 hours ago'
+      },
+      {
+        id: '3',
+        type: 'maintenance',
+        title: 'Maintenance Completed',
+        details: 'AC repair - Unit 2A',
+        time: '1 day ago'
+      }
+    ];
   }
 
   get isProfileView(): boolean {
@@ -216,16 +327,13 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   loadUserProfile(): void {
-    this.loading = true;
     this.profilePictureService.getCurrentUserProfile().subscribe({
       next: (profile) => {
         this.userProfile = profile;
         this.determineActualUserRole();
-        this.loading = false;
       },
       error: (error) => {
         console.error('Failed to load user profile:', error);
-        this.loading = false;
         this.determineActualUserRole();
         this.userProfile = {
           id: 'unknown',
@@ -327,6 +435,7 @@ export class CaretakerDashboardComponent implements OnInit {
   }
 
   refreshData(): void {
+    this.loadDashboardData();
     this.loadUserProfile();
   }
 
@@ -340,10 +449,6 @@ export class CaretakerDashboardComponent implements OnInit {
         this.router.navigate(['/login']);
       }
     });
-  }
-
-  private showNotification(message: string, type: 'success' | 'error'): void {
-    console.log(`${type.toUpperCase()}: ${message}`);
   }
 
   formatNumber(num: number): string {
