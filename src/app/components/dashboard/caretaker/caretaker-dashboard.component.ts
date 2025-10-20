@@ -229,7 +229,7 @@ export class CaretakerDashboardComponent implements OnInit {
         this.determineActualUserRole();
         this.userProfile = {
           id: 'unknown',
-          fullName: 'Caretaker',
+          fullName: this.getRoleDisplay(),
           email: '',
           role: this.userRole,
           verified: false,

@@ -41,13 +41,7 @@
           </div>
 
           <div class="profile-info">
-            <h2 class="user-name">{{ user?.fullName || 'User' }}</h2>
-            
-            <mat-chip class="user-role-chip" [style.background]="getRoleColor()">
-              <mat-icon class="chip-icon">person</mat-icon>
-              {{ getRoleDisplay() }}
-            </mat-chip>
-            
+            <h2 class="user-name">{{ user?.fullName || getRoleDisplay() }}</h2>
             <p class="user-email">{{ user?.email || 'email@example.com' }}</p>
           </div>
 
