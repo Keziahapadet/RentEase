@@ -14,10 +14,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { PropertyService } from '../../../../../../services/property.service';
 import { AuthService } from '../../../../../../services/auth.service';
-import { ExtendedUser, ApiResponse, User } from '../../../../../../services/auth-interfaces';
 
 @Component({
-  selector: 'app-profile-edit',
+  selector: 'app-landlord-profile-edit',
   standalone: true,
   imports: [
     CommonModule,
@@ -43,7 +42,7 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
 
-  user: ExtendedUser | null = null;
+  user: any = null;
   profileImage: string | null = null;
   profileForm: FormGroup;
   isSubmitting = false;
@@ -56,6 +55,7 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   canvasElement: HTMLCanvasElement | null = null;
   
   originalPhoneNumber: string = '';
+  currentPhoneNumber: string = '';
 
   constructor() {
     this.profileForm = this.createForm();
@@ -70,65 +70,108 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   }
 
   private loadUserData(): void {
+   
     const currentUser = this.authService.getCurrentUser();
     const token = this.authService.getToken();
     
     if (!currentUser || !token) {
       this.snackBar.open('Please log in to continue', 'Close', { duration: 3000 });
-      this.router.navigate(['/auth/login']);
+      this.router.navigate(['/login']);
       return;
     }
 
+    console.log('User from AuthService getCurrentUser():', currentUser);
+    console.log('Phone number from AuthService:', currentUser.phoneNumber);
+
+  
+    this.originalPhoneNumber = currentUser.phoneNumber || '';
+    this.currentPhoneNumber = currentUser.phoneNumber || '';
+    
+    console.log('Original phone number (from registration):', this.originalPhoneNumber);
+    
+   
+    this.user = currentUser;
+    this.populateForm();
+    this.loadProfilePicture();
+
+  
+    this.loadUserDataFromApi();
+  }
+
+  private loadUserDataFromApi(): void {
     this.isLoadingUserData = true;
 
     this.propertyService.getCurrentUserProfile().subscribe({
-      next: (response: ApiResponse) => {
+      next: (response: any) => {
         this.isLoadingUserData = false;
         
         if (response.success && response.user) {
-          this.user = {
-            ...response.user,
-            bio: (response.user as any).bio || '' 
-          };
+          console.log('User data from API:', response.user);
+          console.log('Phone number from API:', response.user.phoneNumber);
           
-          this.originalPhoneNumber = response.user.phoneNumber || '';
+          this.user = response.user;
+          
+       
+          const apiPhoneNumber = response.user.phoneNumber || '';
+          if (apiPhoneNumber && apiPhoneNumber !== this.originalPhoneNumber) {
+            console.log('API has different phone number, updating from:', this.originalPhoneNumber, 'to:', apiPhoneNumber);
+            this.originalPhoneNumber = apiPhoneNumber;
+            this.currentPhoneNumber = apiPhoneNumber;
+          }
+          
+          console.log('Final original phone number:', this.originalPhoneNumber);
+          console.log('Final current phone number:', this.currentPhoneNumber);
+          
+         
           this.populateForm();
-          this.loadProfilePicture();
+          
+         
+          this.updateLocalUserData(response.user);
+          
         } else {
-          this.snackBar.open('Failed to load profile data', 'Close', { duration: 3000 });
-          this.loadUserDataFromLocalStorage();
+          console.warn('No user data in API response:', response);
+          this.snackBar.open('Failed to load latest profile data', 'Close', { duration: 3000 });
+          
         }
       },
       error: (error: any) => {
         this.isLoadingUserData = false;
+        console.error('Error loading user data from API:', error);
         
         if (error.status === 401 || error.status === 403) {
           this.snackBar.open('Authentication failed', 'Login', { duration: 5000 }).onAction().subscribe(() => {
             this.authService.logout();
           });
-          this.router.navigate(['/auth/login']);
+          this.router.navigate(['/login']);
         } else {
           this.snackBar.open('Using local profile data', 'Close', { duration: 3000 });
-          this.loadUserDataFromLocalStorage();
+         
         }
       }
     });
   }
 
-  private loadUserDataFromLocalStorage(): void {
-    const currentUser = this.authService.getCurrentUser();
-    
-    if (currentUser) {
-      this.user = {
-        ...currentUser,
-        bio: (currentUser as any).bio || '' 
-      };
-      
-      this.originalPhoneNumber = currentUser.phoneNumber || '';
-      this.populateForm();
-      this.loadProfilePicture();
-    } else {
-      this.router.navigate(['/auth/login']);
+  private updateLocalUserData(userData: any): void {
+    try {
+     
+      const currentUser = this.authService.getCurrentUser();
+      if (currentUser) {
+       
+        const localStorageUser = localStorage.getItem('userData');
+        const sessionStorageUser = sessionStorage.getItem('userData');
+        
+        const isPermanent = !!localStorageUser;
+        
+        if (isPermanent) {
+          localStorage.setItem('userData', JSON.stringify(userData));
+        } else {
+          sessionStorage.setItem('userData', JSON.stringify(userData));
+        }
+        
+        console.log('User data updated in', isPermanent ? 'localStorage' : 'sessionStorage');
+      }
+    } catch (error) {
+      console.error('Error updating local user data:', error);
     }
   }
 
@@ -194,14 +237,22 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
 
   private populateForm(): void {
     if (this.user) {
+      console.log('Populating form with user data:', this.user);
+      console.log('Setting phone number field to registered number:', this.originalPhoneNumber);
+      
       this.profileForm.patchValue({
         fullName: this.user.fullName || '',
         email: this.user.email || '',
-        phoneNumber: this.user.phoneNumber || '',
+        phoneNumber: this.originalPhoneNumber || '', 
         bio: this.user.bio || ''
       });
+
+      this.currentPhoneNumber = this.profileForm.value.phoneNumber;
+      console.log('Form populated. Current phone in form:', this.profileForm.value.phoneNumber);
     }
   }
+
+
 
   changePhoto(): void {
     const fileInput = document.createElement('input');
@@ -223,16 +274,6 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
 
     if (file.size > 10 * 1024 * 1024) {
       this.snackBar.open('Image size must be less than 10MB', 'Close', { duration: 3000 });
-      return;
-    }
-
-    const token = this.authService.getToken();
-    const user = this.authService.getCurrentUser();
-    
-    if (!token || !user) {
-      this.snackBar.open('Please log in again', 'Login', { duration: 5000 }).onAction().subscribe(() => {
-        this.authService.logout();
-      });
       return;
     }
 
@@ -503,6 +544,11 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
     const newPhoneNumber = this.profileForm.value.phoneNumber?.trim();
     const phoneChanged = newPhoneNumber !== this.originalPhoneNumber;
 
+    console.log('Submitting form...');
+    console.log('New phone number:', newPhoneNumber);
+    console.log('Original registered phone number:', this.originalPhoneNumber);
+    console.log('Phone changed:', phoneChanged);
+
     if (phoneChanged && newPhoneNumber) {
       this.updatePhoneNumber(newPhoneNumber);
     } else {
@@ -511,9 +557,15 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
   }
 
   private updatePhoneNumber(newPhoneNumber: string): void {
+    console.log('Updating phone number from', this.originalPhoneNumber, 'to:', newPhoneNumber);
+    
+   
     this.authService.updatePhone(newPhoneNumber).subscribe({
       next: (response: any) => {
+        console.log('Phone update response:', response);
         if (response.success) {
+          this.originalPhoneNumber = newPhoneNumber;
+          this.snackBar.open('Phone number updated successfully', 'Close', { duration: 2000 });
           this.updateUserProfile();
         } else {
           this.isSubmitting = false;
@@ -522,6 +574,7 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isSubmitting = false;
+        console.error('Phone update error:', error);
         this.snackBar.open(error.message || 'Failed to update phone number', 'Close', { duration: 3000 });
       }
     });
@@ -536,9 +589,13 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       bio: this.profileForm.value.bio
     };
 
+    console.log('Updating user profile with:', updatedUserData);
+
     this.propertyService.updateUserProfile(updatedUserData).subscribe({
-      next: (response: ApiResponse) => {
+      next: (response: any) => {
         this.isSubmitting = false;
+        console.log('Profile update response:', response);
+        
         if (response.success && response.user) {
           this.snackBar.open('Profile updated successfully', 'Close', { duration: 2000 });
           
@@ -553,6 +610,7 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.isSubmitting = false;
+        console.error('Profile update error:', error);
         this.snackBar.open('Failed to update profile', 'Close', { duration: 3000 });
       }
     });
@@ -578,6 +636,11 @@ export class LandlordProfileEditComponent implements OnInit, OnDestroy {
 
   handleImageError(): void {
     this.profileImage = this.generateInitialAvatar(this.user?.fullName || 'User');
+  }
+
+
+  getCurrentDisplayedPhone(): string {
+    return this.profileForm.get('phoneNumber')?.value || '';
   }
 
   get fullName() { return this.profileForm.get('fullName'); }

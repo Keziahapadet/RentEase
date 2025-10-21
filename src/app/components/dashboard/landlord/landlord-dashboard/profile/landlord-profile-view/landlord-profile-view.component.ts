@@ -10,10 +10,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../../../../../services/auth.service';
 import { PropertyService } from '../../../../../../services/property.service';
-import { User, UserRole, ApiResponse } from '../../../../../../services/auth-interfaces';
 
 @Component({
-  selector: 'app-profile-view',
+  selector: 'app-landlord-profile-view',
   standalone: true,
   imports: [
     CommonModule,
@@ -24,16 +23,16 @@ import { User, UserRole, ApiResponse } from '../../../../../../services/auth-int
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],
-  templateUrl: './profile-view.component.html',
-  styleUrls: ['./profile-view.component.scss']
+  templateUrl: './landlord-profile-view.component.html',
+  styleUrls: ['./landlord-profile-view.component.scss']
 })
-export class ProfileViewComponent implements OnInit, OnDestroy {
+export class LandlordProfileViewComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private propertyService = inject(PropertyService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
 
-  user: User | null = null;
+  user: any = null;
   profileImage: string | null = null;
   formattedRole: string = 'User';
   isLoadingProfilePicture = false;
@@ -60,7 +59,8 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.authService.currentUser$.subscribe(user => {
         if (user) {
-          console.log('User updated from service:', user);
+          console.log('User updated from AuthService:', user);
+          console.log('Phone number from AuthService subscription:', user.phoneNumber);
           this.user = user;
           this.formattedRole = this.formatUserRole(user.role);
           this.loadProfilePictureFromApi();
@@ -86,31 +86,52 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
   }
 
   private loadUserData(): void {
+ 
     this.user = this.authService.getCurrentUser();
-    console.log('Loaded user data from local storage:', this.user);
+    console.log('Loaded user data from AuthService getCurrentUser():', this.user);
+    console.log('Phone number from getCurrentUser():', this.user?.phoneNumber);
     
     if (this.user) {
       this.formattedRole = this.formatUserRole(this.user.role);
       this.loadCachedProfileImage();
+     
+      this.logPhoneNumberDetails();
     }
 
+ 
     this.loadUserDataFromApi();
+  }
+
+  private logPhoneNumberDetails(): void {
+    console.log('=== PHONE NUMBER DETAILS ===');
+    console.log('User object:', this.user);
+    console.log('Phone number property:', this.user?.phoneNumber);
+    console.log('Phone number type:', typeof this.user?.phoneNumber);
+    console.log('Phone number length:', this.user?.phoneNumber?.length);
+    console.log('All user properties:', Object.keys(this.user || {}));
+    console.log('=== END PHONE NUMBER DETAILS ===');
   }
 
   private loadUserDataFromApi(): void {
     this.isLoadingUserData = true;
     
     this.propertyService.getCurrentUserProfile().subscribe({
-      next: (response: ApiResponse) => {
+      next: (response: any) => {
         this.isLoadingUserData = false;
         if (response.success && response.user) {
           console.log('User data loaded from API:', response.user);
+          console.log('Phone number from API:', response.user.phoneNumber);
+          
           this.user = response.user;
           this.formattedRole = this.formatUserRole(response.user.role);
           
-          this.propertyService.updateLocalUserData(response.user);
+        
+          this.updateLocalUserData(response.user);
           
           this.loadProfilePictureFromApi();
+          
+       
+          this.logPhoneNumberDetails();
         } else {
           console.warn('No user data received from API:', response.message);
           this.snackBar.open('Failed to load profile data', 'Close', { duration: 3000 });
@@ -121,6 +142,7 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
         console.error('Error loading user data from API:', error);
         this.snackBar.open('Error loading profile data', 'Close', { duration: 3000 });
         
+       
         if (!this.user) {
           this.user = this.authService.getCurrentUser();
           if (this.user) {
@@ -131,11 +153,35 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
     });
   }
 
+  private updateLocalUserData(userData: any): void {
+    try {
+     
+      const currentUser = this.authService.getCurrentUser();
+      if (currentUser) {
+      
+        const localStorageUser = localStorage.getItem('userData');
+        const sessionStorageUser = sessionStorage.getItem('userData');
+        
+        const isPermanent = !!localStorageUser;
+        
+        if (isPermanent) {
+          localStorage.setItem('userData', JSON.stringify(userData));
+        } else {
+          sessionStorage.setItem('userData', JSON.stringify(userData));
+        }
+        
+        console.log('User data updated in', isPermanent ? 'localStorage' : 'sessionStorage');
+      }
+    } catch (error) {
+      console.error('Error updating local user data:', error);
+    }
+  }
+
   private loadProfilePictureFromApi(): void {
     this.isLoadingProfilePicture = true;
     
     this.propertyService.getProfilePicture().subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.isLoadingProfilePicture = false;
         if (response.success && response.pictureUrl) {
           const timestamp = new Date().getTime();
@@ -173,7 +219,6 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
     }
   }
 
-  // CHANGED: Made this method public so it can be used in the template
   generateInitialAvatar(name: string): string {
     const names = name.split(' ');
     const initials = names.map(name => name.charAt(0).toUpperCase()).join('').slice(0, 2);
@@ -189,7 +234,7 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
     `)}`;
   }
 
-  private formatUserRole(role: string | UserRole): string {
+  private formatUserRole(role: string): string {
     const roleMap: { [key: string]: string } = {
       'LANDLORD': 'Landlord',
       'TENANT': 'Tenant',
@@ -210,8 +255,22 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
   }
 
   getUserPhone(): string {
-    console.log('Getting phone number:', this.user?.phoneNumber);
-    return this.user?.phoneNumber || 'Not provided';
+    console.log('Getting phone number for display:', this.user?.phoneNumber);
+    
+  
+    const phoneNumber = this.user?.phoneNumber || 
+                       this.user?.phone || 
+                       this.user?.phone_number ||
+                       this.user?.mobile ||
+                       this.user?.contactNumber;
+    
+    console.log('Final phone number to display:', phoneNumber);
+    
+    if (phoneNumber && phoneNumber.trim() !== '') {
+      return phoneNumber;
+    }
+    
+    return 'Not provided';
   }
 
   getEmailVerificationStatus(): string {
@@ -244,5 +303,17 @@ export class ProfileViewComponent implements OnInit, OnDestroy {
   refreshProfile(): void {
     console.log('Manually refreshing profile data');
     this.loadUserDataFromApi();
+  }
+
+
+  debugUserData(): void {
+    console.log('=== DEBUG USER DATA ===');
+    console.log('Full user object:', this.user);
+    console.log('User keys:', Object.keys(this.user || {}));
+    console.log('Phone number:', this.user?.phoneNumber);
+    console.log('All storage data:');
+    console.log('localStorage userData:', localStorage.getItem('userData'));
+    console.log('sessionStorage userData:', sessionStorage.getItem('userData'));
+    console.log('=== END DEBUG ===');
   }
 }
