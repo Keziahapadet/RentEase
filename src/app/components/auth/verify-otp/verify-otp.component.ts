@@ -156,19 +156,46 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
 
     const userRole = response.user?.role || this.userType;
     
-    // Store authentication data if available
+    
     if (response.token) {
       localStorage.setItem('authToken', response.token);
     }
+    
     if (response.user) {
-      localStorage.setItem('userData', JSON.stringify(response.user));
+     
+      const pendingUserData = this.getPendingUserData();
+      const phoneNumber = pendingUserData?.phoneNumber || response.user.phoneNumber;
+      
+     
+      const userData = {
+        ...response.user,
+        phoneNumber: phoneNumber || ''
+      };
+      
+      localStorage.setItem('userData', JSON.stringify(userData));
+      console.log('User data stored with phone number:', userData);
     }
 
-    // Always redirect to dashboard after successful verification
+    
     const dashboardRoute = this.getDashboardRoute(userRole);
     
     await new Promise(resolve => setTimeout(resolve, 500));
     this.router.navigate([dashboardRoute], { replaceUrl: true });
+  }
+
+  private getPendingUserData(): any {
+    try {
+    
+      const pendingUser = sessionStorage.getItem('pendingUser');
+      const pendingEmail = sessionStorage.getItem('pendingVerificationEmail');
+      
+      if (pendingUser && pendingEmail === this.email) {
+        return JSON.parse(pendingUser);
+      }
+    } catch (error) {
+      console.error('Error getting pending user data:', error);
+    }
+    return null;
   }
 
   private getDashboardRoute(role: string): string {
