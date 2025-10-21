@@ -38,14 +38,6 @@ export class AuthService {
     }
   }
 
-  private setInStorage(key: string, value: string, permanent: boolean = false): void {
-    if (!this.isBrowser) return;
-    try {
-      const storage = permanent ? localStorage : sessionStorage;
-      storage.setItem(key, value);
-    } catch {}
-  }
-
   private removeFromStorage(key: string): void {
     if (!this.isBrowser) return;
     try {
@@ -70,7 +62,10 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
-      tap(res => this.handleAuthSuccess(res, credentials.rememberMe)),
+      tap(res => {
+        console.log('LOGIN RESPONSE:', res); // Debug log
+        this.handleAuthSuccess(res, credentials.rememberMe);
+      }),
       catchError(this.handleError)
     );
   }
@@ -81,19 +76,25 @@ export class AuthService {
       email: userData.email.trim().toLowerCase()
     };
 
+    console.log('REGISTER REQUEST:', normalizedData); // Debug log
+
     return this.http.post<any>(`${this.apiUrl}/signup`, normalizedData, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
       tap(res => {
+        console.log('REGISTER RESPONSE:', res); // Debug log
         if (res.success && res.user) {
           const tempUser = {
             ...res.user,
+            phoneNumber: userData.phoneNumber, // Preserve phone number
             verified: false,
             emailVerified: false
           };
           if (this.isBrowser) {
             sessionStorage.setItem('pendingUser', JSON.stringify(tempUser));
             sessionStorage.setItem('pendingEmail', normalizedData.email);
+            sessionStorage.setItem('pendingPhoneNumber', userData.phoneNumber);
+            console.log('Stored pending user with phone:', tempUser.phoneNumber);
           }
         }
       }),
@@ -214,9 +215,11 @@ export class AuthService {
     ).pipe(catchError(this.handleError));
   }
 
-  // Phone number update method - UPDATED
+  // Phone number update method - ENHANCED
   updatePhone(newPhoneNumber: string): Observable<any> {
     const payload = { newPhoneNumber };
+    
+    console.log('UPDATING PHONE NUMBER TO:', newPhoneNumber); // Debug log
     
     return this.http.put<any>(`${this.apiUrl}/update-phone`, payload, {
       headers: this.getAuthHeaders()
@@ -230,9 +233,17 @@ export class AuthService {
               ...currentUser, 
               phoneNumber: newPhoneNumber 
             };
+            
+            // Update storage with new phone number
             const isPermanent = !!localStorage.getItem('userData');
-            this.setInStorage('userData', JSON.stringify(updatedUser), isPermanent);
+            if (isPermanent) {
+              localStorage.setItem('userData', JSON.stringify(updatedUser));
+            } else {
+              sessionStorage.setItem('userData', JSON.stringify(updatedUser));
+            }
+            
             this.currentUserSubject.next(updatedUser);
+            console.log('Phone number updated in user data:', updatedUser.phoneNumber);
           }
         }
       }),
@@ -240,7 +251,7 @@ export class AuthService {
     );
   }
 
-  // Password update method - UPDATED
+  // Password update method
   updatePassword(currentPassword: string, newPassword: string, confirmNewPassword: string): Observable<any> {
     const payload = {
       currentPassword,
@@ -271,14 +282,22 @@ export class AuthService {
       otpCode: request.otpCode.toString().trim(),
       type: request.type
     };
+    
+    console.log('VERIFY OTP REQUEST:', cleanRequest); // Debug log
+    
     return this.http.post<any>(`${this.apiUrl}/verify-otp`, cleanRequest, {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     }).pipe(
       tap(res => {
+        console.log('VERIFY OTP RESPONSE:', res); // Debug log
         if (res.success && res.token) {
           if (!res.user?.role) {
             throw new Error('User role not provided in verification response');
           }
+          
+          // Get phone number from pending storage
+          const pendingPhoneNumber = this.getPendingPhoneNumber();
+          console.log('Pending phone number found:', pendingPhoneNumber);
           
           this.handleAuthSuccess({
             token: res.token,
@@ -288,12 +307,41 @@ export class AuthService {
             email: res.user.email || '',
             role: res.user.role,
             verified: res.user.verified || false,
-            user: res.user
+            phoneNumber: pendingPhoneNumber || res.user.phoneNumber || '', // Include phone number
+            user: {
+              ...res.user,
+              phoneNumber: pendingPhoneNumber || res.user.phoneNumber || '' // Ensure phone in user object
+            }
           }, false);
         }
       }),
       catchError(this.handleOtpError)
     );
+  }
+
+  private getPendingPhoneNumber(): string {
+    if (!this.isBrowser) return '';
+    
+    try {
+      // Try multiple sources for phone number
+      const pendingUser = sessionStorage.getItem('pendingUser');
+      if (pendingUser) {
+        const userData = JSON.parse(pendingUser);
+        if (userData.phoneNumber) {
+          return userData.phoneNumber;
+        }
+      }
+      
+      const pendingPhone = sessionStorage.getItem('pendingPhoneNumber');
+      if (pendingPhone) {
+        return pendingPhone;
+      }
+      
+      return '';
+    } catch (error) {
+      console.error('Error getting pending phone number:', error);
+      return '';
+    }
   }
 
   resendOtp(request: any): Observable<any> {
@@ -325,7 +373,9 @@ export class AuthService {
     const userData = this.getFromStorage('userData');
     if (!userData) return null;
     try { 
-      return JSON.parse(userData); 
+      const user = JSON.parse(userData);
+      console.log('GET CURRENT USER:', user); // Debug log
+      return user;
     } catch { 
       this.removeFromStorage('userData'); 
       return null; 
@@ -386,13 +436,17 @@ export class AuthService {
     if (!this.isBrowser) return;
     sessionStorage.removeItem('pendingUser');
     sessionStorage.removeItem('pendingEmail');
+    sessionStorage.removeItem('pendingPhoneNumber');
   }
 
+  // ENHANCED AUTH SUCCESS HANDLER WITH PHONE NUMBER SUPPORT
   private handleAuthSuccess(response: any, rememberMe: boolean = false): void {
     if (!this.isBrowser) return;
     
     let user: any = null;
     let token: string | null = null;
+
+    console.log('HANDLE AUTH SUCCESS:', response); // Debug log
 
     if ('userId' in response) {
       token = response.token;
@@ -402,11 +456,22 @@ export class AuthService {
         fullName: response.fullName,
         role: response.role,
         verified: response.verified,
-        emailVerified: response.verified
+        emailVerified: response.verified,
+        phoneNumber: response.phoneNumber || this.getPendingPhoneNumber() || '' // Include phone number
       };
     } else if ('user' in response && response.user) {
-      user = response.user;
+      user = {
+        ...response.user,
+        phoneNumber: response.user.phoneNumber || this.getPendingPhoneNumber() || '' // Include phone number
+      };
       token = ('token' in response && response.token) ? response.token : null;
+    } else if (response.user) {
+      // Direct user object response
+      user = {
+        ...response.user,
+        phoneNumber: response.user.phoneNumber || this.getPendingPhoneNumber() || '' // Include phone number
+      };
+      token = response.token || null;
     }
 
     if (token) {
@@ -414,13 +479,27 @@ export class AuthService {
       if (cleanToken.startsWith('Bearer ')) {
         cleanToken = cleanToken.substring(7).trim();
       }
-      this.setInStorage('authToken', cleanToken, rememberMe);
+      
+      // Use localStorage or sessionStorage based on rememberMe
+      if (rememberMe) {
+        localStorage.setItem('authToken', cleanToken);
+      } else {
+        sessionStorage.setItem('authToken', cleanToken);
+      }
     }
 
     if (user) {
-      this.setInStorage('userData', JSON.stringify(user), rememberMe);
+      // Store user data with phone number
+      if (rememberMe) {
+        localStorage.setItem('userData', JSON.stringify(user));
+      } else {
+        sessionStorage.setItem('userData', JSON.stringify(user));
+      }
+      
       this.currentUserSubject.next(user);
       this.isAuthenticatedSubject.next(true);
+      
+      console.log('User data stored with phone number:', user.phoneNumber);
       
       if (user.verified || user.emailVerified) {
         this.clearPendingVerification();

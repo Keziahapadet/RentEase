@@ -156,24 +156,24 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
 
     const userRole = response.user?.role || this.userType;
     
-    
     if (response.token) {
       localStorage.setItem('authToken', response.token);
     }
     
     if (response.user) {
      
-      const pendingUserData = this.getPendingUserData();
-      const phoneNumber = pendingUserData?.phoneNumber || response.user.phoneNumber;
+      const phoneNumber = this.getPhoneNumberFromRegistration();
+      console.log('Phone number from registration:', phoneNumber);
       
-     
       const userData = {
         ...response.user,
-        phoneNumber: phoneNumber || ''
+        phoneNumber: phoneNumber || response.user.phoneNumber || '' 
       };
       
       localStorage.setItem('userData', JSON.stringify(userData));
       console.log('User data stored with phone number:', userData);
+     
+      this.cleanupTemporaryStorage();
     }
 
     
@@ -183,19 +183,50 @@ export class VerifyOtpComponent implements AfterViewInit, OnInit, OnDestroy {
     this.router.navigate([dashboardRoute], { replaceUrl: true });
   }
 
-  private getPendingUserData(): any {
+  private getPhoneNumberFromRegistration(): string {
     try {
-    
-      const pendingUser = sessionStorage.getItem('pendingUser');
-      const pendingEmail = sessionStorage.getItem('pendingVerificationEmail');
       
-      if (pendingUser && pendingEmail === this.email) {
-        return JSON.parse(pendingUser);
+      const pendingUser = sessionStorage.getItem('pendingUser');
+      if (pendingUser) {
+        const userData = JSON.parse(pendingUser);
+        console.log('Found phone in pendingUser:', userData.phoneNumber);
+        return userData.phoneNumber;
       }
+      
+      
+      const pendingPhone = sessionStorage.getItem('pendingPhoneNumber');
+      if (pendingPhone) {
+        console.log('Found phone in pendingPhoneNumber:', pendingPhone);
+        return pendingPhone;
+      }
+      
+    
+      const queryPhone = this.route.snapshot.queryParams['phoneNumber'];
+      if (queryPhone) {
+        console.log('Found phone in query params:', queryPhone);
+        return queryPhone;
+      }
+      
+      console.warn('No phone number found in any temporary storage');
+      return '';
     } catch (error) {
-      console.error('Error getting pending user data:', error);
+      console.error('Error getting phone number from registration:', error);
+      return '';
     }
-    return null;
+  }
+
+  private cleanupTemporaryStorage(): void {
+  
+    const itemsToRemove = [
+      'pendingUser',
+      'pendingPhoneNumber', 
+      'pendingVerificationEmail'
+    ];
+    
+    itemsToRemove.forEach(item => {
+      sessionStorage.removeItem(item);
+      console.log('Cleaned up:', item);
+    });
   }
 
   private getDashboardRoute(role: string): string {

@@ -213,7 +213,7 @@ export class RegistrationComponent implements OnInit {
         this.fieldErrors.phoneNumber = 'Please enter a valid Kenyan phone number (e.g., 0712345678 or +254712345678)';
         isValid = false;
       } else {
-        // Format phone number to standard format
+      
         this.formData.phoneNumber = this.formatPhoneNumber(cleanPhone);
       }
     }
@@ -254,11 +254,11 @@ export class RegistrationComponent implements OnInit {
   }
 
   private formatPhoneNumber(phone: string): string {
-    // Convert to international format if it starts with 0
+    
     if (phone.startsWith('0')) {
       return '+254' + phone.substring(1);
     }
-    // Ensure it has + if it starts with 254
+   
     if (phone.startsWith('254')) {
       return '+' + phone;
     }
@@ -282,7 +282,7 @@ export class RegistrationComponent implements OnInit {
 
     console.log('Registering user with phone:', registerRequest.phoneNumber);
 
-    // Store complete user data temporarily including phone number for verification
+
     const pendingUserData = {
       fullName: registerRequest.fullName,
       email: registerRequest.email,
@@ -310,7 +310,7 @@ export class RegistrationComponent implements OnInit {
             queryParams: { 
               email: registerRequest.email,
               userType: registerRequest.role,
-              phoneNumber: registerRequest.phoneNumber // Pass phone number in query params too
+              phoneNumber: registerRequest.phoneNumber
             },
             state: { 
               phoneNumber: registerRequest.phoneNumber 
@@ -340,7 +340,6 @@ export class RegistrationComponent implements OnInit {
     } else if (error?.error?.message) {
       const msg = error.error.message.toLowerCase();
       
-      // Email errors
       if (msg.includes('email') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
         this.fieldErrors.email = 'Email already registered';
         errorMessage = 'This email is already registered. Please use a different email or login';
@@ -354,7 +353,6 @@ export class RegistrationComponent implements OnInit {
         errorMessage = 'Please enter your email address';
         showSnackbar = false;
         
-      // Phone number errors  
       } else if (msg.includes('phone') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
         this.fieldErrors.phoneNumber = 'Phone number already registered';
         errorMessage = 'This phone number is already registered. Please use a different number';
@@ -368,7 +366,6 @@ export class RegistrationComponent implements OnInit {
         errorMessage = 'Please enter your phone number';
         showSnackbar = false;
         
-      // Name errors
       } else if (msg.includes('name') && (msg.includes('already') || msg.includes('exists') || msg.includes('taken'))) {
         this.fieldErrors.fullName = 'Name already taken';
         errorMessage = 'This name is already taken. Please choose a different name';
@@ -378,7 +375,6 @@ export class RegistrationComponent implements OnInit {
         errorMessage = 'Please enter your full name';
         showSnackbar = false;
         
-      // Password errors
       } else if (msg.includes('password') && msg.includes('weak')) {
         this.fieldErrors.password = 'Password too weak';
         errorMessage = 'Password is too weak. Please use a stronger password with letters, numbers, and symbols';
@@ -396,7 +392,6 @@ export class RegistrationComponent implements OnInit {
         errorMessage = 'The passwords you entered do not match';
         showSnackbar = false;
         
-      // Access code errors
       } else if (msg.includes('access code') || msg.includes('invalid code')) {
         this.fieldErrors.accessCode = 'Invalid access code';
         errorMessage = 'The business access code you entered is incorrect';
@@ -406,7 +401,6 @@ export class RegistrationComponent implements OnInit {
         errorMessage = 'Business access code is required for business registration';
         showSnackbar = false;
         
-      // Role errors
       } else if (msg.includes('role') && msg.includes('required')) {
         this.fieldErrors.role = 'Please select a role';
         errorMessage = 'Please select your account type';
@@ -416,7 +410,6 @@ export class RegistrationComponent implements OnInit {
         errorMessage = 'Please select a valid account type';
         showSnackbar = false;
         
-      // Network errors
       } else if (msg.includes('network') || msg.includes('connection')) {
         errorMessage = 'Connection problem. Check your internet and try again';
       } else if (msg.includes('timeout')) {
@@ -440,7 +433,6 @@ export class RegistrationComponent implements OnInit {
       errorMessage = 'Too many registration attempts. Please wait 15 minutes before trying again';
     }
     
-    // Clear sensitive fields on error
     if (errorMessage.includes('password') || 
         errorMessage.includes('already exists') ||
         errorMessage.includes('taken')) {
@@ -500,14 +492,5 @@ export class RegistrationComponent implements OnInit {
       this.agreedToTerms &&
       (this.formData.role !== UserRole.BUSINESS || this.formData.accessCode === 'BUSINESS2024')
     );
-  }
-
-  // Debug method to check what's being stored
-  debugRegistrationData(): void {
-    console.log('=== REGISTRATION DEBUG ===');
-    console.log('Form Data:', this.formData);
-    console.log('Pending User in sessionStorage:', sessionStorage.getItem('pendingUser'));
-    console.log('Pending Phone in sessionStorage:', sessionStorage.getItem('pendingPhoneNumber'));
-    console.log('=== END DEBUG ===');
   }
 }
